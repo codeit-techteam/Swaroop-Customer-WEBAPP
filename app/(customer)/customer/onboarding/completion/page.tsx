@@ -1,0 +1,209 @@
+"use client";
+
+import { useEffect } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  Check,
+  LayoutGrid,
+  Package,
+  TrendingUp,
+} from "lucide-react";
+import { toast } from "sonner";
+import { ROUTES } from "@/constants";
+import { generateOnboardingPdf } from "@/lib/onboarding-pdf";
+import { useOnboardingStore } from "@/store/onboardingStore";
+import { OnboardingLayout, RouteGuard } from "@/components/onboarding";
+import { Button } from "@/components/ui/button";
+
+export default function CompletionPage() {
+  return (
+    <RouteGuard stepId="completion">
+      <OnboardingLayout saveDraftVariant="link" helpVariant="button">
+        <CompletionContent />
+      </OnboardingLayout>
+    </RouteGuard>
+  );
+}
+
+function CompletionContent() {
+  const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
+  const isCompleted = useOnboardingStore((s) => s.isCompleted);
+
+  useEffect(() => {
+    if (!isCompleted) {
+      completeOnboarding();
+    }
+  }, [isCompleted, completeOnboarding]);
+
+  function handleDownloadPdf() {
+    try {
+      const snapshot = useOnboardingStore.getState();
+      generateOnboardingPdf({
+        currentStep: snapshot.currentStep,
+        completedSteps: snapshot.completedSteps,
+        companyInfo: snapshot.companyInfo,
+        gstInfo: snapshot.gstInfo,
+        businessAddress: snapshot.businessAddress,
+        shippingAddresses: snapshot.shippingAddresses,
+        creditDocuments: snapshot.creditDocuments,
+        creditLimit: snapshot.creditLimit,
+        isCompleted: snapshot.isCompleted,
+        draftSavedAt: snapshot.draftSavedAt,
+      });
+      toast.success("Submission PDF downloaded");
+    } catch {
+      toast.error("Unable to generate PDF");
+    }
+  }
+
+  return (
+    <div className="relative mx-auto max-w-5xl overflow-hidden">
+      {/* Confetti accents */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-40"
+        aria-hidden="true"
+      >
+        {[
+          { left: "8%", top: "12%", color: "bg-emerald-300", rotate: "12deg" },
+          { left: "18%", top: "28%", color: "bg-sky-300", rotate: "-8deg" },
+          { left: "72%", top: "10%", color: "bg-emerald-200", rotate: "20deg" },
+          { left: "85%", top: "32%", color: "bg-sky-200", rotate: "-15deg" },
+          { left: "45%", top: "6%", color: "bg-emerald-300", rotate: "5deg" },
+          { left: "60%", top: "22%", color: "bg-sky-300", rotate: "25deg" },
+        ].map((c, i) => (
+          <motion.span
+            key={i}
+            className={`absolute h-2 w-2 rounded-[2px] ${c.color}`}
+            style={{ left: c.left, top: c.top, rotate: c.rotate }}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 * i, duration: 0.4 }}
+          />
+        ))}
+      </div>
+
+      <div className="relative grid gap-6 pt-4 lg:grid-cols-[1fr_280px]">
+        <motion.div
+          className="flex flex-col items-center rounded-2xl border border-slate-200 bg-white px-6 py-12 text-center shadow-sm sm:px-10"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+        >
+          <motion.div
+            className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{
+              type: "spring",
+              stiffness: 260,
+              damping: 16,
+              delay: 0.15,
+            }}
+          >
+            <Check className="h-8 w-8" strokeWidth={3} aria-hidden="true" />
+          </motion.div>
+
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            Application Submitted for Review
+          </h1>
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-500 sm:text-base">
+            Our compliance team is verifying your details. You will receive an
+            update within 24-48 business hours via your registered email
+            address.
+          </p>
+
+          <div className="mt-8 flex w-full flex-col items-stretch justify-center gap-3 sm:w-auto sm:flex-row">
+            <Button
+              asChild
+              className="h-11 bg-slate-900 px-6 hover:bg-slate-800"
+            >
+              <Link href={ROUTES.dashboard}>
+                Go to Dashboard
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 border-slate-300 px-6 text-slate-800"
+              onClick={handleDownloadPdf}
+            >
+              View Submission PDF
+            </Button>
+          </div>
+        </motion.div>
+
+        <aside className="space-y-4">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Next Steps
+            </h2>
+            <ul className="mt-4 space-y-4">
+              <NextStepItem
+                icon={LayoutGrid}
+                iconClass="bg-sky-100 text-sky-600"
+                title="Dashboard access"
+                description="Explore portal features in read-only mode."
+              />
+              <NextStepItem
+                icon={Package}
+                iconClass="bg-sky-100 text-sky-600"
+                title="Material samples"
+                description="Request early testing samples for Grade-A polymers."
+              />
+              <NextStepItem
+                icon={TrendingUp}
+                iconClass="bg-amber-100 text-amber-600"
+                title="Live pricing overview"
+                description="Monitor index-linked petrochemical indices."
+              />
+            </ul>
+          </div>
+
+          <div className="relative overflow-hidden rounded-xl bg-slate-900 p-5 shadow-md">
+            <div
+              className="absolute inset-0 opacity-50"
+              style={{
+                backgroundImage:
+                  "linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0f172a 100%)",
+              }}
+              aria-hidden="true"
+            />
+            <p className="relative text-sm font-semibold leading-snug text-white">
+              Trading Capability{" "}
+              <span className="text-sky-300">Unlocks in ~48h</span>
+            </p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function NextStepItem({
+  icon: Icon,
+  iconClass,
+  title,
+  description,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  iconClass: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <li className="flex gap-3">
+      <div
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${iconClass}`}
+      >
+        <Icon className="h-4 w-4" aria-hidden="true" />
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-slate-800">{title}</p>
+        <p className="text-xs leading-relaxed text-slate-500">{description}</p>
+      </div>
+    </li>
+  );
+}
