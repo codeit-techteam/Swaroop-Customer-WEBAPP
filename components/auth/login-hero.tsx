@@ -5,7 +5,7 @@ import { Logo, AuthStat } from "@/components/auth";
 export function LoginHero() {
   return (
     <div className="flex h-full flex-col text-white">
-      <Logo variant="light" showTagline tagline="INDUSTRIAL PORTAL V2.4" />
+      <Logo variant="light" showTagline tagline="INDUSTRIAL PORTAL" />
 
       <div className="my-auto max-w-xl space-y-5 py-16">
         <h2 className="text-4xl font-bold leading-[1.15] tracking-tight xl:text-5xl">

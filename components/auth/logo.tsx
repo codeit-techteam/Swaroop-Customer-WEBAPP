@@ -17,7 +17,7 @@ interface LogoProps {
 export function Logo({
   variant = "light",
   showTagline = false,
-  tagline = "INDUSTRIAL PORTAL V2.4",
+  tagline = "INDUSTRIAL PORTAL",
   href,
   className,
   size = "md",
