@@ -114,7 +114,7 @@ export function ProformaInvoicesPage() {
         onChange={setFilters}
         onReset={resetFilters}
         hideType
-        searchPlaceholder="Search proforma, order, product, seller…"
+        searchPlaceholder="Search proforma, order, product, supply source…"
       />
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">

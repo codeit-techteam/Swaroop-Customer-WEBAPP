@@ -260,7 +260,7 @@ export function DocumentsDashboardPage() {
           <div className="flex flex-wrap gap-2">
             {[
               "Purchase Request",
-              "Seller Approval",
+              "Order Confirmation",
               "Purchase Order",
               "Payment",
               "Shipment",
@@ -293,7 +293,7 @@ export function DocumentsDashboardPage() {
                     title: "Document Centre Overview",
                     documentNumber: "GUIDE-DOCS-001",
                     extraLines: [
-                      "1. Purchase Order Generated after seller approval",
+                      "1. Purchase Order Generated after PetroTrade confirmation",
                       "2. Invoice Generated after commercial confirmation",
                       "3. Payment Completed unlocks receipts",
                       "4. Shipment Documents Ready (packing, challan, e-way)",

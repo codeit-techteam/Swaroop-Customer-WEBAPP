@@ -35,6 +35,7 @@ export function OrdersFiltersBar({
     "packed",
     "ready",
     "in_transit",
+    "delayed",
     "delivered",
     "cancelled",
   ],
@@ -48,7 +49,7 @@ export function OrdersFiltersBar({
           <Input
             value={filters.search}
             onChange={(e) => onChange({ search: e.target.value })}
-            placeholder="Search orders, PO, product, seller…"
+            placeholder="Search orders, PO, product, supply source…"
             className="h-10 rounded-xl pl-9"
           />
         </div>
@@ -125,10 +126,10 @@ export function OrdersFiltersBar({
           onValueChange={(v) => onChange({ seller: v })}
         >
           <SelectTrigger className="h-10 rounded-xl">
-            <SelectValue placeholder="Seller" />
+            <SelectValue placeholder="Supply Source" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All sellers</SelectItem>
+            <SelectItem value="all">All supply sources</SelectItem>
             {sellers.map((s) => (
               <SelectItem key={s} value={s}>
                 {s}

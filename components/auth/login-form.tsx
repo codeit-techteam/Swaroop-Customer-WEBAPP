@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LogIn, Mail, MessageSquare } from "lucide-react";
@@ -17,11 +17,13 @@ import {
   SecondaryButton,
 } from "@/components/auth";
 import { loginSchema, type LoginFormValues } from "@/lib/auth-schemas";
+import { getPostAuthDestination } from "@/lib/post-auth-redirect";
 import { useAuthStore } from "@/store/authStore";
 import { ROUTES } from "@/constants";
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const login = useAuthStore((s) => s.login);
   const continueWithOTP = useAuthStore((s) => s.continueWithOTP);
   const isLoading = useAuthStore((s) => s.isLoading);
@@ -46,7 +48,8 @@ export function LoginForm() {
 
   const onLogin = handleSubmit(async (values) => {
     await login(values.identifier, values.password, values.rememberMe);
-    router.push(ROUTES.dashboard);
+    const next = searchParams.get("next");
+    router.push(getPostAuthDestination(next));
   });
 
   const onContinueWithOtp = async () => {

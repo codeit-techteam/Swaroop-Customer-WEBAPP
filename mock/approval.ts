@@ -9,7 +9,7 @@ export const REJECTION_REASONS = [
   {
     id: "pricing",
     reason:
-      "Market price moved outside the locked window before seller acceptance.",
+      "Market price moved outside the locked window before PetroTrade confirmation.",
     suggestedAction:
       "Create a new purchase request to lock the current market price.",
   },
@@ -21,7 +21,7 @@ export const REJECTION_REASONS = [
   },
   {
     id: "moq",
-    reason: "Requested quantity does not meet seller MOQ for this grade.",
+    reason: "Requested quantity does not meet MOQ for this grade.",
     suggestedAction: "Increase quantity to meet MOQ and resubmit the request.",
   },
 ] as const;
@@ -29,8 +29,8 @@ export const REJECTION_REASONS = [
 export const DEFAULT_REJECTION = REJECTION_REASONS[0];
 
 export const REJECTION_COPY = {
-  title: "Request Rejected",
-  subtitle: "The seller could not approve this purchase request.",
+  title: "Request Declined",
+  subtitle: "PetroTrade could not confirm this purchase request.",
   modifyLabel: "Modify Request",
   browseLabel: "Browse Products",
 } as const;

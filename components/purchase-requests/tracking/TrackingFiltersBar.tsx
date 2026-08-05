@@ -54,7 +54,7 @@ export function TrackingFiltersBar({
         <Input
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search request ID, product, seller…"
+          placeholder="Search request ID, product, supply source…"
           className="h-10 rounded-xl pl-9"
         />
       </div>
@@ -88,10 +88,10 @@ export function TrackingFiltersBar({
           </Select>
           <Select value={seller} onValueChange={onSellerChange}>
             <SelectTrigger className="h-10 w-full rounded-xl lg:w-[180px]">
-              <SelectValue placeholder="Seller" />
+              <SelectValue placeholder="Supply Source" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All sellers</SelectItem>
+              <SelectItem value="all">All supply sources</SelectItem>
               {sellers.map((s) => (
                 <SelectItem key={s} value={s}>
                   {s}

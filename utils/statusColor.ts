@@ -25,10 +25,20 @@ const STATUS_COLOR_MAP: Record<string, StatusTone> = {
   rejected: "danger",
   failed: "danger",
   overdue: "danger",
+  delayed: "danger",
   expired: "danger",
   archived: "neutral",
   draft: "neutral",
   inactive: "neutral",
+  open: "info",
+  in_progress: "warning",
+  waiting_customer: "warning",
+  resolved: "success",
+  closed: "neutral",
+  critical: "danger",
+  high: "warning",
+  medium: "info",
+  low: "neutral",
 };
 export function statusColor(status: string): StatusTone {
   const key = status.toLowerCase().replace(/\s+/g, "_");

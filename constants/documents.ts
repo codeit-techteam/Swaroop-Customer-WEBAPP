@@ -88,21 +88,22 @@ export const DOCUMENT_NOTIFICATION_LABELS: Record<
   download_completed: "Download Completed",
 };
 
+/** Blind marketplace supply sources — never real supplier company names. */
 export const DOCUMENT_SELLERS = [
-  "Reliance Industries",
-  "HPCL",
-  "BPCL",
-  "IOCL",
-  "Adani Petrochem",
+  "PetroTrade Supply Network",
+  "Verified Supply Network",
+  "West India Hub",
+  "East India Hub",
+  "Coastal Hub",
 ] as const;
 
 export const DOCUMENT_WAREHOUSES = [
-  "Jamnagar",
-  "Hazira",
-  "Dahej",
-  "Mundra",
-  "Panipat",
-  "Paradip",
+  "Jamnagar Hub",
+  "Hazira Hub",
+  "Dahej Hub",
+  "Mundra Hub",
+  "Panipat Hub",
+  "Paradip Hub",
 ] as const;
 
 export const DOCUMENT_PRODUCTS = [

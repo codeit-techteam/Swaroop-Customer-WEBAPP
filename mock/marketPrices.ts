@@ -1,8 +1,8 @@
 import type { MarketPrice } from "@/types/dashboard";
 
 /**
- * Real-time market price cards — INR / MT (India market).
- * Values aligned with Customer App price watchlist scale.
+ * Market price cards — INR / MT (India market).
+ * Static reference prices for the Customer Portal dashboard.
  */
 export const marketPricesMock: MarketPrice[] = [
   {

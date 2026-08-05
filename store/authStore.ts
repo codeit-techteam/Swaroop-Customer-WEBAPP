@@ -15,6 +15,8 @@ export interface AuthUser {
   phone?: string;
   companyName?: string;
   role?: string;
+  designation?: string;
+  avatarUrl?: string | null;
 }
 
 export interface RegisterPayload {
@@ -61,6 +63,7 @@ export interface AuthStoreActions {
   resetPassword: (password: string) => Promise<boolean>;
   clearResetFlow: () => void;
   logout: () => void;
+  updateUser: (patch: Partial<AuthUser>) => void;
   setLoading: (loading: boolean) => void;
   hydrateFromCookie: () => void;
 }
@@ -99,12 +102,14 @@ function createMockUser(
   partial: Partial<AuthUser> & Pick<AuthUser, "email">,
 ): AuthUser {
   return {
-    id: `usr_${Date.now()}`,
-    name: partial.name ?? partial.companyName ?? "PetroTrade Customer",
+    id: partial.id ?? `usr_${Date.now()}`,
+    name: partial.name ?? partial.companyName ?? "Swaroop",
     email: partial.email,
     phone: partial.phone,
-    companyName: partial.companyName,
-    role: partial.role ?? "customer",
+    companyName: partial.companyName ?? "Swaroop Plastic Industries Pvt Ltd",
+    role: partial.role ?? "Procurement Manager",
+    designation: partial.designation ?? "Procurement Manager",
+    avatarUrl: partial.avatarUrl ?? null,
   };
 }
 
@@ -136,8 +141,11 @@ export const useAuthStore = create<AuthStore>()(
         const token = createMockToken();
         const user = createMockUser({
           email,
-          phone,
-          name: "PetroTrade Customer",
+          phone: phone ? `+91 ${phone}` : "+91 99099 77881",
+          name: "Swaroop",
+          companyName: "Swaroop Plastic Industries Pvt Ltd",
+          role: "Procurement Manager",
+          designation: "Procurement Manager",
         });
 
         setAuthCookie(token, rememberMe);
@@ -286,6 +294,12 @@ export const useAuthStore = create<AuthStore>()(
       logout: () => {
         clearAuthCookie();
         set({ ...initialState });
+      },
+
+      updateUser: (patch) => {
+        const current = get().user;
+        if (!current) return;
+        set({ user: { ...current, ...patch } });
       },
 
       hydrateFromCookie: () => {

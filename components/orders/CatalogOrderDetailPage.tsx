@@ -124,9 +124,15 @@ export function CatalogOrderDetailPage({
                 <dl className="grid gap-2 text-sm sm:grid-cols-2">
                   <div>
                     <dt className="text-[11px] uppercase text-slate-500">
-                      Seller
+                      Supply Source
                     </dt>
                     <dd className="font-medium">{order.sellerName}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] uppercase text-slate-500">
+                      Handled By
+                    </dt>
+                    <dd className="font-medium">PetroTrade Operations</dd>
                   </div>
                   <div>
                     <dt className="text-[11px] uppercase text-slate-500">

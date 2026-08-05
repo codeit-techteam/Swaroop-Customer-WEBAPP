@@ -34,7 +34,7 @@ export function SubmittedPurchaseRequestPage() {
     <PageContainer>
       <PageHeader
         title="Purchase Request Submitted"
-        description="Your request is with the seller for approval."
+        description="Your request is with PetroTrade for approval."
         breadcrumbs={[
           { label: "Purchase Requests", href: ROUTES.purchaseRequests },
           { label: "Submitted" },
@@ -50,7 +50,7 @@ export function SubmittedPurchaseRequestPage() {
       >
         <SuccessCard
           requestId={submittedRequest.displayId}
-          subtitle="Seller has 15 minutes to review your request."
+          subtitle="PetroTrade has 15 minutes to review your request."
         >
           <Card className="border-slate-200 text-left shadow-none">
             <CardContent className="grid gap-3 p-4 sm:grid-cols-2">

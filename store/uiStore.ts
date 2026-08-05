@@ -20,6 +20,11 @@ export interface UiStoreActions {
   toggleSidebarMobile: () => void;
   toggleNavExpanded: (id: string) => void;
   setNavExpanded: (id: string, expanded: boolean) => void;
+  /** Expand the active section and collapse other accordion groups. */
+  syncSidebarToPath: (
+    activeTopId: string | null,
+    topLevelIds: string[],
+  ) => void;
   setTheme: (theme: UiTheme) => void;
 }
 
@@ -65,6 +70,22 @@ export const useUiStore = create<UiStore>()(
           set({
             sidebarExpandedIds: current.filter((item) => item !== id),
           });
+        }
+      },
+
+      syncSidebarToPath: (activeTopId, topLevelIds) => {
+        if (!activeTopId) return;
+        const current = get().sidebarExpandedIds;
+        // Keep non-top-level ids (if any) and force only the active top section open
+        const next = [
+          ...current.filter((id) => !topLevelIds.includes(id)),
+          activeTopId,
+        ];
+        const same =
+          next.length === current.length &&
+          next.every((id) => current.includes(id));
+        if (!same) {
+          set({ sidebarExpandedIds: next });
         }
       },
 

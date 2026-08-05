@@ -2,7 +2,24 @@ import type { PaymentMethodId } from "./purchase-request";
 
 /** Sidebar / list display statuses for Orders module. */
 export type OrdersDisplayStatus =
-  "processing" | "packed" | "ready" | "in_transit" | "delivered" | "cancelled";
+  | "processing"
+  | "packed"
+  | "ready"
+  | "in_transit"
+  | "delayed"
+  | "delivered"
+  | "cancelled";
+
+/** Quick-filter focus driven by Active Orders KPI cards. */
+export type OrdersKpiFocus =
+  | "none"
+  | "all"
+  | "value"
+  | "processing"
+  | "attention"
+  | "payment_pending"
+  | "delayed"
+  | "ready_for_dispatch";
 
 export type OrdersSortBy =
   "newest" | "oldest" | "amount_desc" | "amount_asc" | "delivery_date";

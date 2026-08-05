@@ -8,6 +8,8 @@ export { ShipmentCard } from "./ShipmentCard";
 export { ShipmentStatusChip } from "./ShipmentStatusChip";
 export { ShipmentKpiCards } from "./ShipmentKpiCards";
 export { ShipmentFiltersBar } from "./ShipmentFiltersBar";
+export { ShipmentActiveFilterHeader } from "./ShipmentActiveFilterHeader";
+export { ShipmentProgressTracker } from "./ShipmentProgressTracker";
 export { ShipmentVerticalTimeline } from "./ShipmentVerticalTimeline";
 export {
   ShipmentRouteVisualization,

@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, MapPin, Truck, Bell } from "lucide-react";
+import type { Bell } from "lucide-react";
+import { CheckCircle2, PackageCheck, Truck } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -22,16 +23,16 @@ const ICON_MAP: Record<
     icon: Truck,
     className: "border-sky-200 bg-sky-50 text-sky-700",
   },
-  shipment_started: {
+  shipment_dispatched: {
     icon: Truck,
     className: "border-indigo-200 bg-indigo-50 text-indigo-700",
   },
-  reached_checkpoint: {
-    icon: MapPin,
-    className: "border-amber-200 bg-amber-50 text-amber-700",
+  in_transit: {
+    icon: Truck,
+    className: "border-blue-200 bg-blue-50 text-blue-700",
   },
-  delivery_tomorrow: {
-    icon: Bell,
+  out_for_delivery: {
+    icon: PackageCheck,
     className: "border-violet-200 bg-violet-50 text-violet-700",
   },
   delivered: {
@@ -72,10 +73,10 @@ export function ShipmentNotificationsPage() {
     <PageContainer>
       <PageHeader
         title="Shipment Notifications"
-        description="Vehicle assigned, shipment started, checkpoints, delivery tomorrow, and delivered alerts."
+        description="Vehicle assigned, dispatched, in transit, out for delivery, and delivered alerts."
         breadcrumbs={[
-          { label: "Notifications", href: ROUTES.notifications },
-          { label: "Shipment" },
+          { label: "Shipment Tracking", href: ROUTES.shipmentTracking },
+          { label: "Notifications" },
         ]}
         actions={
           unread ? (

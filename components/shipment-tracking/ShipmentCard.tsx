@@ -1,14 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Download, Eye, Headset, MapPinned, Navigation } from "lucide-react";
-import { toast } from "sonner";
+import { ChevronDown, ChevronUp, Eye, ListTree } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { shipmentDetailPath } from "@/constants/shipment-tracking";
-import { formatDateDdMmYyyy, formatQuantityMt } from "@/lib/format";
-import { downloadShipmentDocumentsZip } from "@/lib/shipment-documents";
+import { formatQuantityMt } from "@/lib/format";
+import { formatShipmentDate } from "@/lib/shipment-mvp";
+import { ShipmentProgressTracker } from "./ShipmentProgressTracker";
 import { ShipmentStatusChip } from "./ShipmentStatusChip";
 import type { ShipmentRecord } from "@/types/shipment-tracking";
 
@@ -18,6 +18,7 @@ interface ShipmentCardProps {
 
 export function ShipmentCard({ shipment }: ShipmentCardProps) {
   const router = useRouter();
+  const [showProgress, setShowProgress] = useState(false);
   const detailHref = shipmentDetailPath(shipment.id);
 
   return (
@@ -39,55 +40,44 @@ export function ShipmentCard({ shipment }: ShipmentCardProps) {
 
       <CardContent className="space-y-5 p-5">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Meta label="Seller" value={shipment.seller} />
+          <Meta label="Order Number" value={shipment.orderNumber} mono />
+          <Meta label="PO Number" value={shipment.poNumber} mono />
+          <Meta
+            label="Quantity"
+            value={formatQuantityMt(shipment.quantityMt)}
+          />
           <Meta label="Warehouse" value={shipment.warehouse} />
           <Meta
             label="Destination"
             value={`${shipment.destination}, ${shipment.destinationState}`}
           />
-          <Meta label="Transport" value={shipment.transportCompany} />
-          <Meta label="Vehicle" value={shipment.vehicleNumber} mono />
-          <Meta label="Driver" value={shipment.driverName} />
+          <Meta label="Transporter" value={shipment.transportCompany} />
+          <Meta label="Vehicle Number" value={shipment.vehicleNumber} mono />
           <Meta
-            label="Dispatch"
-            value={
-              shipment.dispatchDate
-                ? formatDateDdMmYyyy(shipment.dispatchDate)
-                : "Pending"
-            }
+            label="Dispatch Date"
+            value={formatShipmentDate(shipment.dispatchDate)}
           />
-          <Meta label="ETA" value={formatDateDdMmYyyy(shipment.eta)} />
         </div>
 
         <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-4">
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-            <span className="inline-flex items-center gap-1.5 font-medium">
-              <Navigation className="h-3.5 w-3.5 text-brand" />
-              {shipment.currentCity} → {shipment.destination}
-            </span>
-            <span>
-              {shipment.remainingDistanceKm > 0
-                ? `${shipment.remainingDistanceKm.toLocaleString("en-IN")} km remaining`
-                : "Arrived"}
-            </span>
-          </div>
-          <Progress value={shipment.progress} className="h-2" />
-          <p className="mt-2 text-xs text-slate-500">
-            Progress {shipment.progress}% · {shipment.remainingHours}h remaining
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Shipment Progress
           </p>
+          <ShipmentProgressTracker status={shipment.currentStatus} />
         </div>
+
+        {showProgress ? (
+          <div className="rounded-xl border border-slate-100 bg-white p-4">
+            <ShipmentProgressTracker
+              status={shipment.currentStatus}
+              variant="vertical"
+            />
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap gap-2">
           <Button
             className="rounded-xl bg-brand hover:bg-brand-700"
-            onClick={() => router.push(detailHref)}
-          >
-            <MapPinned className="mr-2 h-4 w-4" />
-            Track Shipment
-          </Button>
-          <Button
-            variant="outline"
-            className="rounded-xl"
             onClick={() => router.push(detailHref)}
           >
             <Eye className="mr-2 h-4 w-4" />
@@ -96,23 +86,15 @@ export function ShipmentCard({ shipment }: ShipmentCardProps) {
           <Button
             variant="outline"
             className="rounded-xl"
-            onClick={() => {
-              downloadShipmentDocumentsZip(shipment);
-              toast.success("Transport documents download started");
-            }}
+            onClick={() => setShowProgress((v) => !v)}
           >
-            <Download className="mr-2 h-4 w-4" />
-            Download Documents
-          </Button>
-          <Button
-            variant="ghost"
-            className="rounded-xl"
-            onClick={() =>
-              toast.message("Support ticket opened for this shipment")
-            }
-          >
-            <Headset className="mr-2 h-4 w-4" />
-            Contact Support
+            <ListTree className="mr-2 h-4 w-4" />
+            View Shipment Progress
+            {showProgress ? (
+              <ChevronUp className="ml-1.5 h-3.5 w-3.5" />
+            ) : (
+              <ChevronDown className="ml-1.5 h-3.5 w-3.5" />
+            )}
           </Button>
         </div>
       </CardContent>

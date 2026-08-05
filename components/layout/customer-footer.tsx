@@ -42,10 +42,10 @@ export function CustomerFooter({ className }: CustomerFooterProps) {
             Documents
           </Link>
           <Link
-            href={ROUTES.settings}
+            href={ROUTES.profile}
             className="transition-colors hover:text-brand"
           >
-            Settings
+            Profile
           </Link>
         </nav>
       </div>

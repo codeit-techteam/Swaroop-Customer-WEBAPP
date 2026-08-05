@@ -62,7 +62,7 @@ export function DocumentFiltersBar({
   onChange,
   onReset,
   hideType,
-  searchPlaceholder = "Search order, PO, invoice, product, seller, warehouse, document no…",
+  searchPlaceholder = "Search order, PO, invoice, product, supply source, warehouse, document no…",
 }: DocumentFiltersBarProps) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-card">
@@ -138,10 +138,10 @@ export function DocumentFiltersBar({
             onValueChange={(v) => onChange({ seller: v })}
           >
             <SelectTrigger className="h-10 rounded-xl">
-              <SelectValue placeholder="Seller" />
+              <SelectValue placeholder="Supply Source" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Sellers</SelectItem>
+              <SelectItem value="all">All Supply Sources</SelectItem>
               {sellers.map((s) => (
                 <SelectItem key={s} value={s}>
                   {s}

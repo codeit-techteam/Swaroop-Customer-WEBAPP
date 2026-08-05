@@ -6,11 +6,11 @@ import type { SubmittedPurchaseRequest } from "@/types/purchase-request";
 import { PRICE_LOCK_DURATION_SECONDS } from "./purchaseRequest";
 
 const SELLERS = [
-  "Reliance Polymers Desk",
-  "IOCL Polymer Trading",
-  "Haldia Petro Hub",
-  "GAIL Polymer Sales",
-  "Nayara Supply Desk",
+  "PetroTrade Supply Network",
+  "West India Hub",
+  "East India Hub",
+  "North India Hub",
+  "Coastal Hub",
 ] as const;
 
 function isoDaysAgo(days: number, hours = 10): string {
@@ -283,7 +283,7 @@ export const trackingRequestsMock: PurchaseRequestTrackingItem[] = [
     totalAmount: 3980000,
     rejectionReason:
       "Insufficient inventory at selected warehouse for the requested quantity.",
-    rejectedBy: "Haldia Petro Hub · Seller Desk",
+    rejectedBy: "PetroTrade Review Desk",
     canCancel: false,
   },
   {
@@ -451,7 +451,7 @@ export const trackingRequestsMock: PurchaseRequestTrackingItem[] = [
     orderStatus: null,
     totalAmount: 4220000,
     rejectionReason: "Market price moved outside the locked window.",
-    rejectedBy: "Haldia Petro Hub · Seller Desk",
+    rejectedBy: "PetroTrade Review Desk",
     canCancel: false,
   },
 ];
@@ -550,7 +550,7 @@ export function trackingStatusLabel(status: TrackingListStatus): string {
     submitted: "Submitted",
     payment_pending: "Payment Pending",
     review_pending: "Review Pending",
-    seller_reviewing: "Seller Reviewing",
+    seller_reviewing: "Under Review",
     pending_approval: "Pending Approval",
     approved: "Approved",
     rejected: "Rejected",

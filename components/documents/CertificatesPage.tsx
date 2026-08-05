@@ -66,7 +66,7 @@ export function CertificatesPage() {
       product: `${c.product} (${c.grade})`,
       extraLines: [
         `Type          : ${CERTIFICATE_KIND_LABELS[c.kind]}`,
-        `Issued By     : ${c.issuedBy}`,
+        `Issued Through: ${c.issuedBy}`,
         `Issue Date    : ${c.issueDate}`,
         `Expiry Date   : ${c.expiryDate}`,
         `Remarks       : ${c.remarks ?? "—"}`,
@@ -136,7 +136,7 @@ export function CertificatesPage() {
             <CardContent className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-2">
                 <Field label="Product" value={`${c.product} (${c.grade})`} />
-                <Field label="Issued By" value={c.issuedBy} />
+                <Field label="Issued Through" value={c.issuedBy} />
                 <Field
                   label="Issue Date"
                   value={formatDateDdMmYyyy(c.issueDate)}

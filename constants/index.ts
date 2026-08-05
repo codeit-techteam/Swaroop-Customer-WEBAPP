@@ -21,6 +21,7 @@ export const ROUTES = {
   marketplaceCategory: "/marketplace/category",
   marketplaceProduct: "/marketplace/product",
   marketplaceOffers: "/marketplace/offers",
+  marketplaceMyOffers: "/marketplace/offers/my-offers",
   marketplaceOfferDetail: "/marketplace/offers",
   product: "/product",
   cart: "/cart",
@@ -83,24 +84,23 @@ export const ROUTES = {
   documentsCertificates: "/documents/certificates",
   documentsDownloads: "/documents/downloads",
 
-  notifications: "/notifications",
-  notificationsPurchaseRequests: "/notifications/purchase-requests",
-  notificationsSellerApproval: "/notifications/seller-approval",
-  notificationsOrders: "/notifications/orders",
-  notificationsPayments: "/notifications/payments",
-  notificationsShipment: "/notifications/shipment",
-  notificationsOffers: "/notifications/offers",
-
   profile: "/profile",
-  profileCompany: "/profile/company",
-  profileGst: "/profile/gst",
-  profilePan: "/profile/pan",
-  profileAddresses: "/profile/addresses",
-  profileBusiness: "/profile/business",
-  profileBank: "/profile/bank",
-  settings: "/settings",
+  /** @deprecated MVP uses /profile only — kept for legacy deep links */
+  profileCompany: "/profile",
+  profileGst: "/profile",
+  profilePan: "/profile",
+  profileAddresses: "/profile",
+  profileBusiness: "/profile",
+  profileBank: "/profile",
+  settings: "/profile",
 
   support: "/support",
+  supportTickets: "/support/tickets",
+  supportLiveChat: "/support/live-chat",
+  supportAccountManager: "/support/account-manager",
+  supportDocumentation: "/support/documentation",
+  supportKnowledgeBase: "/support/knowledge-base",
+  supportSettings: "/support/settings",
 
   onboarding: "/customer/onboarding",
   onboardingCompany: "/customer/onboarding/company-information",
@@ -134,10 +134,8 @@ export const PROTECTED_ROUTE_PREFIXES = [
   ROUTES.dispatchDetail,
   ROUTES.shipmentDetail,
   ROUTES.documents,
-  ROUTES.notifications,
   ROUTES.profile,
   ROUTES.support,
-  ROUTES.settings,
   ROUTES.onboarding,
 ] as const;
 
@@ -194,7 +192,7 @@ export const CUSTOMER_NAV: NavItem[] = [
       },
       {
         id: "pr-pending",
-        title: "Pending Seller Approval",
+        title: "Pending Confirmation",
         href: ROUTES.purchaseRequestsPending,
         badge: 4,
         badgeVariant: "pending",
@@ -405,91 +403,39 @@ export const CUSTOMER_NAV: NavItem[] = [
     ],
   },
   {
-    id: "notifications",
-    title: "Notifications",
-    href: ROUTES.notifications,
-    icon: "Bell",
-    badge: 7,
+    id: "support",
+    title: "Support",
+    href: ROUTES.support,
+    icon: "LifeBuoy",
+    badge: 12,
     badgeVariant: "pending",
     children: [
       {
-        id: "notif-pr",
-        title: "Purchase Requests",
-        href: ROUTES.notificationsPurchaseRequests,
-        badge: 2,
+        id: "support-overview",
+        title: "Overview",
+        href: ROUTES.support,
+      },
+      {
+        id: "support-tickets",
+        title: "My Tickets",
+        href: ROUTES.supportTickets,
+        badge: 12,
         badgeVariant: "pending",
       },
       {
-        id: "notif-seller",
-        title: "Seller Approval",
-        href: ROUTES.notificationsSellerApproval,
-        badge: 4,
-        badgeVariant: "pending",
+        id: "support-chat",
+        title: "Live Chat",
+        href: ROUTES.supportLiveChat,
       },
       {
-        id: "notif-orders",
-        title: "Orders",
-        href: ROUTES.notificationsOrders,
+        id: "support-docs",
+        title: "Documentation",
+        href: ROUTES.supportDocumentation,
       },
       {
-        id: "notif-payments",
-        title: "Payments",
-        href: ROUTES.notificationsPayments,
-        badge: 1,
-        badgeVariant: "pending",
-      },
-      {
-        id: "notif-shipment",
-        title: "Shipment",
-        href: ROUTES.notificationsShipment,
-      },
-      {
-        id: "notif-offers",
-        title: "Offers",
-        href: ROUTES.notificationsOffers,
-      },
-    ],
-  },
-  {
-    id: "profile",
-    title: "Profile",
-    href: ROUTES.profile,
-    icon: "User",
-    children: [
-      {
-        id: "profile-company",
-        title: "Company Profile",
-        href: ROUTES.profileCompany,
-      },
-      {
-        id: "profile-gst",
-        title: "GST",
-        href: ROUTES.profileGst,
-      },
-      {
-        id: "profile-pan",
-        title: "PAN",
-        href: ROUTES.profilePan,
-      },
-      {
-        id: "profile-addresses",
-        title: "Addresses",
-        href: ROUTES.profileAddresses,
-      },
-      {
-        id: "profile-business",
-        title: "Business Details",
-        href: ROUTES.profileBusiness,
-      },
-      {
-        id: "profile-bank",
-        title: "Bank Details",
-        href: ROUTES.profileBank,
-      },
-      {
-        id: "profile-settings",
-        title: "Settings",
-        href: ROUTES.settings,
+        id: "support-kb",
+        title: "Knowledge Base",
+        href: ROUTES.supportKnowledgeBase,
       },
     ],
   },
@@ -523,3 +469,30 @@ export {
   DOCUMENT_TYPE_LABELS,
   formatFileSize,
 } from "./documents";
+
+export {
+  NOTIFICATION_STATUS_LABELS,
+  NOTIFICATION_PRIORITY_LABELS,
+  NOTIFICATION_CATEGORY_LABELS,
+  NOTIFICATION_TYPE_LABELS,
+  VIEW_FILTER_TO_CATEGORY,
+  PRIORITY_COLORS,
+} from "./notifications";
+
+export {
+  PROFILE_DOCUMENT_LABELS,
+  CONTACT_ROLE_LABELS,
+  MEMBERSHIP_LABELS,
+} from "./profile";
+
+export {
+  SUPPORT_ROUTES,
+  SUPPORT_NAV,
+  TICKET_CATEGORY_OPTIONS,
+  TICKET_PRIORITY_OPTIONS,
+  TICKET_STATUS_LABELS,
+  TICKET_PRIORITY_LABELS,
+  TICKET_CATEGORY_LABELS,
+  KNOWLEDGE_CATEGORY_LABELS,
+  SUPPORT_SLA_COPY,
+} from "./support";

@@ -32,13 +32,13 @@ export const shipmentTrackingService = {
 };
 
 export const notificationsService = {
-  // list, markRead — future
+  // list, markRead, preferences — wired via notificationsCatalogStore (frontend state)
 };
 
 export const profileService = {
-  // get, update — future
+  // get, update, contacts, banks — wired via profileStore (frontend state)
 };
 
 export const supportService = {
-  // listTickets, createTicket — future
+  // listTickets, createTicket, chat — wired via supportStore (frontend state)
 };

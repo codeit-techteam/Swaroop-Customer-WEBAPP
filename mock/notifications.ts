@@ -3,7 +3,7 @@ import { ROUTES } from "@/constants";
 
 /**
  * Recent activity timeline — mirrors Customer App notification/toast themes
- * using web MVP Purchase Request language.
+ * using web MVP Purchase Request language. Used by Dashboard.
  */
 export const recentActivityMock: ActivityItem[] = [
   {
@@ -18,7 +18,7 @@ export const recentActivityMock: ActivityItem[] = [
   {
     id: "act-2",
     type: "seller_approved",
-    title: "Seller Approved",
+    title: "Order Confirmed",
     description: "Purchase request #PR-98822 approved. Order generated.",
     timestamp: "2026-07-31T08:15:00.000Z",
     relativeTime: "2 hours ago",
@@ -46,9 +46,15 @@ export const recentActivityMock: ActivityItem[] = [
     id: "act-5",
     type: "purchase_request_submitted",
     title: "Purchase Request Submitted",
-    description: "#PR-99104 awaiting seller approval (15 min window).",
+    description: "#PR-99104 awaiting order confirmation (15 min window).",
     timestamp: "2026-07-31T09:45:00.000Z",
     relativeTime: "45 minutes ago",
     href: ROUTES.purchaseRequestsPending,
   },
 ];
+
+export {
+  notificationsCatalogMock,
+  DEFAULT_NOTIFICATION_FILTERS,
+  DEFAULT_NOTIFICATION_PREFERENCES,
+} from "./notifications-catalog";

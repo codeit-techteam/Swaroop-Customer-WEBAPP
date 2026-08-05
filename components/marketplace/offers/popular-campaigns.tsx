@@ -1,9 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import { offerCampaignsMock } from "@/mock/offers";
 import { useOffersStore } from "@/store/offersStore";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { formatDateDdMmYyyy } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 interface PopularCampaignsProps {
@@ -30,46 +33,76 @@ export function PopularCampaigns({ className }: PopularCampaignsProps) {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {offerCampaignsMock.map((campaign) => (
-          <button
+          <article
             key={campaign.id}
-            type="button"
-            onClick={() => {
-              if (campaign.hrefOfferType) {
-                applyCampaignType(campaign.hrefOfferType);
-                document
-                  .getElementById("offers-grid")
-                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }
-            }}
-            className="group overflow-hidden rounded-2xl border border-slate-200 text-left transition hover:-translate-y-0.5 hover:shadow-elevated"
+            className="group flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:-translate-y-0.5 hover:shadow-elevated"
           >
-            <div className="relative h-28 overflow-hidden">
+            <div className="relative h-36 overflow-hidden">
               <Image
                 src={campaign.image}
                 alt={campaign.title}
                 fill
                 className="object-cover transition duration-500 group-hover:scale-105"
-                sizes="220px"
+                sizes="(max-width: 768px) 100vw, 33vw"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand/80 to-transparent" />
-              <Badge className="absolute left-2 top-2 border-0 bg-white/90 text-brand hover:bg-white/90">
+              <div className="absolute inset-0 bg-gradient-to-t from-brand/80 via-brand/20 to-transparent" />
+              <Badge className="absolute left-3 top-3 border-0 bg-white/95 text-brand">
                 {campaign.badge}
               </Badge>
             </div>
-            <div className="p-3">
-              <h3 className="text-sm font-semibold text-slate-900">
+            <div className="flex flex-1 flex-col p-4">
+              <h3 className="text-base font-semibold text-slate-900">
                 {campaign.title}
               </h3>
-              <p className="mt-1 line-clamp-2 text-xs text-slate-500">
+              <p className="mt-1.5 flex-1 text-sm leading-relaxed text-slate-500">
                 {campaign.description}
               </p>
-              <p className="mt-2 text-[11px] font-semibold text-brand">
-                {campaign.offerCount} offers
-              </p>
+              <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                {campaign.maxDiscountPercent ? (
+                  <div>
+                    <dt className="text-slate-400">Max discount</dt>
+                    <dd className="font-semibold text-emerald-700">
+                      Up to {campaign.maxDiscountPercent}%
+                    </dd>
+                  </div>
+                ) : null}
+                {campaign.eligibleProducts ? (
+                  <div>
+                    <dt className="text-slate-400">Eligible</dt>
+                    <dd className="font-medium text-slate-700">
+                      {campaign.eligibleProducts}
+                    </dd>
+                  </div>
+                ) : null}
+                {campaign.expiresAt ? (
+                  <div className="col-span-2">
+                    <dt className="text-slate-400">Expires</dt>
+                    <dd className="font-medium text-slate-700">
+                      {formatDateDdMmYyyy(campaign.expiresAt)}
+                    </dd>
+                  </div>
+                ) : null}
+              </dl>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4 h-10 w-full rounded-xl"
+                onClick={() => {
+                  if (campaign.hrefOfferType) {
+                    applyCampaignType(campaign.hrefOfferType);
+                    document
+                      .getElementById("offers-grid")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }
+                }}
+              >
+                Explore Offers
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </div>
-          </button>
+          </article>
         ))}
       </div>
     </section>

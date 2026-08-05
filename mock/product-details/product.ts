@@ -105,7 +105,8 @@ export function getProductDetailById(id: string): ProductDetailRecord | null {
     gallery: buildGalleryFromProduct(product.image, product.name),
     quality: {
       ...DEFAULT_QUALITY_ASSURANCE,
-      subtitle: `Verified by ${product.brandName} Lab & Third-Party Auditors.`,
+      subtitle:
+        "Issued Through PetroTrade Quality Assurance · Verified By PetroTrade QC · NABL Approved Laboratory",
     },
     specs: getSpecsForMaterial(product.materialType),
     documents: DEFAULT_COMPLIANCE_DOCUMENTS,

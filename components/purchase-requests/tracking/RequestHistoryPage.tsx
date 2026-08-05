@@ -135,7 +135,7 @@ export function RequestHistoryPage() {
                     <TableHead>Request ID</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Product</TableHead>
-                    <TableHead>Seller</TableHead>
+                    <TableHead>Supply Source</TableHead>
                     <TableHead>Warehouse</TableHead>
                     <TableHead>Payment</TableHead>
                     <TableHead>Amount</TableHead>

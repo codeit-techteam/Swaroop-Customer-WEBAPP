@@ -711,7 +711,7 @@ export const DEFAULT_TRUST_FEATURES: TrustFeature[] = [
   {
     id: "quality",
     title: "Quality Verified Material",
-    description: "Seller vetted for 99.8% fulfill rate.",
+    description: "Supply network vetted for 99.8% fulfill rate.",
     icon: "check",
   },
   {

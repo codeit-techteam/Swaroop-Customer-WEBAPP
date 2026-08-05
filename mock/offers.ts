@@ -1,4 +1,5 @@
 import { ROUTES } from "@/constants";
+import { getEffectiveOfferPrice } from "@/lib/offer-utils";
 import type {
   CreditOfferCard,
   MarketplaceOffer,
@@ -54,15 +55,32 @@ export const DEFAULT_OFFER_FILTERS: OfferFiltersState = {
   paymentTypes: [],
   offerTypes: [],
   creditEligibleOnly: false,
+  minQuantity: null,
+  minDiscountPercent: null,
+  inStockOnly: false,
 };
 
 export const OFFER_SORT_OPTIONS: { value: OfferSortBy; label: string }[] = [
   { value: "recommended", label: "Recommended" },
   { value: "discount_desc", label: "Highest Discount" },
-  { value: "price_asc", label: "Price: Low to High" },
-  { value: "price_desc", label: "Price: High to Low" },
+  { value: "price_asc", label: "Lowest Price" },
+  { value: "savings_desc", label: "Highest Savings" },
   { value: "ending_soon", label: "Ending Soon" },
-  { value: "newest", label: "Newest" },
+  { value: "newest", label: "Newest Offers" },
+];
+
+export const OFFER_DISCOUNT_THRESHOLDS = [
+  { value: 5, label: "5%+" },
+  { value: 10, label: "10%+" },
+  { value: 15, label: "15%+" },
+] as const;
+
+export const OFFER_TYPE_FILTER_OPTIONS = [
+  { id: "bulk_discount" as const, label: "Bulk Deal" },
+  { id: "flash_sale" as const, label: "Limited Time" },
+  { id: "seasonal" as const, label: "Special Price" },
+  { id: "credit" as const, label: "Credit Offer" },
+  { id: "new_arrival" as const, label: "New Arrival" },
 ];
 
 export const OFFER_BRANDS = [
@@ -105,7 +123,7 @@ export const OFFER_PAYMENT_OPTIONS = [
 ];
 
 const DEFAULT_TERMS = [
-  "Offer valid while stocks last and subject to seller confirmation.",
+  "Offer valid while stocks last and subject to PetroTrade confirmation.",
   "Quoted rates are exclusive of GST and freight unless stated otherwise.",
   "Minimum order quantity (MOQ) must be met for offer pricing to apply.",
   "Payment terms selected at purchase request will determine final payable amount.",
@@ -116,7 +134,7 @@ export const offersMock: MarketplaceOffer[] = [
   {
     id: "offer-pp-week",
     slug: "reliance-pp-week",
-    title: "Reliance Industries PP Week",
+    title: "Weekly Polymer Offer",
     description:
       "Seasonal campaign on polypropylene raffia and homopolymer grades from Jamnagar with locked freight corridors into West & North India.",
     termsAndConditions: DEFAULT_TERMS,
@@ -128,7 +146,7 @@ export const offersMock: MarketplaceOffer[] = [
     brandId: "brand-reliance",
     brandName: "Reliance Industries",
     brandShortName: "RELIANCE",
-    sellerName: "Reliance Industries Ltd.",
+    sellerName: "PetroTrade Supply Network",
     warehouseId: "wh-jamnagar",
     warehouseLabel: "Jamnagar, GJ",
     bannerImage: IMG.industrial,
@@ -205,7 +223,7 @@ export const offersMock: MarketplaceOffer[] = [
     brandId: "brand-hpcl",
     brandName: "HPCL",
     brandShortName: "HPCL",
-    sellerName: "HPCL Polymers Desk",
+    sellerName: "PetroTrade Supply Network",
     warehouseId: "wh-hazira",
     warehouseLabel: "Hazira, GJ",
     bannerImage: IMG.plant2,
@@ -248,7 +266,7 @@ export const offersMock: MarketplaceOffer[] = [
     brandId: "brand-reliance",
     brandName: "Reliance Industries",
     brandShortName: "RELIANCE",
-    sellerName: "Reliance PET Desk",
+    sellerName: "PetroTrade Supply Network",
     warehouseId: "wh-dahej",
     warehouseLabel: "Dahej, GJ",
     bannerImage: IMG.plant4,
@@ -291,7 +309,7 @@ export const offersMock: MarketplaceOffer[] = [
     brandId: "brand-adani",
     brandName: "Adani Petrochem",
     brandShortName: "ADANI",
-    sellerName: "Adani Petrochem Trading",
+    sellerName: "PetroTrade Supply Network",
     warehouseId: "wh-paradip",
     warehouseLabel: "Paradip, OD",
     bannerImage: IMG.plant3,
@@ -374,7 +392,7 @@ export const offersMock: MarketplaceOffer[] = [
     brandId: "brand-iocl",
     brandName: "IOCL",
     brandShortName: "IOCL",
-    sellerName: "IOCL Polymer Marketing",
+    sellerName: "PetroTrade Supply Network",
     warehouseId: "wh-mundra",
     warehouseLabel: "Mundra, GJ",
     bannerImage: IMG.plant5,
@@ -451,7 +469,7 @@ export const offersMock: MarketplaceOffer[] = [
     brandId: "brand-bpcl",
     brandName: "BPCL",
     brandShortName: "BPCL",
-    sellerName: "BPCL Industrial Fuels",
+    sellerName: "PetroTrade Supply Network",
     warehouseId: "wh-panipat",
     warehouseLabel: "Panipat, HR",
     bannerImage: IMG.barrels,
@@ -494,7 +512,7 @@ export const offersMock: MarketplaceOffer[] = [
     brandId: "brand-iocl",
     brandName: "IOCL",
     brandShortName: "IOCL",
-    sellerName: "IOCL Lube Base Desk",
+    sellerName: "PetroTrade Supply Network",
     warehouseId: "wh-panipat",
     warehouseLabel: "Panipat, HR",
     bannerImage: IMG.lab,
@@ -536,7 +554,7 @@ export const offersMock: MarketplaceOffer[] = [
     brandId: "brand-adani",
     brandName: "Adani Petrochem",
     brandShortName: "ADANI",
-    sellerName: "Adani Additives Desk",
+    sellerName: "PetroTrade Supply Network",
     warehouseId: "wh-mundra",
     warehouseLabel: "Mundra, GJ",
     bannerImage: IMG.plant6,
@@ -579,7 +597,7 @@ export const offersMock: MarketplaceOffer[] = [
     brandId: "brand-reliance",
     brandName: "Reliance Industries",
     brandShortName: "RELIANCE",
-    sellerName: "Reliance Pipe Polymers",
+    sellerName: "PetroTrade Supply Network",
     warehouseId: "wh-hazira",
     warehouseLabel: "Hazira, GJ",
     bannerImage: IMG.plant2,
@@ -621,7 +639,7 @@ export const offersMock: MarketplaceOffer[] = [
     brandId: "brand-reliance",
     brandName: "Reliance Industries",
     brandShortName: "RELIANCE",
-    sellerName: "Reliance Industries Ltd.",
+    sellerName: "PetroTrade Supply Network",
     warehouseId: "wh-jamnagar",
     warehouseLabel: "Jamnagar, GJ",
     bannerImage: IMG.industrial,
@@ -664,7 +682,7 @@ export const offersMock: MarketplaceOffer[] = [
     brandId: "brand-hpcl",
     brandName: "HPCL",
     brandShortName: "HPCL",
-    sellerName: "HPCL Specialty Desk",
+    sellerName: "PetroTrade Supply Network",
     warehouseId: "wh-dahej",
     warehouseLabel: "Dahej, GJ",
     bannerImage: IMG.lab,
@@ -707,7 +725,7 @@ export const offersMock: MarketplaceOffer[] = [
     brandId: "brand-bpcl",
     brandName: "BPCL",
     brandShortName: "BPCL",
-    sellerName: "BPCL Lube Base Desk",
+    sellerName: "PetroTrade Supply Network",
     warehouseId: "wh-mundra",
     warehouseLabel: "Mundra, GJ",
     bannerImage: IMG.barrels,
@@ -775,7 +793,7 @@ export const offerHeroBannersMock: OfferHeroBanner[] = [
   {
     id: "banner-1",
     offerId: "offer-pp-week",
-    title: "Reliance Industries PP Week",
+    title: "Weekly Polymer Offer",
     description:
       "Exclusive polypropylene campaign with locked West India freight and credit-enabled checkout.",
     discountBadge: "Up to 14% Off",
@@ -825,47 +843,67 @@ export const offerHeroBannersMock: OfferHeroBanner[] = [
 export const offerCampaignsMock: OfferCampaign[] = [
   {
     id: "camp-monsoon",
-    title: "Monsoon Offer",
-    description: "Seasonal polymers & bitumen deals for Q2 procurement.",
+    title: "Monsoon Procurement Offer",
+    description:
+      "Seasonal polymers and bitumen deals for Q2 monsoon procurement across West India.",
     image: IMG.industrial,
     badge: "Seasonal",
     offerCount: 2,
+    maxDiscountPercent: 12,
+    eligibleProducts: "PP, HDPE, Bitumen",
+    expiresAt: daysFromNow(14),
     hrefOfferType: "seasonal",
-  },
-  {
-    id: "camp-independence",
-    title: "Independence Sale",
-    description: "Limited Independence Day pricing across PP & HDPE.",
-    image: IMG.plant2,
-    badge: "Limited",
-    offerCount: 2,
-    hrefOfferType: "seasonal",
-  },
-  {
-    id: "camp-clearance",
-    title: "Warehouse Clearance",
-    description: "Clearance lots with aggressive flash discounts.",
-    image: IMG.lab,
-    badge: "Flash",
-    offerCount: 2,
-    hrefOfferType: "flash_sale",
   },
   {
     id: "camp-bulk-week",
     title: "Bulk Buyer Week",
-    description: "Tiered MT discounts for enterprise converters.",
+    description:
+      "Tiered MT discounts for enterprise converters booking 50 MT and above.",
     image: IMG.plant3,
     badge: "Bulk",
     offerCount: 3,
+    maxDiscountPercent: 15,
+    eligibleProducts: "PVC, Base Oils, LLDPE",
+    expiresAt: daysFromNow(10),
     hrefOfferType: "bulk_discount",
   },
   {
+    id: "camp-clearance",
+    title: "Warehouse Clearance",
+    description:
+      "Clearance lots with aggressive flash discounts on remaining inventory.",
+    image: IMG.barrels,
+    badge: "Flash",
+    offerCount: 2,
+    maxDiscountPercent: 11,
+    eligibleProducts: "PET, DOP, Additives",
+    expiresAt: daysFromNow(5),
+    hrefOfferType: "flash_sale",
+  },
+  {
+    id: "camp-independence",
+    title: "Independence Day Industrial Sale",
+    description:
+      "Limited Independence Day pricing across PP and HDPE grades from major refiners.",
+    image: IMG.plant2,
+    badge: "Limited",
+    offerCount: 2,
+    maxDiscountPercent: 9,
+    eligibleProducts: "PP Homo, HDPE Film",
+    expiresAt: daysFromNow(7),
+    hrefOfferType: "seasonal",
+  },
+  {
     id: "camp-industrial",
-    title: "Industrial Festival",
-    description: "New arrivals and additive packages for compounders.",
+    title: "New Customer Offer",
+    description:
+      "Welcome pricing for first-time enterprise buyers on selected polymer grades.",
     image: IMG.plant6,
     badge: "New",
     offerCount: 1,
+    maxDiscountPercent: 8,
+    eligibleProducts: "PP Raffia, LLDPE",
+    expiresAt: daysFromNow(21),
     hrefOfferType: "new_arrival",
   },
 ];
@@ -955,15 +993,17 @@ export function getOfferById(id: string): MarketplaceOffer | undefined {
 
 export function getOfferQuoteHref(
   offer: MarketplaceOffer,
-  paymentType?: string,
+  options?: { quantity?: number; paymentType?: string },
 ): string {
+  const qty = options?.quantity ?? offer.moq;
+  const effectivePrice = getEffectiveOfferPrice(offer, qty);
   const params = new URLSearchParams({
     productId: offer.productId,
-    qty: String(offer.moq),
+    qty: String(qty),
     offerId: offer.id,
-    offerPrice: String(offer.offerPrice),
+    offerPrice: String(effectivePrice),
   });
-  if (paymentType) params.set("payment", paymentType);
+  if (options?.paymentType) params.set("payment", options.paymentType);
   return `${ROUTES.purchaseRequestsCreate}?${params.toString()}`;
 }
 

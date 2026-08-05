@@ -1,15 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Check, ArrowRight, LayoutGrid, Package, Truck } from "lucide-react";
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  Check,
-  LayoutGrid,
-  Package,
-  TrendingUp,
-} from "lucide-react";
 import { toast } from "sonner";
 import { ROUTES } from "@/constants";
 import { generateOnboardingPdf } from "@/lib/onboarding-pdf";
@@ -28,30 +21,17 @@ export default function CompletionPage() {
 }
 
 function CompletionContent() {
+  const router = useRouter();
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
-  const isCompleted = useOnboardingStore((s) => s.isCompleted);
 
-  useEffect(() => {
-    if (!isCompleted) {
-      completeOnboarding();
-    }
-  }, [isCompleted, completeOnboarding]);
+  function handleGoToDashboard() {
+    completeOnboarding();
+    router.push(ROUTES.dashboard);
+  }
 
   function handleDownloadPdf() {
     try {
-      const snapshot = useOnboardingStore.getState();
-      generateOnboardingPdf({
-        currentStep: snapshot.currentStep,
-        completedSteps: snapshot.completedSteps,
-        companyInfo: snapshot.companyInfo,
-        gstInfo: snapshot.gstInfo,
-        businessAddress: snapshot.businessAddress,
-        shippingAddresses: snapshot.shippingAddresses,
-        creditDocuments: snapshot.creditDocuments,
-        creditLimit: snapshot.creditLimit,
-        isCompleted: snapshot.isCompleted,
-        draftSavedAt: snapshot.draftSavedAt,
-      });
+      generateOnboardingPdf(useOnboardingStore.getState());
       toast.success("Submission PDF downloaded");
     } catch {
       toast.error("Unable to generate PDF");
@@ -60,7 +40,6 @@ function CompletionContent() {
 
   return (
     <div className="relative mx-auto max-w-5xl overflow-hidden">
-      {/* Confetti accents */}
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-40"
         aria-hidden="true"
@@ -106,23 +85,21 @@ function CompletionContent() {
           </motion.div>
 
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            Application Submitted for Review
+            Application Submitted Successfully
           </h1>
           <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-500 sm:text-base">
-            Our compliance team is verifying your details. You will receive an
-            update within 24-48 business hours via your registered email
-            address.
+            Your KYC has been submitted. Our team will review it within 24–48
+            business hours. You can now access the PetroTrade platform.
           </p>
 
           <div className="mt-8 flex w-full flex-col items-stretch justify-center gap-3 sm:w-auto sm:flex-row">
             <Button
-              asChild
+              type="button"
               className="h-11 bg-slate-900 px-6 hover:bg-slate-800"
+              onClick={handleGoToDashboard}
             >
-              <Link href={ROUTES.dashboard}>
-                Go to Dashboard
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
+              Go to Dashboard
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Button>
             <Button
               type="button"
@@ -130,7 +107,7 @@ function CompletionContent() {
               className="h-11 border-slate-300 px-6 text-slate-800"
               onClick={handleDownloadPdf}
             >
-              View Submission PDF
+              Download Summary
             </Button>
           </div>
         </motion.div>
@@ -145,36 +122,21 @@ function CompletionContent() {
                 icon={LayoutGrid}
                 iconClass="bg-sky-100 text-sky-600"
                 title="Dashboard access"
-                description="Explore portal features in read-only mode."
+                description="Explore portal features and track your activity."
               />
               <NextStepItem
                 icon={Package}
                 iconClass="bg-sky-100 text-sky-600"
-                title="Material samples"
-                description="Request early testing samples for Grade-A polymers."
+                title="Browse marketplace"
+                description="Create purchase requests for industrial grades."
               />
               <NextStepItem
-                icon={TrendingUp}
+                icon={Truck}
                 iconClass="bg-amber-100 text-amber-600"
-                title="Live pricing overview"
-                description="Monitor index-linked petrochemical indices."
+                title="Track your orders"
+                description="Follow shipments and delivery updates in real time."
               />
             </ul>
-          </div>
-
-          <div className="relative overflow-hidden rounded-xl bg-slate-900 p-5 shadow-md">
-            <div
-              className="absolute inset-0 opacity-50"
-              style={{
-                backgroundImage:
-                  "linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0f172a 100%)",
-              }}
-              aria-hidden="true"
-            />
-            <p className="relative text-sm font-semibold leading-snug text-white">
-              Trading Capability{" "}
-              <span className="text-sky-300">Unlocks in ~48h</span>
-            </p>
           </div>
         </aside>
       </div>

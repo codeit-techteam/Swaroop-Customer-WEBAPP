@@ -38,7 +38,6 @@ function CreditEligibilityForm() {
   const creditLimitStored = useOnboardingStore((s) => s.creditLimit);
   const setCreditDocument = useOnboardingStore((s) => s.setCreditDocument);
   const saveCredit = useOnboardingStore((s) => s.saveCredit);
-  const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
 
   const [creditLimit, setCreditLimit] = useState(creditLimitStored);
   const [errors, setErrors] = useState<
@@ -70,8 +69,8 @@ function CreditEligibilityForm() {
       return;
     }
 
+    // Onboarding is only marked complete from the review step
     saveCredit(creditDocuments, creditLimit);
-    completeOnboarding();
     router.push(ONBOARDING_ROUTES.completion);
   }
 

@@ -167,7 +167,7 @@ export function PaymentDetailsPage({ paymentId }: PaymentDetailsPageProps) {
                 label="Quantity"
                 value={formatQuantityMt(payment.quantityMt)}
               />
-              <Field label="Seller" value={payment.seller} />
+              <Field label="Supply Source" value={payment.seller} />
               <Field label="Warehouse" value={payment.warehouse} />
             </CardContent>
           </Card>

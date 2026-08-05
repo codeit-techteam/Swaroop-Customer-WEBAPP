@@ -1,16 +1,23 @@
 /**
- * Shipment Tracking catalog — enterprise logistics module for B2B procurement.
- * Frontend-only domain types (no API).
+ * Shipment Tracking catalog — MVP status/stage-based logistics module.
+ * Frontend-only domain types (no API / GPS / live maps).
  */
 
 export type ShipmentStatus =
   | "ready_for_dispatch"
-  | "vehicle_assigned"
   | "dispatched"
   | "in_transit"
   | "out_for_delivery"
-  | "delivered"
-  | "delayed";
+  | "delivered";
+
+/** Clickable KPI focus on the Track Shipment dashboard. */
+export type ShipmentKpiFocus =
+  | "none"
+  | "active"
+  | "ready_for_dispatch"
+  | "in_transit"
+  | "out_for_delivery"
+  | "delivered";
 
 export type ShipmentDocType =
   | "invoice"
@@ -23,15 +30,23 @@ export type ShipmentDocType =
 export type ShipmentDocStatus = "generated" | "downloaded" | "pending";
 
 export type DeliveryUpdateType =
-  "info" | "checkpoint" | "delay" | "reschedule" | "delivered" | "alert";
+  "info" | "checkpoint" | "reschedule" | "delivered" | "alert";
 
 export type TimelineStageStatus = "completed" | "current" | "pending";
 
 export type ShipmentNotificationType =
   | "vehicle_assigned"
-  | "shipment_started"
-  | "reached_checkpoint"
-  | "delivery_tomorrow"
+  | "shipment_dispatched"
+  | "in_transit"
+  | "out_for_delivery"
+  | "delivered";
+
+export type MvpTimelineStageId =
+  | "order_confirmed"
+  | "ready_for_dispatch"
+  | "dispatched"
+  | "in_transit"
+  | "out_for_delivery"
   | "delivered";
 
 export interface RouteStop {
@@ -42,21 +57,19 @@ export interface RouteStop {
 }
 
 export interface ShipmentTimelineStage {
-  id: string;
+  id: MvpTimelineStageId;
   title: string;
   description: string;
   date: string | null;
   time: string | null;
+  timestamp: string | null;
   status: TimelineStageStatus;
   icon:
     | "check"
     | "package"
-    | "credit"
     | "box"
     | "truck"
-    | "load"
     | "dispatch"
-    | "map"
     | "transit"
     | "pin"
     | "delivered";
@@ -72,20 +85,10 @@ export interface VehicleDetails {
   vehicleNumber: string;
   truckType: string;
   capacityMt: number;
-  gpsEnabled: boolean;
   driverName: string;
   driverMobile: string;
   driverLicense: string;
   transportCompany: string;
-}
-
-export interface DeliveryEstimate {
-  estimatedDelivery: string;
-  remainingHours: number;
-  currentCity: string;
-  destination: string;
-  weatherStatus: string;
-  trafficIndicator: "clear" | "moderate" | "heavy";
 }
 
 export interface TransportDocument {
@@ -113,6 +116,7 @@ export interface DeliveryUpdate {
 export interface ShipmentNotification {
   id: string;
   shipmentId: string;
+  orderNumber: string;
   type: ShipmentNotificationType;
   title: string;
   message: string;
@@ -128,6 +132,7 @@ export interface ShipmentRecord {
   product: string;
   grade: string;
   quantityMt: number;
+  unit: "MT";
   seller: string;
   warehouse: string;
   destination: string;
@@ -141,11 +146,13 @@ export interface ShipmentRecord {
   driverName: string;
   driverMobile: string;
   driverLicense: string;
-  gpsEnabled: boolean;
+  /** Display-only expected delivery date (ISO). Not computed live. */
   dispatchDate: string | null;
+  expectedDeliveryDate: string;
+  currentStatus: ShipmentStatus;
+  /** @deprecated Prefer expectedDeliveryDate — kept for older consumers */
   eta: string;
   remainingDistanceKm: number;
-  currentStatus: ShipmentStatus;
   currentCity: string;
   progress: number;
   weatherStatus: string;
@@ -162,10 +169,10 @@ export interface ShipmentRecord {
 
 export interface ShipmentDashboardSummary {
   activeShipments: number;
+  readyForDispatch: number;
   inTransit: number;
-  expectedToday: number;
-  deliveredThisWeek: number;
-  delayedShipments: number;
+  outForDelivery: number;
+  delivered: number;
 }
 
 export interface ShipmentFiltersState {
@@ -173,20 +180,60 @@ export interface ShipmentFiltersState {
   status: ShipmentStatus | "all";
   warehouse: string | "all";
   transportCompany: string | "all";
-  seller: string | "all";
   destinationState: string | "all";
-  expectedDateFrom: string;
-  expectedDateTo: string;
 }
 
+export const MVP_SHIPMENT_TIMELINE: ReadonlyArray<{
+  id: MvpTimelineStageId;
+  title: string;
+  description: string;
+  icon: ShipmentTimelineStage["icon"];
+}> = [
+  {
+    id: "order_confirmed",
+    title: "Order Confirmed",
+    description:
+      "Order confirmed and handed to logistics for dispatch planning.",
+    icon: "check",
+  },
+  {
+    id: "ready_for_dispatch",
+    title: "Ready for Dispatch",
+    description: "Material staged at warehouse and awaiting dispatch.",
+    icon: "box",
+  },
+  {
+    id: "dispatched",
+    title: "Dispatched",
+    description: "Shipment left the warehouse gate.",
+    icon: "dispatch",
+  },
+  {
+    id: "in_transit",
+    title: "In Transit",
+    description: "Shipment is on the corridor to the destination.",
+    icon: "transit",
+  },
+  {
+    id: "out_for_delivery",
+    title: "Out for Delivery",
+    description: "Final delivery stage — vehicle approaching buyer site.",
+    icon: "pin",
+  },
+  {
+    id: "delivered",
+    title: "Delivered",
+    description: "Material delivered and POD captured.",
+    icon: "delivered",
+  },
+];
+
 export const SHIPMENT_STATUS_LABELS: Record<ShipmentStatus, string> = {
-  ready_for_dispatch: "Ready For Dispatch",
-  vehicle_assigned: "Vehicle Assigned",
+  ready_for_dispatch: "Ready for Dispatch",
   dispatched: "Dispatched",
   in_transit: "In Transit",
-  out_for_delivery: "Out For Delivery",
+  out_for_delivery: "Out for Delivery",
   delivered: "Delivered",
-  delayed: "Delayed",
 };
 
 export const SHIPMENT_DOC_LABELS: Record<ShipmentDocType, string> = {
@@ -203,8 +250,13 @@ export const DEFAULT_SHIPMENT_FILTERS: ShipmentFiltersState = {
   status: "all",
   warehouse: "all",
   transportCompany: "all",
-  seller: "all",
   destinationState: "all",
-  expectedDateFrom: "",
-  expectedDateTo: "",
 };
+
+/** Statuses counted as active (not yet completed). */
+export const ACTIVE_SHIPMENT_STATUSES: readonly ShipmentStatus[] = [
+  "ready_for_dispatch",
+  "dispatched",
+  "in_transit",
+  "out_for_delivery",
+] as const;

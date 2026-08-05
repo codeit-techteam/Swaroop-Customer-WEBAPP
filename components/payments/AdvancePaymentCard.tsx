@@ -88,7 +88,7 @@ export function AdvancePaymentCard({ payment }: AdvancePaymentCardProps) {
             label="Product"
             value={`${payment.product}${payment.productGrade ? ` · ${payment.productGrade}` : ""}`}
           />
-          <Meta icon={Building2} label="Seller" value={payment.seller} />
+          <Meta icon={Building2} label="Supply Source" value={payment.seller} />
           <Meta icon={Warehouse} label="Warehouse" value={payment.warehouse} />
           <Meta
             icon={MapPin}

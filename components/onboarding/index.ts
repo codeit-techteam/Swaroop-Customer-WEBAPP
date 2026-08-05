@@ -15,3 +15,5 @@ export { RouteGuard } from "./RouteGuard";
 export { MapPreview } from "./MapPreview";
 export { ProgressIndicator } from "./ProgressIndicator";
 export { StepActions } from "./StepActions";
+export { OnboardingGate } from "./OnboardingGate";
+export { CompletedOnboardingRedirect } from "./CompletedOnboardingRedirect";

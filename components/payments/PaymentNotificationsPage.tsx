@@ -41,8 +41,8 @@ export function PaymentNotificationsPage() {
         title="Payment Notifications"
         description="Advance due reminders, verification updates, invoices, and receipts."
         breadcrumbs={[
-          { label: "Notifications", href: ROUTES.notifications },
-          { label: "Payments" },
+          { label: "Payments", href: ROUTES.payments },
+          { label: "Notifications" },
         ]}
       />
 

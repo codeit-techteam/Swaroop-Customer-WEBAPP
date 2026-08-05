@@ -13,6 +13,8 @@ import {
 } from "@/components/auth";
 import { useAuthStore } from "@/store/authStore";
 import { ROUTES } from "@/constants";
+import { getPostAuthDestination } from "@/lib/post-auth-redirect";
+import { useOnboardingStore } from "@/store/onboardingStore";
 
 const OTP_COUNTDOWN = 30;
 
@@ -35,9 +37,11 @@ function formatTimer(seconds: number): string {
 export function OtpForm() {
   const router = useRouter();
   const pendingContact = useAuthStore((s) => s.pendingContact);
+  const otpSource = useAuthStore((s) => s.otpSource);
   const verifyOTP = useAuthStore((s) => s.verifyOTP);
   const resendOTP = useAuthStore((s) => s.resendOTP);
   const isLoading = useAuthStore((s) => s.isLoading);
+  const resetOnboarding = useOnboardingStore((s) => s.reset);
 
   const [otp, setOtp] = useState("");
   const [error, setError] = useState<string | undefined>();
@@ -74,6 +78,7 @@ export function OtpForm() {
     }
 
     setError(undefined);
+    const source = otpSource;
     const result = await verifyOTP(otp);
 
     if (!result.success) {
@@ -81,9 +86,14 @@ export function OtpForm() {
       return;
     }
 
+    // Brand-new registrations always start onboarding from step 1
+    if (source === "register") {
+      resetOnboarding();
+    }
+
     setSuccess(true);
     window.setTimeout(() => {
-      router.push(ROUTES.dashboard);
+      router.push(getPostAuthDestination());
     }, 900);
   };
 
@@ -111,7 +121,7 @@ export function OtpForm() {
               Verified Successfully
             </p>
             <p className="text-sm text-muted-foreground">
-              Redirecting to dashboard…
+              Setting up your account…
             </p>
           </motion.div>
         ) : null}

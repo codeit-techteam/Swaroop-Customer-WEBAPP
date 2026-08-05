@@ -86,21 +86,22 @@ export const PRODUCTS = [
 ] as const;
 
 export const WAREHOUSES = [
-  "Jamnagar",
-  "Hazira",
-  "Dahej",
-  "Mundra",
-  "Panipat",
-  "Paradip",
+  "Jamnagar Hub",
+  "Hazira Hub",
+  "Dahej Hub",
+  "Mundra Hub",
+  "Panipat Hub",
+  "Paradip Hub",
 ] as const;
 
+/** Blind marketplace supply sources — never real supplier company names. */
 export const SELLERS = [
-  "Reliance Polymers",
-  "IOCL Petrochem",
-  "Haldia Petrochemicals",
-  "GAIL Polymers",
-  "Nayara Energy",
-  "OPAL Polymers",
+  "PetroTrade Supply Network",
+  "West India Hub",
+  "East India Hub",
+  "North India Hub",
+  "Coastal Hub",
+  "Verified Supply Network",
 ] as const;
 
 export function paymentsAdvancePayPath(id: string) {

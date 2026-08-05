@@ -84,5 +84,7 @@ export interface OnboardingState {
   creditDocuments: CreditDocuments;
   creditLimit: string;
   isCompleted: boolean;
+  /** True only after a new registration starts the wizard */
+  hasStartedOnboarding: boolean;
   draftSavedAt: string | null;
 }

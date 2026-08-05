@@ -21,9 +21,6 @@ export function CustomerDashboard() {
 
   const hero = useDashboardStore((s) => s.hero);
   const marketPrices = useDashboardStore((s) => s.marketPrices);
-  const marketPricesUpdatedAt = useDashboardStore(
-    (s) => s.marketPricesUpdatedAt,
-  );
   const creditSummary = useDashboardStore((s) => s.creditSummary);
   const outstanding = useDashboardStore((s) => s.outstanding);
   const purchaseRequests = useDashboardStore((s) => s.purchaseRequests);
@@ -67,10 +64,7 @@ export function CustomerDashboard() {
 
           <div className="grid items-start gap-5 lg:gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
             <div className="min-w-0 space-y-5 lg:space-y-6">
-              <MarketPricesSection
-                prices={marketPrices}
-                updatedAt={marketPricesUpdatedAt}
-              />
+              <MarketPricesSection prices={marketPrices} />
               <ProcurementTable rows={purchaseRequests} />
               <RecommendedProducts products={recommendedProducts} />
             </div>

@@ -191,10 +191,10 @@ export function PaymentsDashboardPage() {
             <Button
               variant="ghost"
               className="w-full rounded-xl"
-              onClick={() => router.push(ROUTES.notificationsPayments)}
+              onClick={() => router.push(ROUTES.paymentsHistory)}
             >
               <Eye className="h-4 w-4" />
-              All Payment Notifications
+              View Payment History
             </Button>
           </CardContent>
         </Card>

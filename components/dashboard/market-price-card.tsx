@@ -1,9 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { TrendingDown, TrendingUp, Minus } from "lucide-react";
 import type { MarketPrice } from "@/types/dashboard";
-import { formatInrPerMt, formatPercentChange } from "@/lib/format";
+import { formatInrPerMt } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 interface MarketPriceCardProps {
@@ -17,9 +16,6 @@ export function MarketPriceCard({
   index = 0,
   className,
 }: MarketPriceCardProps) {
-  const isUp = price.trend === "up";
-  const isDown = price.trend === "down";
-
   return (
     <motion.article
       initial={{ opacity: 0, y: 10 }}
@@ -37,25 +33,6 @@ export function MarketPriceCard({
       <p className="mt-1.5 text-base font-bold tabular-nums tracking-tight text-slate-900 sm:text-lg">
         {formatInrPerMt(price.priceInr)}
       </p>
-      <div
-        className={cn(
-          "mt-2 inline-flex items-center gap-1 text-xs font-semibold",
-          isUp && "text-emerald-600",
-          isDown && "text-red-500",
-          price.trend === "flat" && "text-slate-400",
-        )}
-      >
-        {isUp ? (
-          <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
-        ) : null}
-        {isDown ? (
-          <TrendingDown className="h-3.5 w-3.5" aria-hidden="true" />
-        ) : null}
-        {price.trend === "flat" ? (
-          <Minus className="h-3.5 w-3.5" aria-hidden="true" />
-        ) : null}
-        <span>{formatPercentChange(price.changePercent)}</span>
-      </div>
     </motion.article>
   );
 }

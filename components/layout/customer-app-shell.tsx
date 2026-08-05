@@ -6,6 +6,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { CustomerFooter } from "@/components/layout/customer-footer";
 import { CustomerSidebar } from "@/components/navigation/customer-sidebar";
 import { CustomerTopNav } from "@/components/navigation/customer-top-nav";
+import { OnboardingGate } from "@/components/onboarding/OnboardingGate";
 import { useUiStore } from "@/store/uiStore";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +27,7 @@ export function CustomerAppShell({
   const setSidebarMobileOpen = useUiStore((s) => s.setSidebarMobileOpen);
 
   return (
-    <>
+    <OnboardingGate>
       <AppShell
         className={cn("bg-slate-50", className)}
         sidebar={<CustomerSidebar />}
@@ -66,6 +67,6 @@ export function CustomerAppShell({
           </>
         ) : null}
       </AnimatePresence>
-    </>
+    </OnboardingGate>
   );
 }

@@ -22,7 +22,6 @@ interface ShipmentFiltersBarProps {
   onReset: () => void;
   warehouses: string[];
   transporters: string[];
-  sellers: string[];
   destinationStates: string[];
 }
 
@@ -34,7 +33,6 @@ export function ShipmentFiltersBar({
   onReset,
   warehouses,
   transporters,
-  sellers,
   destinationStates,
 }: ShipmentFiltersBarProps) {
   return (
@@ -44,12 +42,12 @@ export function ShipmentFiltersBar({
         <Input
           value={filters.search}
           onChange={(e) => onChange({ search: e.target.value })}
-          placeholder="Search order, PO, vehicle, transporter, driver, invoice, product, warehouse…"
+          placeholder="Search order, PO, product, vehicle, transporter, warehouse, destination…"
           className="rounded-xl pl-9"
         />
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Select
           value={filters.status}
           onValueChange={(v) =>
@@ -91,7 +89,7 @@ export function ShipmentFiltersBar({
           onValueChange={(v) => onChange({ transportCompany: v })}
         >
           <SelectTrigger className="rounded-xl">
-            <SelectValue placeholder="Transport Company" />
+            <SelectValue placeholder="Transporter" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Transporters</SelectItem>
@@ -104,28 +102,11 @@ export function ShipmentFiltersBar({
         </Select>
 
         <Select
-          value={filters.seller}
-          onValueChange={(v) => onChange({ seller: v })}
-        >
-          <SelectTrigger className="rounded-xl">
-            <SelectValue placeholder="Seller" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Sellers</SelectItem>
-            {sellers.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select
           value={filters.destinationState}
           onValueChange={(v) => onChange({ destinationState: v })}
         >
           <SelectTrigger className="rounded-xl">
-            <SelectValue placeholder="Destination State" />
+            <SelectValue placeholder="State" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All States</SelectItem>
@@ -136,21 +117,6 @@ export function ShipmentFiltersBar({
             ))}
           </SelectContent>
         </Select>
-
-        <Input
-          type="date"
-          value={filters.expectedDateFrom}
-          onChange={(e) => onChange({ expectedDateFrom: e.target.value })}
-          className="rounded-xl"
-          aria-label="Expected delivery from"
-        />
-        <Input
-          type="date"
-          value={filters.expectedDateTo}
-          onChange={(e) => onChange({ expectedDateTo: e.target.value })}
-          className="rounded-xl"
-          aria-label="Expected delivery to"
-        />
 
         <Button
           type="button"

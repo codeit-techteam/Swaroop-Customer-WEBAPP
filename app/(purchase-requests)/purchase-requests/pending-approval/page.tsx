@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PendingRequestsListPage } from "@/components/purchase-requests";
 
 export const metadata: Metadata = {
-  title: "Pending Seller Approval",
+  title: "Pending Confirmation",
 };
 
 export default function Page() {

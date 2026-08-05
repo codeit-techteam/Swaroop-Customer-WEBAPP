@@ -2,12 +2,17 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { buildMvpTimeline } from "@/mock/shipment-tracking";
 import {
-  computeShipmentSummary,
   DEFAULT_SHIPMENT_FILTERS,
   shipmentNotificationsMock,
   shipmentsCatalogMock,
 } from "@/mock/shipment-tracking";
+import {
+  computeShipmentSummary,
+  shipmentProgressPercent,
+  shipmentStatusTimelineIndex,
+} from "@/lib/shipment-mvp";
 import type {
   ShipmentDashboardSummary,
   ShipmentFiltersState,
@@ -17,7 +22,7 @@ import type {
   TransportDocument,
 } from "@/types/shipment-tracking";
 
-const STORAGE_KEY = "petrotrade.shipment-tracking.v1";
+const STORAGE_KEY = "petrotrade.shipment-tracking.v2";
 
 type ShipmentTrackingState = {
   shipments: ShipmentRecord[];
@@ -45,7 +50,6 @@ export type ShipmentTrackingStore = ShipmentTrackingState &
 
 const STATUS_SEQUENCE: ShipmentStatus[] = [
   "ready_for_dispatch",
-  "vehicle_assigned",
   "dispatched",
   "in_transit",
   "out_for_delivery",
@@ -64,15 +68,16 @@ export function filterShipments(
       const hay = [
         s.orderNumber,
         s.poNumber,
+        s.product,
         s.vehicleNumber,
         s.transportCompany,
-        s.driverName,
-        s.invoiceNumber,
-        s.product,
         s.warehouse,
         s.destination,
+        s.destinationState,
         s.grade,
         s.seller,
+        s.invoiceNumber,
+        s.driverName,
       ]
         .join(" ")
         .toLowerCase();
@@ -89,19 +94,8 @@ export function filterShipments(
   if (filters.transportCompany !== "all") {
     list = list.filter((s) => s.transportCompany === filters.transportCompany);
   }
-  if (filters.seller !== "all") {
-    list = list.filter((s) => s.seller === filters.seller);
-  }
   if (filters.destinationState !== "all") {
     list = list.filter((s) => s.destinationState === filters.destinationState);
-  }
-  if (filters.expectedDateFrom) {
-    const from = new Date(filters.expectedDateFrom).getTime();
-    list = list.filter((s) => new Date(s.eta).getTime() >= from);
-  }
-  if (filters.expectedDateTo) {
-    const to = new Date(filters.expectedDateTo).getTime() + 86400000 - 1;
-    list = list.filter((s) => new Date(s.eta).getTime() <= to);
   }
 
   return list.sort(
@@ -111,87 +105,59 @@ export function filterShipments(
 
 function bumpTimeline(shipment: ShipmentRecord): ShipmentRecord {
   if (shipment.currentStatus === "delivered") return shipment;
-  if (shipment.currentStatus === "delayed") {
-    return {
-      ...shipment,
-      currentStatus: "in_transit",
-      updatedAt: new Date().toISOString(),
-    };
-  }
 
   const idx = STATUS_SEQUENCE.indexOf(shipment.currentStatus);
   const next = STATUS_SEQUENCE[Math.min(idx + 1, STATUS_SEQUENCE.length - 1)];
-  const nextTimelineIndex = Math.min(
-    shipment.timeline.length - 1,
-    Math.round((idx + 1) * 1.4) + 2,
+  const dispatchDate =
+    shipment.dispatchDate ??
+    (next === "dispatched" || idx >= 0
+      ? next === "dispatched" ||
+        next === "in_transit" ||
+        next === "out_for_delivery" ||
+        next === "delivered"
+        ? new Date().toISOString()
+        : shipment.dispatchDate
+      : shipment.dispatchDate);
+
+  const timeline = buildMvpTimeline(
+    next,
+    shipment.createdAt,
+    dispatchDate ?? shipment.dispatchDate,
   );
-  const nextLiveIndex = Math.min(
-    shipment.liveProgress.length - 1,
-    Math.round(
-      ((idx + 1) / (STATUS_SEQUENCE.length - 1)) *
-        (shipment.liveProgress.length - 1),
-    ),
-  );
-  const nextRouteIndex = Math.min(
+  const progress = shipmentProgressPercent(next);
+  const routeIndex = Math.min(
     shipment.route.length - 1,
     Math.round(
-      ((idx + 1) / (STATUS_SEQUENCE.length - 1)) * (shipment.route.length - 1),
+      (shipmentStatusTimelineIndex(next) / 5) * (shipment.route.length - 1),
     ),
   );
-
-  const timeline = shipment.timeline.map((step, i) => ({
-    ...step,
-    status:
-      i < nextTimelineIndex
-        ? ("completed" as const)
-        : i === nextTimelineIndex
-          ? ("current" as const)
-          : ("pending" as const),
-  }));
-
-  const liveProgress = shipment.liveProgress.map((step, i) => ({
-    ...step,
-    status:
-      i < nextLiveIndex
-        ? ("completed" as const)
-        : i === nextLiveIndex
-          ? ("current" as const)
-          : ("pending" as const),
-  }));
-
   const route = shipment.route.map((stop, i) => ({
     ...stop,
     status:
-      i < nextRouteIndex
+      i < routeIndex
         ? ("completed" as const)
-        : i === nextRouteIndex
+        : i === routeIndex
           ? ("current" as const)
           : ("pending" as const),
   }));
-
-  const progress = Math.round(
-    (nextTimelineIndex / (timeline.length - 1)) * 100,
-  );
-  const remainingFactor = 1 - (idx + 1) / (STATUS_SEQUENCE.length - 1);
 
   return {
     ...shipment,
     currentStatus: next,
     timeline,
-    liveProgress,
     route,
     progress,
-    remainingDistanceKm: Math.round(
-      shipment.remainingDistanceKm * remainingFactor,
-    ),
-    remainingHours: Math.round(shipment.remainingHours * remainingFactor),
-    currentCity: route[nextRouteIndex]?.city ?? shipment.currentCity,
+    remainingDistanceKm:
+      next === "delivered"
+        ? 0
+        : Math.round(shipment.remainingDistanceKm * (1 - (idx + 1) / 4)),
+    remainingHours:
+      next === "delivered"
+        ? 0
+        : Math.round(shipment.remainingHours * (1 - (idx + 1) / 4)),
+    currentCity: route[routeIndex]?.city ?? shipment.currentCity,
     updatedAt: new Date().toISOString(),
-    dispatchDate:
-      shipment.dispatchDate ??
-      (next === "dispatched" || idx >= 2
-        ? new Date().toISOString()
-        : shipment.dispatchDate),
+    dispatchDate: dispatchDate ?? shipment.dispatchDate,
   };
 }
 

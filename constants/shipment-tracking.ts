@@ -28,6 +28,7 @@ export const SHIPMENT_VEHICLES = [
   "TN09PK6678",
   "WB20QR1122",
   "KA03ST8890",
+  "GJ-01-AB-4582",
 ] as const;
 
 export const SHIPMENT_TRANSPORTERS = [
@@ -36,6 +37,7 @@ export const SHIPMENT_TRANSPORTERS = [
   "Mahindra Logistics",
   "Blue Dart B2B",
   "Delhivery Enterprise",
+  "ABC Logistics",
 ] as const;
 
 export const SHIPMENT_DRIVERS = [
@@ -67,19 +69,15 @@ export const SHIPMENT_STATUS_CHIP: Record<
   { label: string; className: string }
 > = {
   ready_for_dispatch: {
-    label: "Ready",
+    label: "Ready for Dispatch",
     className: "border-amber-200 bg-amber-50 text-amber-800",
-  },
-  vehicle_assigned: {
-    label: "Assigned",
-    className: "border-sky-200 bg-sky-50 text-sky-800",
   },
   dispatched: {
     label: "Dispatched",
     className: "border-indigo-200 bg-indigo-50 text-indigo-800",
   },
   in_transit: {
-    label: "Transit",
+    label: "In Transit",
     className: "border-blue-200 bg-blue-50 text-blue-800",
   },
   out_for_delivery: {
@@ -89,10 +87,6 @@ export const SHIPMENT_STATUS_CHIP: Record<
   delivered: {
     label: "Delivered",
     className: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  },
-  delayed: {
-    label: "Delayed",
-    className: "border-rose-200 bg-rose-50 text-rose-800",
   },
 };
 

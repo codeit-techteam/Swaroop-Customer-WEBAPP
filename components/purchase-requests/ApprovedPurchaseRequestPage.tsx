@@ -54,7 +54,7 @@ export function ApprovedPurchaseRequestPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Seller Approved"
+        title="Order Confirmed"
         description="Purchase order generated — continue to orders and dispatch tracking."
         breadcrumbs={[
           { label: "Purchase Requests", href: ROUTES.purchaseRequests },

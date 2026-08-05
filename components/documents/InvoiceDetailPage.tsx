@@ -160,7 +160,7 @@ export function InvoiceDetailPage() {
             <CardContent className="grid gap-6 p-6 md:grid-cols-3">
               <PartyBlock title="Company Details" party={inv.company} />
               <PartyBlock title="Buyer" party={inv.buyer} />
-              <PartyBlock title="Seller" party={inv.sellerInfo} />
+              <PartyBlock title="Bill From" party={inv.sellerInfo} />
             </CardContent>
           </Card>
 
@@ -171,7 +171,7 @@ export function InvoiceDetailPage() {
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Info label="Buyer GSTIN" value={inv.buyer.gstin} />
-              <Info label="Seller GSTIN" value={inv.sellerInfo.gstin} />
+              <Info label="GSTIN" value={inv.sellerInfo.gstin} />
               <Info label="Warehouse" value={inv.warehouse} />
               <Info
                 label="Order / PO"

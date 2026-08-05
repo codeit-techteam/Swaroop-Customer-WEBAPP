@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -9,63 +9,59 @@ import type { NavItem } from "@/types";
 import { getNavIcon } from "@/components/navigation/nav-icons";
 import { NavBadge } from "@/components/navigation/nav-badge";
 import { useUiStore } from "@/store/uiStore";
+import { isNavItemActive, isNavBranchActive } from "@/lib/nav-active";
 import { cn } from "@/lib/utils";
 
 interface SidebarItemProps {
   item: NavItem;
   depth?: number;
   collapsed?: boolean;
+  siblings?: NavItem[];
   onNavigate?: () => void;
   onAction?: (action: NonNullable<NavItem["action"]>) => void;
-}
-
-function isPathActive(pathname: string, href?: string): boolean {
-  if (!href) return false;
-  return pathname === href;
-}
-
-function isChildRouteActive(pathname: string, children?: NavItem[]): boolean {
-  if (!children?.length) return false;
-  return children.some(
-    (child) =>
-      (child.href &&
-        (pathname === child.href || pathname.startsWith(`${child.href}/`))) ||
-      isChildRouteActive(pathname, child.children),
-  );
 }
 
 export function SidebarItem({
   item,
   depth = 0,
   collapsed = false,
+  siblings,
   onNavigate,
   onAction,
 }: SidebarItemProps) {
   const pathname = usePathname();
   const expandedIds = useUiStore((s) => s.sidebarExpandedIds);
   const toggleNavExpanded = useUiStore((s) => s.toggleNavExpanded);
-  const setNavExpanded = useUiStore((s) => s.setNavExpanded);
+  const itemRef = useRef<
+    HTMLDivElement | HTMLAnchorElement | HTMLButtonElement
+  >(null);
 
   const hasChildren = Boolean(item.children?.length);
   const isExpanded = expandedIds.includes(item.id);
   const Icon = getNavIcon(item.icon);
 
-  const isExactActive = isPathActive(pathname, item.href);
-  const isChildActive = isChildRouteActive(pathname, item.children);
-  const isSectionActive =
+  const isLeafActive = isNavItemActive(pathname, item, siblings);
+  const isChildActive = hasChildren && isNavBranchActive(pathname, item);
+  const isParentRootActive =
     Boolean(item.href) &&
-    item.href !== "/" &&
-    !hasChildren &&
-    pathname.startsWith(`${item.href}/`);
+    hasChildren &&
+    (pathname === item.href ||
+      (item.href !== "/" && pathname.startsWith(`${item.href}/`)));
 
-  const isActive = isExactActive || isSectionActive;
-  const showActive = depth === 0 ? isActive || isChildActive : isExactActive;
+  const showActive =
+    depth === 0
+      ? isLeafActive || isChildActive || isParentRootActive
+      : isLeafActive;
 
   useEffect(() => {
-    if (hasChildren && isChildActive && !collapsed) {
-      setNavExpanded(item.id, true);
-    }
-  }, [hasChildren, isChildActive, collapsed, item.id, setNavExpanded]);
+    if (!showActive || collapsed) return;
+    const node = itemRef.current;
+    if (!node) return;
+    const frame = window.requestAnimationFrame(() => {
+      node.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [showActive, collapsed, pathname]);
 
   const baseClass = cn(
     "group flex w-full items-center gap-3 rounded-xl text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1",
@@ -75,7 +71,7 @@ export function SidebarItem({
 
   const toneClass = cn(
     showActive && depth === 0 && "bg-brand text-white shadow-sm",
-    showActive && depth > 0 && "bg-brand/10 font-medium text-brand",
+    showActive && depth > 0 && "bg-brand/10 font-semibold text-brand",
     !showActive && item.action === "logout" && "text-red-600 hover:bg-red-50",
     !showActive &&
       item.action !== "logout" &&
@@ -130,6 +126,7 @@ export function SidebarItem({
   if (item.action) {
     return (
       <button
+        ref={itemRef as React.RefObject<HTMLButtonElement>}
         type="button"
         onClick={() => onAction?.(item.action!)}
         className={cn(baseClass, toneClass)}
@@ -143,14 +140,17 @@ export function SidebarItem({
 
   if (hasChildren && !collapsed) {
     return (
-      <div className="space-y-0.5">
+      <div
+        ref={itemRef as React.RefObject<HTMLDivElement>}
+        className="space-y-0.5"
+      >
         <div className={cn(baseClass, toneClass, "gap-1 pr-1.5")}>
           {item.href ? (
             <Link
               href={item.href}
               onClick={onNavigate}
               className="flex min-w-0 flex-1 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-              aria-current={isExactActive ? "page" : undefined}
+              aria-current={pathname === item.href ? "page" : undefined}
             >
               {labelContent}
             </Link>
@@ -201,6 +201,7 @@ export function SidebarItem({
                       item={child}
                       depth={depth + 1}
                       collapsed={false}
+                      siblings={item.children}
                       onNavigate={onNavigate}
                       onAction={onAction}
                     />
@@ -218,6 +219,7 @@ export function SidebarItem({
 
   return (
     <Link
+      ref={itemRef as React.RefObject<HTMLAnchorElement>}
       href={item.href}
       onClick={onNavigate}
       className={cn(baseClass, toneClass)}

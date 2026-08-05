@@ -10,7 +10,7 @@ import type {
 import { ordersCatalogMock } from "@/mock/orders-catalog";
 import type { CustomerOrder } from "@/types/order-journey";
 
-const STORAGE_KEY = "petrotrade.orders-catalog.v1";
+const STORAGE_KEY = "petrotrade.orders-catalog.v2";
 
 export type OrdersCatalogFilters = {
   search: string;
@@ -72,7 +72,7 @@ function mapCustomerToCatalog(order: CustomerOrder): OrdersCatalogItem {
     productName: order.productName,
     grade: order.grade,
     productImageUrl: order.productImageUrl,
-    sellerName: "Assigned Seller Desk",
+    sellerName: "Supply Assigned",
     warehouse: order.warehouse,
     quantityMt: order.quantityMt,
     pricePerMt: Math.round(order.baseAmount / Math.max(order.quantityMt, 1)),
@@ -138,7 +138,7 @@ function mapCustomerToCatalog(order: CustomerOrder): OrdersCatalogItem {
       },
       {
         id: "2",
-        title: "Seller Approved",
+        title: "Order Confirmed",
         status: "completed",
         at: order.createdAt,
       },

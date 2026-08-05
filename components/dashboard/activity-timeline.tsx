@@ -11,7 +11,6 @@ import {
   TrendingUp,
 } from "lucide-react";
 import type { ActivityItem, ActivityType } from "@/types/dashboard";
-import { ROUTES } from "@/constants";
 import { SectionTitle } from "@/components/dashboard/section-title";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -57,11 +56,7 @@ export function ActivityTimeline({ items, className }: ActivityTimelineProps) {
   return (
     <Card className={cn("border-slate-200/80", className)}>
       <CardHeader className="pb-3">
-        <SectionTitle
-          title="Recent Activity"
-          actionLabel="View all"
-          actionHref={ROUTES.notifications}
-        />
+        <SectionTitle title="Recent Activity" />
       </CardHeader>
       <CardContent className="pt-0">
         <ol className="space-y-1">

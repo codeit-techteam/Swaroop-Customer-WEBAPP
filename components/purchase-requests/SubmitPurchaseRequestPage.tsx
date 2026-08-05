@@ -77,7 +77,7 @@ export function SubmitPurchaseRequestPage() {
     <PageContainer>
       <PageHeader
         title="Submit Purchase Request"
-        description="Final summary — accept terms and submit to the seller."
+        description="Final summary — accept terms and submit to PetroTrade."
         breadcrumbs={[
           { label: "Purchase Requests", href: ROUTES.purchaseRequests },
           { label: "Payment", href: ROUTES.purchaseRequestsPayment },

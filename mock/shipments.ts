@@ -51,7 +51,7 @@ export const DELIVERY_COPY = {
   successTitle: "Shipment Delivered Successfully",
   successSubtitle:
     "Your shipment has been successfully delivered and received. Thank you for choosing PetroTrade.",
-  rateLabel: "Rate Seller",
+  rateLabel: "Rate Delivery",
   repeatLabel: "Repeat Purchase",
   downloadInvoice: "Download Invoice",
   downloadReceipt: "Download Receipt",

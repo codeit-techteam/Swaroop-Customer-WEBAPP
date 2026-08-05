@@ -51,7 +51,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
     <PageContainer>
       <PageHeader
         title="Order Details"
-        description="Order generated after seller approval — track payment, dispatch and shipment."
+        description="Order generated after PetroTrade confirmation — track payment, dispatch and shipment."
         breadcrumbs={[
           { label: "Orders", href: ROUTES.orders },
           { label: order.id },

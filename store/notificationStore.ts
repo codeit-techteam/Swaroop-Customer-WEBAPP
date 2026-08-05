@@ -1,28 +1,52 @@
 "use client";
 
 import { create } from "zustand";
-import { recentActivityMock } from "@/mock/notifications";
+import {
+  getUnreadCount,
+  useNotificationsCatalogStore,
+} from "@/store/notificationsCatalogStore";
 
 export interface NotificationStoreState {
+  /** Derived from catalog — kept for top-nav / bell compatibility */
   unreadCount: number;
   isPanelOpen: boolean;
   isLoading: boolean;
   setPanelOpen: (open: boolean) => void;
   markAllRead: () => void;
+  syncUnreadFromCatalog: () => void;
 }
 
-const initialUnread = recentActivityMock.length;
-
 /**
- * notificationStore — mock unread count from recent activity.
- * No API logic in the foundation phase.
+ * notificationStore — thin façade over notificationsCatalogStore for the bell badge.
+ * Unread count syncs from the catalog; markAllRead delegates to catalog.
  */
 export const useNotificationStore = create<NotificationStoreState>((set) => ({
-  unreadCount: initialUnread,
+  unreadCount: getUnreadCount(
+    useNotificationsCatalogStore.getState().notifications,
+  ),
   isPanelOpen: false,
   isLoading: false,
   setPanelOpen: (open) => set({ isPanelOpen: open }),
-  markAllRead: () => set({ unreadCount: 0 }),
+  markAllRead: () => {
+    useNotificationsCatalogStore.getState().markAllRead();
+    set({
+      unreadCount: getUnreadCount(
+        useNotificationsCatalogStore.getState().notifications,
+      ),
+    });
+  },
+  syncUnreadFromCatalog: () =>
+    set({
+      unreadCount: getUnreadCount(
+        useNotificationsCatalogStore.getState().notifications,
+      ),
+    }),
 }));
 
-export { initialUnread as notificationStoreInitialUnread };
+useNotificationsCatalogStore.subscribe((state) => {
+  useNotificationStore.setState({
+    unreadCount: getUnreadCount(state.notifications),
+  });
+});
+
+export { getUnreadCount };

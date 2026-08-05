@@ -15,6 +15,7 @@ import {
 } from "@/components/auth";
 import { registerSchema, type RegisterFormValues } from "@/lib/auth-schemas";
 import { useAuthStore } from "@/store/authStore";
+import { useOnboardingStore } from "@/store/onboardingStore";
 import { ROUTES } from "@/constants";
 
 export function RegisterForm() {
@@ -44,6 +45,7 @@ export function RegisterForm() {
   const loading = isLoading || isSubmitting;
 
   const onSubmit = handleSubmit(async (values) => {
+    useOnboardingStore.getState().reset();
     await registerUser({
       businessName: values.businessName,
       gstNumber: values.gstNumber,

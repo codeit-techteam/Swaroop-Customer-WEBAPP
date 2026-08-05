@@ -11,7 +11,7 @@ const FEATURES = [
   },
   {
     icon: BadgeCheck,
-    title: "100% Verified Suppliers",
+    title: "Verified Supply Network",
     description: "Rigorous institutional vetting for supply chain reliability.",
   },
   {

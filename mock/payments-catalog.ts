@@ -64,7 +64,7 @@ function advanceTimeline(
     },
     {
       id: "seller_approved",
-      title: "Seller Approved",
+      title: "Order Confirmed",
       status: "completed",
       at: extras?.approvedAt ?? createdAt,
     },
@@ -929,7 +929,7 @@ function buildPayment(seed: Seed): PaymentRecord {
           ? "The uploaded screenshot is blurry. Please upload a clearer bank advice."
           : "The UTR provided does not match our bank records. Please verify and resubmit.",
       rejectedAt: iso(Math.max(0, seed.daysAgo - 1), 15),
-      rejectedBy: "Finance Ops",
+      rejectedBy: "PetroTrade Review Desk",
     };
   }
 

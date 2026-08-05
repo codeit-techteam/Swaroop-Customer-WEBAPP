@@ -4,13 +4,13 @@ import { motion } from "framer-motion";
 import {
   Box,
   CheckCircle2,
-  CreditCard,
   MapPin,
   Navigation,
   Package,
   PackageCheck,
   Truck,
 } from "lucide-react";
+import { formatShipmentDateTime } from "@/lib/shipment-mvp";
 import { cn } from "@/lib/utils";
 import type {
   ShipmentTimelineStage,
@@ -20,12 +20,9 @@ import type {
 const ICONS: Record<ShipmentTimelineStage["icon"], typeof CheckCircle2> = {
   check: CheckCircle2,
   package: Package,
-  credit: CreditCard,
   box: Box,
   truck: Truck,
-  load: PackageCheck,
   dispatch: Truck,
-  map: MapPin,
   transit: Navigation,
   pin: MapPin,
   delivered: PackageCheck,
@@ -68,6 +65,13 @@ export function ShipmentVerticalTimeline({
         const Icon = ICONS[stage.icon];
         const tone = statusTone(stage.status);
         const isLast = index === stages.length - 1;
+        const timeLabel = stage.timestamp
+          ? formatShipmentDateTime(stage.timestamp)
+          : stage.date && stage.time
+            ? `${stage.date} · ${stage.time}`
+            : stage.status === "current"
+              ? "In progress"
+              : "Pending";
 
         return (
           <motion.li
@@ -98,18 +102,9 @@ export function ShipmentVerticalTimeline({
                 <h4 className={cn("text-sm font-semibold", tone.title)}>
                   {stage.title}
                 </h4>
-                <p className="text-xs text-slate-500">
-                  {stage.date && stage.time
-                    ? `${stage.date} · ${stage.time}`
-                    : stage.status === "current"
-                      ? "In progress"
-                      : "Pending"}
-                </p>
+                <p className="text-xs text-slate-500">{timeLabel}</p>
               </div>
               <p className="mt-1 text-sm text-slate-600">{stage.description}</p>
-              <p className="mt-1 text-[11px] font-medium uppercase tracking-wide text-slate-400">
-                {stage.status}
-              </p>
             </div>
           </motion.li>
         );

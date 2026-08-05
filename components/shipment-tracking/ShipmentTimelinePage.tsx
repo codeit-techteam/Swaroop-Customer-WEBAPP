@@ -59,7 +59,7 @@ export function ShipmentTimelinePage() {
     <PageContainer>
       <PageHeader
         title="Shipment Timeline"
-        description="Professional vertical logistics timeline for every tracked shipment."
+        description="Stage-based shipment progress from order confirmed through delivered."
         breadcrumbs={[
           { label: "Shipment Tracking", href: ROUTES.shipmentTracking },
           { label: "Shipment Timeline" },
@@ -110,7 +110,7 @@ export function ShipmentTimelinePage() {
               {shipment.destination}
             </CardTitle>
             <p className="text-xs text-slate-500">
-              Order Generated → Seller Approved → Payment Verified → Packed →
+              Order Generated → Order Confirmed → Payment Verified → Packed →
               Vehicle Assigned → Loaded → Dispatched → Checkpoints → Delivered
             </p>
           </CardHeader>

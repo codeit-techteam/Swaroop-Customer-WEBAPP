@@ -97,7 +97,7 @@ export function getProductDetailsById(
     procurementTerms: DEFAULT_PROCUREMENT_TERMS,
     trustTitle: "Platform Assurance",
     trustDescription:
-      "This product is supplied through PetroTrade's Verified Supply Network. Supplier identity remains protected until purchase request processing is completed.",
+      "This product is fulfilled by PetroTrade Supply Network. Supplier identity is never disclosed — all transactions are with PetroTrade.",
     trustHighlight: "Verified Supply Network",
     trustFeatures: DEFAULT_TRUST_FEATURES,
     paymentEligibility,

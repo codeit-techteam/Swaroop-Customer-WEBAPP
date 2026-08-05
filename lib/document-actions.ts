@@ -1,5 +1,6 @@
 /**
  * Frontend-only document download / print / share helpers.
+ * Blind marketplace: documents never expose supplier identity.
  */
 
 function triggerDownload(
@@ -47,7 +48,7 @@ export function printDocumentHtml(title: string, content: string) {
       </head>
       <body>
         <h1>${title.replace(/</g, "&lt;")}</h1>
-        <div class="meta">Swaroop Customer Portal · Document Preview</div>
+        <div class="meta">PetroTrade Customer Portal · Document Preview</div>
         <pre>${content.replace(/</g, "&lt;")}</pre>
         <script>window.onload = () => { window.print(); }</script>
       </body>
@@ -93,8 +94,8 @@ export function buildPoDocumentContent(po: {
   };
 }): string {
   return [
-    "SWAROOP / PETROTRADE — PURCHASE ORDER",
-    "====================================",
+    "PETROTRADE — PURCHASE ORDER",
+    "===========================",
     "",
     `PO Number     : ${po.poNumber}`,
     `Order Number  : ${po.orderNumber}`,
@@ -105,15 +106,18 @@ export function buildPoDocumentContent(po: {
     `  GSTIN: ${po.buyer.gstin}`,
     `  ${po.buyer.address}`,
     "",
-    "SELLER",
+    "BILL FROM",
     `  ${po.sellerInfo.name}`,
     `  GSTIN: ${po.sellerInfo.gstin}`,
     `  ${po.sellerInfo.address}`,
     "",
+    "SUPPLY NETWORK",
+    `  Supply Source : ${po.seller}`,
+    `  Warehouse Hub : ${po.warehouse}`,
+    "",
     "PRODUCT",
     `  ${po.product} (${po.grade})`,
     `  Quantity: ${po.quantityMt} MT`,
-    `  Warehouse: ${po.warehouse}`,
     "",
     "PRICING",
     `  Taxable     : ₹ ${po.pricing.taxableValue.toLocaleString("en-IN")}`,
@@ -128,7 +132,7 @@ export function buildPoDocumentContent(po: {
     `Delivery Terms: ${po.deliveryTerms}`,
     "",
     "This is a frontend demo document. No backend generated.",
-    "© Swaroop Customer Portal",
+    "© PetroTrade Customer Portal",
   ].join("\n");
 }
 
@@ -164,12 +168,12 @@ export function buildInvoiceDocumentContent(inv: {
     `PO Number     : ${inv.poNumber}`,
     `Invoice Date  : ${inv.invoiceDate}`,
     "",
-    `Platform      : ${inv.company.name} (${inv.company.gstin})`,
+    `Bill From     : ${inv.company.name} (${inv.company.gstin})`,
     `Buyer         : ${inv.buyer.name} (${inv.buyer.gstin})`,
-    `Seller        : ${inv.sellerInfo.name} (${inv.sellerInfo.gstin})`,
+    `Supply Source : ${inv.seller}`,
     "",
     `Product       : ${inv.product} (${inv.grade})`,
-    `Warehouse     : ${inv.warehouse}`,
+    `Warehouse Hub : ${inv.warehouse}`,
     "",
     `Taxable Value : ₹ ${inv.pricing.taxableValue.toLocaleString("en-IN")}`,
     `CGST / SGST   : ₹ ${inv.pricing.cgst.toLocaleString("en-IN")} / ₹ ${inv.pricing.sgst.toLocaleString("en-IN")}`,
@@ -180,9 +184,10 @@ export function buildInvoiceDocumentContent(inv: {
     "",
     `Payment       : ${inv.paymentInfo.method}`,
     `UTR           : ${inv.paymentInfo.utr ?? "—"}`,
+    `Payment To    : PetroTrade`,
     "",
     "This is a frontend demo document. No backend generated.",
-    "© Swaroop Customer Portal",
+    "© PetroTrade Customer Portal",
   ].join("\n");
 }
 
@@ -196,19 +201,19 @@ export function buildGenericDocumentContent(meta: {
   extraLines?: string[];
 }): string {
   return [
-    `SWAROOP CUSTOMER PORTAL — ${meta.title.toUpperCase()}`,
+    `PETROTRADE CUSTOMER PORTAL — ${meta.title.toUpperCase()}`,
     "=".repeat(48),
     "",
     `Document No.  : ${meta.documentNumber}`,
     meta.orderNumber ? `Order Number  : ${meta.orderNumber}` : null,
     meta.product ? `Product       : ${meta.product}` : null,
-    meta.seller ? `Seller        : ${meta.seller}` : null,
-    meta.warehouse ? `Warehouse     : ${meta.warehouse}` : null,
+    meta.seller ? `Supply Source : ${meta.seller}` : null,
+    meta.warehouse ? `Warehouse Hub : ${meta.warehouse}` : null,
     "",
     ...(meta.extraLines ?? []),
     "",
     "This is a frontend demo document. No backend generated.",
-    "© Swaroop Customer Portal",
+    "© PetroTrade Customer Portal",
   ]
     .filter(Boolean)
     .join("\n");

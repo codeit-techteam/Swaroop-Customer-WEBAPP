@@ -40,11 +40,6 @@ const TYPE_META: Record<
     icon: MapPin,
     className: "border-indigo-200 bg-indigo-50 text-indigo-800",
   },
-  delay: {
-    label: "Delay",
-    icon: AlertTriangle,
-    className: "border-rose-200 bg-rose-50 text-rose-800",
-  },
   reschedule: {
     label: "Reschedule",
     icon: RefreshCw,
@@ -109,7 +104,7 @@ export function DeliveryUpdatesPage() {
     <PageContainer>
       <PageHeader
         title="Delivery Updates"
-        description="Live timeline feed of warehouse exits, checkpoints, delays, and delivery confirmations."
+        description="Operational status updates from dispatch through delivery confirmation."
         breadcrumbs={[
           { label: "Shipment Tracking", href: ROUTES.shipmentTracking },
           { label: "Delivery Updates" },

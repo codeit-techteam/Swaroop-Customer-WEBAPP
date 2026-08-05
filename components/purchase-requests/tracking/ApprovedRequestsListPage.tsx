@@ -47,7 +47,7 @@ export function ApprovedRequestsListPage() {
     <PageContainer>
       <PageHeader
         title="Approved Requests"
-        description="Seller-approved purchase requests with generated order and PO numbers."
+        description="Confirmed purchase requests with generated order and PO numbers."
         breadcrumbs={[
           { label: "Purchase Requests", href: ROUTES.purchaseRequests },
           { label: "Approved" },
@@ -57,7 +57,7 @@ export function ApprovedRequestsListPage() {
       {!isHydrated ? null : rows.length === 0 ? (
         <TrackingEmptyState
           title="No approved requests"
-          description="Approved requests appear here after the seller accepts within the 15-minute window."
+          description="Approved requests appear here after PetroTrade confirms within the 15-minute window."
         />
       ) : (
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">
@@ -68,7 +68,7 @@ export function ApprovedRequestsListPage() {
                 <TableHead>Order / PO</TableHead>
                 <TableHead>Product</TableHead>
                 <TableHead>Approved</TableHead>
-                <TableHead>Seller</TableHead>
+                <TableHead>Supply Source</TableHead>
                 <TableHead>Warehouse</TableHead>
                 <TableHead>Payment</TableHead>
                 <TableHead>Amount</TableHead>

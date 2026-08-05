@@ -78,7 +78,7 @@ export function AdvancePaymentBankPage({
                 label="Product"
                 value={`${payment.product}${payment.productGrade ? ` · ${payment.productGrade}` : ""}`}
               />
-              <Row label="Seller" value={payment.seller} />
+              <Row label="Supply Source" value={payment.seller} />
               <Row label="Warehouse" value={payment.warehouse} />
               <Row
                 label="Quantity"

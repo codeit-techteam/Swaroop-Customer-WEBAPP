@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
-import { ModulePage } from "@/components/common/module-page";
+import { ProfilePage } from "@/components/profile";
 
 export const metadata: Metadata = {
-  title: "Profile",
+  title: "My Profile",
 };
 
 export default function Page() {
-  return (
-    <ModulePage
-      title={"Profile"}
-      description={"Company profile, GST, PAN, addresses, and settings."}
-    />
-  );
+  return <ProfilePage />;
 }

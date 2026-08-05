@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,6 +11,7 @@ import {
 } from "@/lib/onboarding-schemas";
 import {
   COUNTRY_OPTIONS,
+  INDIAN_STATE_OPTIONS,
   ONBOARDING_ROUTES,
   PINCODE_LOOKUP,
 } from "@/constants/onboarding";
@@ -79,7 +80,13 @@ function BusinessAddressForm() {
   const pincodeValid =
     /^\d{6}$/.test(pincode) && Boolean(PINCODE_LOOKUP[pincode] || city);
 
+  // Only autofill when the pincode itself changes, so manual edits to
+  // city/state aren't overwritten on every re-render.
+  const lastLookedUpPincode = useRef<string | null>(null);
+
   useEffect(() => {
+    if (lastLookedUpPincode.current === pincode) return;
+    lastLookedUpPincode.current = pincode;
     if (!/^\d{6}$/.test(pincode)) return;
     const match = PINCODE_LOOKUP[pincode];
     if (!match) return;
@@ -179,12 +186,7 @@ function BusinessAddressForm() {
                       <FormItem>
                         <FormLabel>City</FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            readOnly
-                            className="bg-slate-50 text-slate-600"
-                            aria-readonly="true"
-                          />
+                          <Input placeholder="City" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -199,14 +201,23 @@ function BusinessAddressForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>State</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            readOnly
-                            className="bg-slate-50 text-slate-600"
-                            aria-readonly="true"
-                          />
-                        </FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value || undefined}
+                        >
+                          <FormControl>
+                            <SelectTrigger aria-label="State">
+                              <SelectValue placeholder="Select state" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {INDIAN_STATE_OPTIONS.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}

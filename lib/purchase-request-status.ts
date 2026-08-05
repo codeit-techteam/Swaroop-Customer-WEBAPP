@@ -5,7 +5,7 @@ export const PURCHASE_REQUEST_STATUS_LABELS: Record<
   PurchaseRequestStatus,
   string
 > = {
-  pending_seller_approval: "Pending Seller Approval",
+  pending_seller_approval: "Pending Confirmation",
   approved: "Approved",
   processing: "Processing",
   ready_for_dispatch: "Ready for Dispatch",

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { CompletedOnboardingRedirect } from "@/components/onboarding/CompletedOnboardingRedirect";
 
 export const metadata: Metadata = {
   title: "Customer Onboarding",
@@ -12,5 +13,5 @@ export default function OnboardingLayout({
 }: {
   children: ReactNode;
 }) {
-  return children;
+  return <CompletedOnboardingRedirect>{children}</CompletedOnboardingRedirect>;
 }

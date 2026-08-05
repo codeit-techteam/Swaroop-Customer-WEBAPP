@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ApprovedPurchaseRequestPage } from "@/components/purchase-requests";
 
 export const metadata: Metadata = {
-  title: "Seller Approved",
+  title: "Order Confirmed",
 };
 
 /** One-off approval confirmation (order generated card). */

@@ -63,7 +63,7 @@ export function PaymentFiltersBar({
   onChange,
   onReset,
   hideType,
-  searchPlaceholder = "Search order, PO, invoice, UTR, seller…",
+  searchPlaceholder = "Search order, PO, invoice, UTR, supply source…",
 }: PaymentFiltersBarProps) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-card">
@@ -138,10 +138,10 @@ export function PaymentFiltersBar({
           onValueChange={(v) => onChange({ seller: v })}
         >
           <SelectTrigger className="h-10 w-full rounded-xl lg:w-[180px]">
-            <SelectValue placeholder="Seller" />
+            <SelectValue placeholder="Supply Source" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Sellers</SelectItem>
+            <SelectItem value="all">All Supply Sources</SelectItem>
             {sellers.map((s) => (
               <SelectItem key={s} value={s}>
                 {s}

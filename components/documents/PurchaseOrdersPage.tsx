@@ -92,7 +92,7 @@ export function PurchaseOrdersPage() {
       <DocumentsModuleChrome />
       <PageHeader
         title="Purchase Orders"
-        description="Formal POs linked to approved purchase requests and seller confirmations."
+        description="Formal POs linked to approved purchase requests and PetroTrade confirmations."
         breadcrumbs={[
           { label: "Documents", href: ROUTES.documents },
           { label: "Purchase Orders" },
@@ -106,7 +106,7 @@ export function PurchaseOrdersPage() {
         onChange={setFilters}
         onReset={resetFilters}
         hideType
-        searchPlaceholder="Search PO number, order, product, seller, warehouse…"
+        searchPlaceholder="Search PO number, order, product, supply source, warehouse…"
       />
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">
@@ -116,7 +116,7 @@ export function PurchaseOrdersPage() {
               <TableHead>PO Number</TableHead>
               <TableHead>Order Number</TableHead>
               <TableHead>Product</TableHead>
-              <TableHead>Seller</TableHead>
+              <TableHead>Supply Source</TableHead>
               <TableHead>Warehouse</TableHead>
               <TableHead className="text-right">Quantity</TableHead>
               <TableHead>PO Date</TableHead>

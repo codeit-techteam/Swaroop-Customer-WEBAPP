@@ -1,5 +1,6 @@
 /**
  * Frontend-only dummy document downloads for shipment transport docs.
+ * Blind marketplace: PetroTrade Logistics branding only.
  */
 
 import type {
@@ -28,8 +29,8 @@ export function buildDocumentContent(
   doc: TransportDocument,
 ): string {
   return [
-    "SWAROOP PETROCHEMICALS — TRANSPORT DOCUMENT",
-    "==========================================",
+    "PETROTRADE LOGISTICS — TRANSPORT DOCUMENT",
+    "=========================================",
     "",
     `Document Type : ${doc.title}`,
     `File Name     : ${doc.fileName}`,
@@ -41,14 +42,14 @@ export function buildDocumentContent(
     `Invoice       : ${shipment.invoiceNumber}`,
     `Product       : ${shipment.product} (${shipment.grade})`,
     `Quantity      : ${shipment.quantityMt} MT`,
-    `Warehouse     : ${shipment.warehouse}`,
+    `Dispatch Hub  : ${shipment.warehouse}`,
     `Destination   : ${shipment.destination}, ${shipment.destinationState}`,
     `Vehicle       : ${shipment.vehicleNumber}`,
-    `Driver        : ${shipment.driverName} · ${shipment.driverMobile}`,
-    `Transporter   : ${shipment.transportCompany}`,
+    `Driver        : ${shipment.driverName}`,
+    `Logistics     : PetroTrade Logistics`,
     "",
     "This is a frontend demo document. No backend generated.",
-    "© Swaroop Customer Portal",
+    "© PetroTrade Customer Portal",
   ].join("\n");
 }
 

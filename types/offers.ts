@@ -16,9 +16,31 @@ export type OfferSortBy =
   | "recommended"
   | "discount_desc"
   | "price_asc"
-  | "price_desc"
+  | "savings_desc"
   | "ending_soon"
   | "newest";
+
+export type OfferStatus =
+  "active" | "ending_soon" | "expired" | "sold_out" | "upcoming" | "claimed";
+
+export type OfferCategoryChip =
+  | "all"
+  | "polymers"
+  | "chemicals"
+  | "additives"
+  | "base-oils"
+  | "bulk_deals"
+  | "limited_time"
+  | "credit_eligible";
+
+export type MyOfferTab = "available" | "applied" | "used" | "expired";
+
+export interface MyOfferRecord {
+  offerId: string;
+  status: "available" | "applied" | "used" | "expired";
+  appliedAt?: string;
+  usedAt?: string;
+}
 
 export interface OfferBulkTier {
   id: string;
@@ -56,6 +78,7 @@ export interface MarketplaceOffer {
   availableQuantity: number;
   remainingStock: number;
   expiresAt: string;
+  validFrom?: string;
   offerType: OfferType;
   badge: string;
   paymentTypes: OfferPaymentType[];
@@ -99,6 +122,9 @@ export interface OfferCampaign {
   image: string;
   badge: string;
   offerCount: number;
+  maxDiscountPercent?: number;
+  eligibleProducts?: string;
+  expiresAt?: string;
   hrefOfferType?: OfferType;
 }
 
@@ -121,6 +147,9 @@ export interface OfferFiltersState {
   paymentTypes: OfferPaymentType[];
   offerTypes: OfferType[];
   creditEligibleOnly: boolean;
+  minQuantity: number | null;
+  minDiscountPercent: number | null;
+  inStockOnly: boolean;
 }
 
 export interface OfferPriceBounds {

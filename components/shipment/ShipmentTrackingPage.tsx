@@ -133,7 +133,9 @@ export function ShipmentTrackingPage({ orderId }: ShipmentTrackingPageProps) {
           <DeliveryCompletedView
             order={order}
             delivery={delivery}
-            onRateSeller={() => toast.success("Seller rating submitted (mock)")}
+            onRateSeller={() =>
+              toast.success("Delivery rating submitted (mock)")
+            }
             onRepeatPurchase={() =>
               router.push(
                 `${ROUTES.purchaseRequestsCreate}?productId=${order.productId}`,

@@ -2,7 +2,7 @@ import type { PurchaseRequestSummary } from "@/types/dashboard";
 
 /**
  * Active purchase requests / post-approval orders for dashboard table.
- * Flow: Purchase Request → 15-min seller approval → Order generated.
+ * Flow: Purchase Request → 15-min PetroTrade confirmation → Order generated.
  */
 export const purchaseRequestsMock: PurchaseRequestSummary[] = [
   {

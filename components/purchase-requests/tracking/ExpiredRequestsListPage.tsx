@@ -44,7 +44,7 @@ export function ExpiredRequestsListPage() {
     <PageContainer>
       <PageHeader
         title="Expired Requests"
-        description="Requests that exceeded the 15-minute seller approval window."
+        description="Requests that exceeded the 15-minute PetroTrade confirmation window."
         breadcrumbs={[
           { label: "Purchase Requests", href: ROUTES.purchaseRequests },
           { label: "Expired" },
@@ -64,7 +64,7 @@ export function ExpiredRequestsListPage() {
               <TableRow>
                 <TableHead>Request ID</TableHead>
                 <TableHead>Product</TableHead>
-                <TableHead>Seller</TableHead>
+                <TableHead>Supply Source</TableHead>
                 <TableHead>Time Expired</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>

@@ -8,11 +8,14 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ROUTES } from "@/constants";
+import { getEffectiveOfferPrice } from "@/lib/offer-utils";
 import { getOfferById } from "@/mock/offers";
 import { usePurchaseRequestStore } from "@/store/purchaseRequestStore";
+import { useOffersStore } from "@/store/offersStore";
 import { PurchaseRequestStepper } from "./PurchaseRequestStepper";
 import { PurchaseRequestForm } from "./PurchaseRequestForm";
 import { OrderSummary } from "./OrderSummary";
+import { AppliedOfferSummary } from "./AppliedOfferSummary";
 import type {
   PaymentMethodId,
   PurchaseRequestFormData,
@@ -46,6 +49,7 @@ export function CreatePurchaseRequestPage() {
   const setQuantity = usePurchaseRequestStore((s) => s.setQuantity);
   const setCurrentStep = usePurchaseRequestStore((s) => s.setCurrentStep);
   const getOrderSummary = usePurchaseRequestStore((s) => s.getOrderSummary);
+  const markOfferApplied = useOffersStore((s) => s.markOfferApplied);
 
   useEffect(() => {
     const finish = () => {
@@ -68,6 +72,12 @@ export function CreatePurchaseRequestPage() {
 
     const offer = offerIdParam ? getOfferById(offerIdParam) : undefined;
     const offerPrice = offerPriceParam ? Number(offerPriceParam) : undefined;
+    const qty = qtyParam ? Number(qtyParam) : offer?.moq;
+    const effectiveOfferPrice =
+      offer && qty && Number.isFinite(qty)
+        ? getEffectiveOfferPrice(offer, qty)
+        : (offer?.offerPrice ??
+          (offerPrice && Number.isFinite(offerPrice) ? offerPrice : undefined));
     const paymentMethodId = PAYMENT_IDS.includes(
       paymentParam as PaymentMethodId,
     )
@@ -75,14 +85,16 @@ export function CreatePurchaseRequestPage() {
       : offer?.paymentTypes[0];
 
     hydrateProduct(productId, {
-      currentPricePerMt:
-        offer?.offerPrice ??
-        (offerPrice && Number.isFinite(offerPrice) ? offerPrice : undefined),
+      currentPricePerMt: effectiveOfferPrice,
       warehouse: offer?.warehouseLabel,
-      manufacturer: offer?.sellerName,
+      manufacturer: offer?.brandName,
       moq: offer?.moq,
       paymentMethodId,
     });
+
+    if (offerIdParam) {
+      markOfferApplied(offerIdParam);
+    }
   }, [
     hydrateProduct,
     isHydrated,
@@ -91,6 +103,8 @@ export function CreatePurchaseRequestPage() {
     offerPriceParam,
     offerIdParam,
     paymentParam,
+    qtyParam,
+    markOfferApplied,
   ]);
 
   useEffect(() => {
@@ -161,11 +175,19 @@ export function CreatePurchaseRequestPage() {
         transition={{ duration: 0.35 }}
         className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]"
       >
-        <PurchaseRequestForm
-          product={product}
-          defaultValues={form}
-          onSubmit={handleSubmit}
-        />
+        <div className="space-y-6">
+          {fromOffer && offerIdParam ? (
+            <AppliedOfferSummary
+              offerId={offerIdParam}
+              quantityMt={form.quantityMt}
+            />
+          ) : null}
+          <PurchaseRequestForm
+            product={product}
+            defaultValues={form}
+            onSubmit={handleSubmit}
+          />
+        </div>
         <OrderSummary
           product={product}
           summary={summary}

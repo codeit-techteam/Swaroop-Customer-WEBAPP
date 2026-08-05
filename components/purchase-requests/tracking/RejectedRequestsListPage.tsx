@@ -52,7 +52,7 @@ export function RejectedRequestsListPage() {
     <PageContainer>
       <PageHeader
         title="Rejected Requests"
-        description="Requests declined by the seller with reason and suggested next steps."
+        description="Requests declined after PetroTrade review with reason and suggested next steps."
         breadcrumbs={[
           { label: "Purchase Requests", href: ROUTES.purchaseRequests },
           { label: "Rejected" },
@@ -62,7 +62,7 @@ export function RejectedRequestsListPage() {
       {!isHydrated ? null : rows.length === 0 ? (
         <TrackingEmptyState
           title="No rejected requests"
-          description="Rejected purchase requests will be listed here with seller reasons."
+          description="Rejected purchase requests will be listed here with PetroTrade review reasons."
           showMarketplaceCta={false}
         />
       ) : (
@@ -97,7 +97,7 @@ export function RejectedRequestsListPage() {
                     </p>
                   </TableCell>
                   <TableCell className="text-sm">
-                    {row.rejectedBy ?? "Seller Desk"}
+                    {row.rejectedBy ?? "PetroTrade Review Desk"}
                   </TableCell>
                   <TableCell className="max-w-[240px] truncate text-sm text-slate-600">
                     {row.rejectionReason ?? "—"}
@@ -150,7 +150,7 @@ export function RejectedRequestsListPage() {
           <div className="space-y-3 text-sm">
             <p className="text-slate-500">Rejected by</p>
             <p className="font-medium">
-              {reasonItem?.rejectedBy ?? "Seller Desk"}
+              {reasonItem?.rejectedBy ?? "PetroTrade Review Desk"}
             </p>
             <p className="text-slate-500">Reason</p>
             <p className="rounded-xl bg-red-50 p-3 text-red-900">

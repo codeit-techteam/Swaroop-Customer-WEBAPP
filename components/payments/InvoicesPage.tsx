@@ -177,7 +177,7 @@ export function InvoicesPage() {
             <div className="space-y-2 text-sm">
               <Row label="Order" value={selected.orderNumber} />
               <Row label="PO" value={selected.poNumber} />
-              <Row label="Seller" value={selected.seller} />
+              <Row label="Supply Source" value={selected.seller} />
               <Row label="Warehouse" value={selected.warehouse} />
               <Row label="Amount" value={formatInr(selected.amount)} />
               <Row label="GST" value={formatInr(selected.gst)} />

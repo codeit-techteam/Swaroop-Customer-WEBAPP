@@ -102,7 +102,7 @@ export function PendingApprovalPage() {
     initFromOrder(order);
     upsertFromSubmitted(latest);
     useOrdersCatalogStore.getState().upsertFromCustomerOrder(order);
-    toast.success("Seller approved — order generated");
+    toast.success("Order confirmed — order generated");
     router.replace(ROUTES.purchaseRequestsApproved);
   }, [
     requestStatus,
@@ -123,8 +123,8 @@ export function PendingApprovalPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Pending Seller Approval"
-        description="Market price is locked while the seller reviews your request."
+        title="Pending Confirmation"
+        description="Market price is locked while PetroTrade reviews your request."
         breadcrumbs={[
           { label: "Purchase Requests", href: ROUTES.purchaseRequests },
           { label: "Pending Approval" },
@@ -182,11 +182,11 @@ export function PendingApprovalPage() {
                 ),
               );
               rejectRequest();
-              toast.message("Seller rejected the request (demo)");
+              toast.message("Request declined (demo)");
               router.push(ROUTES.purchaseRequestsRejected);
             }}
           >
-            Simulate Seller Rejection
+            Simulate Decline
           </Button>
         </div>
 

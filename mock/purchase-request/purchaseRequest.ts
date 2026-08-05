@@ -98,7 +98,7 @@ export const VALIDATION_STEP_SEQUENCE: ValidationStepId[] = [
 export const VALIDATION_STEP_TITLES: Record<ValidationStepId, string> = {
   order_received: "Purchase Request Submitted",
   payment_verified: "Payment Verified",
-  procurement_matching: "Seller Reviewing",
+  procurement_matching: "Under Review",
   price_reconfirmation: "Price Reconfirmation",
   inventory_allocation: "Inventory Allocation",
   seller_acceptance: "Approval Pending",
@@ -177,14 +177,14 @@ export const CHECKOUT_PAYMENT_PROTOCOL = {
 
 export const ORDER_CONFIRMATION_COPY = {
   submittedTitle: "Purchase Request Submitted Successfully",
-  submittedChip: "Pending Seller Approval",
+  submittedChip: "Pending Confirmation",
   priceLockHeading: "Market Price Locked",
   priceLockSubtitle:
     "Price expires after countdown. Secured inventory hold active.",
   priceLockExpired: "Expired",
   statusMessage: "Waiting for Verified Supplier Confirmation",
   statusExpected: "Expected: Within 15 Minutes",
-  approvedTitle: "Seller Accepted",
+  approvedTitle: "Order Confirmed",
   approvedSubtitle:
     "Your purchase request has been approved and an order has been generated.",
   poConfirmed: "Your order has been successfully confirmed.",

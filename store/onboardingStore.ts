@@ -7,6 +7,7 @@ import {
   getNextStep,
   getStepIndex,
 } from "@/constants/onboarding";
+import { setOnboardingCompleteCookie } from "@/lib/onboarding-cookie";
 import type {
   BusinessAddress,
   CompanyInfo,
@@ -63,7 +64,8 @@ const initialState: OnboardingState = {
   shippingAddresses: [],
   creditDocuments: emptyCreditDocuments,
   creditLimit: "",
-  isCompleted: false,
+  isCompleted: true,
+  hasStartedOnboarding: false,
   draftSavedAt: null,
 };
 
@@ -244,8 +246,10 @@ export const useOnboardingStore = create<OnboardingStore>()(
       },
 
       completeOnboarding: () => {
+        setOnboardingCompleteCookie(true);
         set({
           isCompleted: true,
+          hasStartedOnboarding: true,
           completedSteps: markStepComplete(
             markStepComplete(get().completedSteps, "credit-eligibility"),
             "completion",
@@ -289,7 +293,23 @@ export const useOnboardingStore = create<OnboardingStore>()(
         return requiredStep ? completedSteps.includes(requiredStep) : false;
       },
 
-      reset: () => set({ ...initialState }),
+      reset: () => {
+        setOnboardingCompleteCookie(false);
+        set({
+          ...initialState,
+          isCompleted: false,
+          hasStartedOnboarding: true,
+          currentStep: "company-information",
+          completedSteps: [],
+          companyInfo: { ...emptyCompanyInfo },
+          gstInfo: { ...emptyGstInfo },
+          businessAddress: { ...emptyBusinessAddress },
+          shippingAddresses: [],
+          creditDocuments: { ...emptyCreditDocuments },
+          creditLimit: "",
+          draftSavedAt: null,
+        });
+      },
     }),
     {
       name: ONBOARDING_STORAGE_KEY,
@@ -303,8 +323,16 @@ export const useOnboardingStore = create<OnboardingStore>()(
         creditDocuments: state.creditDocuments,
         creditLimit: state.creditLimit,
         isCompleted: state.isCompleted,
+        hasStartedOnboarding: state.hasStartedOnboarding,
         draftSavedAt: state.draftSavedAt,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        // Legacy sessions without hasStartedOnboarding stay unlocked
+        const incomplete =
+          state.hasStartedOnboarding === true && state.isCompleted === false;
+        setOnboardingCompleteCookie(!incomplete);
+      },
     },
   ),
 );

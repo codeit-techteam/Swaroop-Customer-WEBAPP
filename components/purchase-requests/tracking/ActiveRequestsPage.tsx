@@ -65,7 +65,7 @@ export function ActiveRequestsPage() {
     <PageContainer>
       <PageHeader
         title="Active Requests"
-        description="Purchase requests currently in progress — draft through seller review."
+        description="Purchase requests currently in progress — draft through PetroTrade review."
         breadcrumbs={[
           { label: "Purchase Requests", href: ROUTES.purchaseRequests },
           { label: "Active" },
@@ -90,7 +90,7 @@ export function ActiveRequestsPage() {
                 <TableRow>
                   <TableHead>Request ID</TableHead>
                   <TableHead>Product</TableHead>
-                  <TableHead>Seller</TableHead>
+                  <TableHead>Supply Source</TableHead>
                   <TableHead>Warehouse</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Payment</TableHead>

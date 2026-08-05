@@ -67,7 +67,7 @@ export function GstInvoicesPage() {
         `Place of Supply: ${g.placeOfSupply}`,
         `HSN           : ${g.hsn}`,
         `Buyer GSTIN   : ${g.buyerGstin}`,
-        `Seller GSTIN  : ${g.sellerGstin}`,
+        `GSTIN  : ${g.sellerGstin}`,
       ],
     });
 

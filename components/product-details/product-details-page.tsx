@@ -101,6 +101,28 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
 
         <div className="space-y-4">
           <ProductHeader product={product} />
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 shadow-card">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              Fulfilled by
+            </p>
+            <p className="mt-1 text-sm font-semibold text-slate-900">
+              PetroTrade Supply Network
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {[
+                "Verified Enterprise Supplier",
+                "Quality Assured",
+                "GST Compliant",
+              ].map((badge) => (
+                <span
+                  key={badge}
+                  className="rounded-md bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand shadow-sm"
+                >
+                  {badge}
+                </span>
+              ))}
+            </div>
+          </div>
           <ProductInfoCard product={product} />
           <TechnicalSpecificationAccordion specs={product.specs} />
           <ComplianceAccordion documents={product.documents} />

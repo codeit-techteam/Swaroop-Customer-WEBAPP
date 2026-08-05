@@ -30,44 +30,7 @@ import type {
   RecentlyGeneratedItem,
 } from "@/types/documents";
 
-const SELLER_GSTINS: Record<(typeof DOCUMENT_SELLERS)[number], string> = {
-  "Reliance Industries": "24AABCR1234A1Z5",
-  HPCL: "27AAACH1234B1Z2",
-  BPCL: "27AAACB1234C1Z9",
-  IOCL: "07AAACI1234D1Z3",
-  "Adani Petrochem": "24AADCA1234E1Z6",
-};
-
-const SELLER_CITIES: Record<
-  (typeof DOCUMENT_SELLERS)[number],
-  { city: string; state: string; address: string }
-> = {
-  "Reliance Industries": {
-    city: "Jamnagar",
-    state: "Gujarat",
-    address: "Reliance Refinery Complex, Motikhavdi",
-  },
-  HPCL: {
-    city: "Mumbai",
-    state: "Maharashtra",
-    address: "Petroleum House, 17 Jamshedji Tata Road",
-  },
-  BPCL: {
-    city: "Mumbai",
-    state: "Maharashtra",
-    address: "Bharat Bhavan, 4 & 6 Currimbhoy Road",
-  },
-  IOCL: {
-    city: "New Delhi",
-    state: "Delhi",
-    address: "Scope Complex, Lodhi Road",
-  },
-  "Adani Petrochem": {
-    city: "Ahmedabad",
-    state: "Gujarat",
-    address: "Adani House, Near Mithakhali Six Roads",
-  },
-};
+/** Blind marketplace: all document parties resolve to PetroTrade. */
 
 function pad(n: number, width = 4) {
   return String(n).padStart(width, "0");
@@ -86,18 +49,17 @@ function addDaysIso(iso: string, days: number): string {
   return d.toISOString();
 }
 
-function sellerParty(seller: (typeof DOCUMENT_SELLERS)[number]): PartyInfo {
-  const loc = SELLER_CITIES[seller];
+function sellerParty(_seller?: (typeof DOCUMENT_SELLERS)[number]): PartyInfo {
   return {
-    name: seller,
-    gstin: SELLER_GSTINS[seller],
-    address: loc.address,
-    city: loc.city,
-    state: loc.state,
-    pincode: loc.state === "Gujarat" ? "361142" : "400001",
-    contactPerson: "Sales Desk",
-    phone: "+91 1800 123 4567",
-    email: `orders@${seller.toLowerCase().replace(/\s+/g, "")}.in`,
+    name: PLATFORM_COMPANY.name,
+    gstin: PLATFORM_COMPANY.gstin,
+    address: PLATFORM_COMPANY.address,
+    city: PLATFORM_COMPANY.city,
+    state: PLATFORM_COMPANY.state,
+    pincode: PLATFORM_COMPANY.pincode,
+    contactPerson: PLATFORM_COMPANY.contactPerson,
+    phone: PLATFORM_COMPANY.phone,
+    email: PLATFORM_COMPANY.email,
   };
 }
 
@@ -214,7 +176,8 @@ function buildSeeds(): OrderSeed[] {
     const quantityMt = 20 + ((i * 7) % 80);
     const unitPrice = 82_000 + ((i * 1300) % 25_000);
     const poDate = isoDaysAgo(70 - i * 2, 9 + (i % 6));
-    const interstate = warehouse === "Panipat" || warehouse === "Paradip";
+    const interstate =
+      warehouse === "Panipat Hub" || warehouse === "Paradip Hub";
     // Later orders are earlier in lifecycle
     const stage = Math.min(7, Math.floor((25 - i) / 3) + (i % 3 === 0 ? 0 : 2));
     const statuses: DocumentStatus[] = [
@@ -411,7 +374,8 @@ function buildProformas(): ProformaInvoiceDocument[] {
         ),
       ],
       pricing,
-      paymentTerms: "As per commercial offer · Subject to seller confirmation",
+      paymentTerms:
+        "As per commercial offer · Subject to PetroTrade confirmation",
       validityNote: "Prices valid until expiry. Subject to stock availability.",
       convertedInvoiceId: status === "converted" ? `inv-${s.index}` : null,
     };
@@ -440,7 +404,7 @@ function buildGstInvoices(): GstInvoiceDocument[] {
     ];
     return {
       id: `gst-${idx + 1}`,
-      gstNumber: SELLER_GSTINS[s.seller],
+      gstNumber: PLATFORM_COMPANY.gstin,
       invoiceNumber: s.gstInvoiceNumber,
       orderNumber: s.orderNumber,
       poNumber: s.poNumber,
@@ -458,7 +422,7 @@ function buildGstInvoices(): GstInvoiceDocument[] {
       placeOfSupply: s.interstate ? "Haryana / Odisha" : "Gujarat",
       hsn: product.hsn,
       buyerGstin: BUYER_COMPANY.gstin,
-      sellerGstin: SELLER_GSTINS[s.seller],
+      sellerGstin: PLATFORM_COMPANY.gstin,
     };
   });
 }
@@ -482,12 +446,12 @@ const CERT_NAMES: Record<CertificateKind, string> = {
 };
 
 const ISSUERS = [
-  "SGS India Pvt Ltd",
-  "Bureau Veritas",
-  "Intertek India",
-  "TUV SUD South Asia",
-  "Manufacturer QA Lab",
-  "NABL Accredited Lab — Hazira",
+  "PetroTrade Quality Assurance",
+  "PetroTrade QC",
+  "NABL Approved Laboratory",
+  "PetroTrade Quality Assurance",
+  "PetroTrade QC",
+  "NABL Approved Laboratory",
 ];
 
 function buildCertificates(): CertificateDocument[] {
@@ -688,7 +652,7 @@ function buildNotifications(): DocumentNotification[] {
       type: "invoice_generated",
       title: "Invoice Generated",
       message:
-        "INV-2026-3403 has been generated for ORD-2026-1003 · Reliance Industries.",
+        "INV-2026-3403 has been generated for ORD-2026-1003 · PetroTrade Supply Network.",
       createdAt: isoDaysAgo(1, 11),
       read: false,
       href: documentsInvoicePath("inv-3"),

@@ -99,7 +99,7 @@ export function DocumentsInvoicesPage() {
         onChange={setFilters}
         onReset={resetFilters}
         hideType
-        searchPlaceholder="Search invoice, order, PO, seller, warehouse…"
+        searchPlaceholder="Search invoice, order, PO, supply source, warehouse…"
       />
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">

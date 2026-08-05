@@ -9,22 +9,19 @@ import { cn } from "@/lib/utils";
 
 interface MarketPricesSectionProps {
   prices: MarketPrice[];
-  updatedAt: string;
   className?: string;
 }
 
 export function MarketPricesSection({
   prices,
-  updatedAt,
   className,
 }: MarketPricesSectionProps) {
   return (
     <Card className={cn("border-slate-200/80", className)}>
       <CardHeader className="pb-4">
         <SectionTitle
-          title="Real-Time Market Prices"
+          title="Market Price"
           icon={<LineChart className="h-4 w-4" aria-hidden="true" />}
-          meta={`Last updated: ${updatedAt}`}
         />
       </CardHeader>
       <CardContent>

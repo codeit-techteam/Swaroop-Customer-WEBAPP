@@ -38,8 +38,9 @@ export const PRODUCT_GALLERY_IMAGES: ProductGalleryImage[] = [
 
 export const DEFAULT_QUALITY_ASSURANCE: QualityAssurance = {
   title: "Certified Quality",
-  subtitle: "Verified by Reliance Lab & Third-Party Auditors.",
-  badges: ["Lab Tested", "Third Party Audited", "ISO Certified"],
+  subtitle:
+    "Issued Through PetroTrade Quality Assurance · Verified By PetroTrade QC",
+  badges: ["Quality Assured", "GST Compliant", "NABL Approved Lab"],
 };
 
 export function buildGalleryFromProduct(

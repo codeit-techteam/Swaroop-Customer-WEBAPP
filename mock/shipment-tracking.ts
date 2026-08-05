@@ -1,14 +1,13 @@
 /**
- * Shipment Tracking mock catalog — 20 enterprise logistics shipments.
- * Seeded for desktop B2B petrochemical procurement demos.
+ * Shipment Tracking mock catalog — MVP status/stage-based logistics demos.
+ * Single source of truth for list KPIs, filters, cards, and details.
  */
 
 import {
   DEFAULT_SHIPMENT_FILTERS,
+  MVP_SHIPMENT_TIMELINE,
   type DeliveryUpdate,
-  type LiveProgressStep,
   type RouteStop,
-  type ShipmentDashboardSummary,
   type ShipmentNotification,
   type ShipmentRecord,
   type ShipmentStatus,
@@ -16,8 +15,13 @@ import {
   type TimelineStageStatus,
   type TransportDocument,
 } from "@/types/shipment-tracking";
+import {
+  shipmentProgressPercent,
+  shipmentStatusTimelineIndex,
+} from "@/lib/shipment-mvp";
 
 export { DEFAULT_SHIPMENT_FILTERS };
+export { computeShipmentSummary } from "@/lib/shipment-mvp";
 
 const PRODUCTS = [
   { name: "Polypropylene Homopolymer", grade: "H030SG" },
@@ -29,22 +33,51 @@ const PRODUCTS = [
 ] as const;
 
 const SELLERS = [
-  "Reliance Polymers",
-  "IOCL Petrochemicals",
-  "Haldia Petrochem",
-  "GAIL Polymers",
-  "Nayara Energy",
+  "PetroTrade Supply Network",
+  "West India Hub",
+  "East India Hub",
+  "North India Hub",
+  "Coastal Hub",
+  "Verified Supply Network",
+] as const;
+
+const DRIVERS = [
+  {
+    name: "Ramesh Patel",
+    mobile: "+91 98765 43210",
+    license: "GJ-2021-884421",
+  },
+  {
+    name: "Mukesh Sharma",
+    mobile: "+91 98234 55667",
+    license: "RJ-2019-772103",
+  },
+  {
+    name: "Amit Yadav",
+    mobile: "+91 97654 88901",
+    license: "MH-2020-551908",
+  },
+  {
+    name: "Suresh Kumar",
+    mobile: "+91 99112 33445",
+    license: "HR-2018-441200",
+  },
+  {
+    name: "Vikram Singh",
+    mobile: "+91 98877 66554",
+    license: "UP-2022-990331",
+  },
 ] as const;
 
 function iso(daysAgo: number, hour = 10, minute = 30): string {
-  const d = new Date("2026-08-03T10:00:00+05:30");
+  const d = new Date("2026-08-05T10:00:00+05:30");
   d.setDate(d.getDate() - daysAgo);
   d.setHours(hour, minute, 0, 0);
   return d.toISOString();
 }
 
 function etaIso(daysFromNow: number, hour = 16): string {
-  const d = new Date("2026-08-03T10:00:00+05:30");
+  const d = new Date("2026-08-05T10:00:00+05:30");
   d.setDate(d.getDate() + daysFromNow);
   d.setHours(hour, 0, 0, 0);
   return d.toISOString();
@@ -72,99 +105,31 @@ function stageStatus(index: number, currentIndex: number): TimelineStageStatus {
   return "pending";
 }
 
-function buildTimeline(
-  currentIndex: number,
-  baseDaysAgo: number,
+/** Build the 6-stage MVP timeline from shipment status. */
+export function buildMvpTimeline(
+  status: ShipmentStatus,
+  createdAt: string,
+  dispatchDate: string | null,
 ): ShipmentTimelineStage[] {
-  const defs: Array<{
-    id: string;
-    title: string;
-    description: string;
-    icon: ShipmentTimelineStage["icon"];
-    offsetHours: number;
-  }> = [
-    {
-      id: "order_confirmed",
-      title: "Order Confirmed",
-      description: "Purchase order confirmed by seller and procurement desk.",
-      icon: "check",
-      offsetHours: 0,
-    },
-    {
-      id: "payment_verified",
-      title: "Payment Verified",
-      description: "Advance / settlement verified against invoice.",
-      icon: "credit",
-      offsetHours: 6,
-    },
-    {
-      id: "packing_completed",
-      title: "Packing Completed",
-      description: "Material packed, sealed, and QC cleared at warehouse.",
-      icon: "box",
-      offsetHours: 18,
-    },
-    {
-      id: "vehicle_assigned",
-      title: "Vehicle Assigned",
-      description: "Transporter vehicle and driver allocated for dispatch.",
-      icon: "truck",
-      offsetHours: 24,
-    },
-    {
-      id: "loaded",
-      title: "Loaded",
-      description: "Truck loaded with sealed containers and weighbridge done.",
-      icon: "load",
-      offsetHours: 30,
-    },
-    {
-      id: "dispatched",
-      title: "Dispatched",
-      description: "Shipment left warehouse gate with e-way bill active.",
-      icon: "dispatch",
-      offsetHours: 32,
-    },
-    {
-      id: "checkpoint",
-      title: "Reached Checkpoint",
-      description: "Vehicle crossed designated state corridor checkpoint.",
-      icon: "map",
-      offsetHours: 48,
-    },
-    {
-      id: "in_transit",
-      title: "In Transit",
-      description: "En route on national highway logistics corridor.",
-      icon: "transit",
-      offsetHours: 60,
-    },
-    {
-      id: "near_destination",
-      title: "Near Destination",
-      description: "Vehicle approaching destination metro hub.",
-      icon: "pin",
-      offsetHours: 78,
-    },
-    {
-      id: "delivered",
-      title: "Delivered",
-      description: "Material delivered and POD captured at buyer site.",
-      icon: "delivered",
-      offsetHours: 90,
-    },
-  ];
+  const currentIndex = shipmentStatusTimelineIndex(status);
+  const base = new Date(createdAt);
 
-  return defs.map((def, index) => {
-    const status = stageStatus(index, currentIndex);
-    const at =
-      status === "pending"
-        ? null
-        : (() => {
-            const d = new Date(iso(baseDaysAgo, 8, 0));
-            d.setHours(d.getHours() + def.offsetHours);
-            return d.toISOString();
-          })();
+  const offsetsHours = [0, 12, 28, 40, 60, 72];
+
+  return MVP_SHIPMENT_TIMELINE.map((def, index) => {
+    const st = stageStatus(index, currentIndex);
+    let at: string | null = null;
+
+    if (st !== "pending") {
+      if (def.id === "dispatched" && dispatchDate) {
+        at = dispatchDate;
+      } else {
+        const d = new Date(base);
+        d.setHours(d.getHours() + offsetsHours[index]);
+        at = d.toISOString();
+      }
+    }
+
     const parts = dateParts(at);
     return {
       id: def.id,
@@ -172,28 +137,11 @@ function buildTimeline(
       description: def.description,
       date: parts.date,
       time: parts.time,
-      status,
+      timestamp: at,
+      status: st,
       icon: def.icon,
     };
   });
-}
-
-function buildLiveProgress(currentIndex: number): LiveProgressStep[] {
-  const labels = [
-    "Warehouse",
-    "Vehicle Assigned",
-    "Loading Complete",
-    "Left Warehouse",
-    "Reached State Border",
-    "Reached City",
-    "Near Delivery",
-    "Delivered",
-  ];
-  return labels.map((label, index) => ({
-    id: `live-${index}`,
-    label,
-    status: stageStatus(index, currentIndex),
-  }));
 }
 
 function buildRoute(cities: string[], currentIndex: number): RouteStop[] {
@@ -211,8 +159,7 @@ function buildDocuments(
   orderNumber: string,
   status: ShipmentStatus,
 ): TransportDocument[] {
-  const advanced =
-    status !== "ready_for_dispatch" && status !== "vehicle_assigned";
+  const advanced = status !== "ready_for_dispatch";
   const delivered = status === "delivered";
   const types: Array<{
     type: TransportDocument["type"];
@@ -247,91 +194,74 @@ function buildUpdates(
   orderNumber: string,
   driver: string,
   status: ShipmentStatus,
+  warehouse: string,
 ): DeliveryUpdate[] {
   const base: DeliveryUpdate[] = [
     {
       id: `${shipmentId}-u1`,
       shipmentId,
       orderNumber,
-      message: "Shipment left warehouse",
-      date: "01/08/2026",
-      time: "14:20",
+      message: `Shipment staged at ${warehouse} warehouse`,
+      date: "03/08/2026",
+      time: "10:20",
       type: "info",
       driver,
-      location: "Warehouse Gate",
-    },
-    {
-      id: `${shipmentId}-u2`,
-      shipmentId,
-      orderNumber,
-      message: "Reached Gujarat Border",
-      date: "01/08/2026",
-      time: "18:45",
-      type: "checkpoint",
-      driver,
-      location: "Gujarat Border",
-    },
-    {
-      id: `${shipmentId}-u3`,
-      shipmentId,
-      orderNumber,
-      message: "Reached Rajasthan",
-      date: "02/08/2026",
-      time: "09:10",
-      type: "checkpoint",
-      driver,
-      location: "Rajasthan Corridor",
+      location: warehouse,
     },
   ];
 
-  if (status === "delayed") {
-    base.push(
-      {
-        id: `${shipmentId}-u4`,
-        shipmentId,
-        orderNumber,
-        message: "Vehicle delayed due to highway congestion",
-        date: "02/08/2026",
-        time: "16:30",
-        type: "delay",
-        driver,
-        location: "NH-48",
-      },
-      {
-        id: `${shipmentId}-u5`,
-        shipmentId,
-        orderNumber,
-        message: "Delivery rescheduled by 8 hours",
-        date: "02/08/2026",
-        time: "17:05",
-        type: "reschedule",
-        driver,
-      },
-    );
+  if (status !== "ready_for_dispatch") {
+    base.push({
+      id: `${shipmentId}-u2`,
+      shipmentId,
+      orderNumber,
+      message: "Shipment dispatched from warehouse",
+      date: "04/08/2026",
+      time: "14:15",
+      type: "info",
+      driver,
+      location: warehouse,
+    });
+  }
+
+  if (
+    status === "in_transit" ||
+    status === "out_for_delivery" ||
+    status === "delivered"
+  ) {
+    base.push({
+      id: `${shipmentId}-u3`,
+      shipmentId,
+      orderNumber,
+      message: "Shipment moved to In Transit",
+      date: "05/08/2026",
+      time: "08:40",
+      type: "checkpoint",
+      driver,
+    });
   }
 
   if (status === "out_for_delivery" || status === "delivered") {
     base.push({
-      id: `${shipmentId}-u6`,
+      id: `${shipmentId}-u4`,
       shipmentId,
       orderNumber,
-      message: "Reached Delhi NCR hub",
-      date: "03/08/2026",
-      time: "07:40",
+      message: "Shipment is now Out for Delivery",
+      date: "05/08/2026",
+      time: "11:00",
       type: "checkpoint",
       driver,
-      location: "Delhi NCR",
     });
   }
 
   if (status === "delivered") {
     base.push({
-      id: `${shipmentId}-u7`,
+      id: `${shipmentId}-u5`,
       shipmentId,
       orderNumber,
       message: "Delivered successfully with POD confirmation",
-      date: "03/08/2026",
-      time: "11:15",
+      date: "05/08/2026",
+      time: "15:30",
       type: "delivered",
       driver,
     });
@@ -359,15 +289,11 @@ type Seed = {
   transporter: string;
   driverIdx: number;
   status: ShipmentStatus;
-  timelineIndex: number;
-  liveIndex: number;
   routeCities: string[];
   routeIndex: number;
   remainingKm: number;
   remainingHours: number;
   currentCity: string;
-  weather: string;
-  traffic: "clear" | "moderate" | "heavy";
   dispatchDaysAgo: number | null;
   etaDays: number;
   createdDaysAgo: number;
@@ -376,37 +302,14 @@ type Seed = {
 function toRecord(seed: Seed): ShipmentRecord {
   const product = PRODUCTS[seed.productIdx % PRODUCTS.length];
   const seller = SELLERS[seed.sellerIdx % SELLERS.length];
-  const drivers = [
-    {
-      name: "Ramesh Patel",
-      mobile: "+91 98765 43210",
-      license: "GJ-2021-884421",
-    },
-    {
-      name: "Mukesh Sharma",
-      mobile: "+91 98234 55667",
-      license: "RJ-2019-772103",
-    },
-    {
-      name: "Amit Yadav",
-      mobile: "+91 97654 88901",
-      license: "MH-2020-551908",
-    },
-    {
-      name: "Suresh Kumar",
-      mobile: "+91 99112 33445",
-      license: "HR-2018-441200",
-    },
-    {
-      name: "Vikram Singh",
-      mobile: "+91 98877 66554",
-      license: "UP-2022-990331",
-    },
-  ];
-  const driver = drivers[seed.driverIdx % drivers.length];
+  const driver = DRIVERS[seed.driverIdx % DRIVERS.length];
   const amount = Math.round(seed.qty * seed.rate);
   const grandTotal = Math.round(amount * 1.18 + seed.qty * 850);
-  const progress = Math.round((seed.timelineIndex / 9) * 100);
+  const createdAt = iso(seed.createdDaysAgo, 8, 0);
+  const dispatchDate =
+    seed.dispatchDaysAgo === null ? null : iso(seed.dispatchDaysAgo, 14, 15);
+  const expectedDeliveryDate = etaIso(seed.etaDays, 16);
+  const progress = shipmentProgressPercent(seed.status);
 
   return {
     id: seed.id,
@@ -416,6 +319,7 @@ function toRecord(seed: Seed): ShipmentRecord {
     product: product.name,
     grade: product.grade,
     quantityMt: seed.qty,
+    unit: "MT",
     seller,
     warehouse: seed.warehouse,
     destination: seed.destination,
@@ -429,30 +333,35 @@ function toRecord(seed: Seed): ShipmentRecord {
     driverName: driver.name,
     driverMobile: driver.mobile,
     driverLicense: driver.license,
-    gpsEnabled: true,
-    dispatchDate:
-      seed.dispatchDaysAgo === null ? null : iso(seed.dispatchDaysAgo, 14, 20),
-    eta: etaIso(seed.etaDays, 16),
+    dispatchDate,
+    expectedDeliveryDate,
+    eta: expectedDeliveryDate,
     remainingDistanceKm: seed.remainingKm,
     currentStatus: seed.status,
     currentCity: seed.currentCity,
     progress,
-    weatherStatus: seed.weather,
-    trafficIndicator: seed.traffic,
+    weatherStatus: "—",
+    trafficIndicator: "clear",
     remainingHours: seed.remainingHours,
     route: buildRoute(seed.routeCities, seed.routeIndex),
-    liveProgress: buildLiveProgress(seed.liveIndex),
-    timeline: buildTimeline(seed.timelineIndex, seed.createdDaysAgo),
+    liveProgress: [],
+    timeline: buildMvpTimeline(seed.status, createdAt, dispatchDate),
     documents: buildDocuments(seed.orderNumber, seed.status),
-    updates: buildUpdates(seed.id, seed.orderNumber, driver.name, seed.status),
-    createdAt: iso(seed.createdDaysAgo, 8, 0),
+    updates: buildUpdates(
+      seed.id,
+      seed.orderNumber,
+      driver.name,
+      seed.status,
+      seed.warehouse,
+    ),
+    createdAt,
     updatedAt: iso(0, 9, 45),
   };
 }
 
 /**
- * 20 shipments — overlaps PT-ORD-88204..88218 ready/transit/delivered IDs
- * so Track Shipment from Orders opens matching details.
+ * 20 shipments overlapping PT-ORD-88204..88218 so Track from Orders opens
+ * matching details. Statuses are MVP-only (no delayed / live GPS).
  */
 const SEEDS: Seed[] = [
   {
@@ -463,29 +372,25 @@ const SEEDS: Seed[] = [
     productIdx: 0,
     sellerIdx: 0,
     warehouse: "Jamnagar",
-    destination: "Delhi",
-    destinationState: "Delhi",
+    destination: "Mumbai",
+    destinationState: "Maharashtra",
     paymentType: "Advance Payment",
     qty: 25,
     rate: 98500,
-    vehicleNumber: "GJ01AB4567",
+    vehicleNumber: "GJ-01-AB-4582",
     vehicleType: "Trailer 32 FT",
     capacity: 28,
-    transporter: "TCI",
+    transporter: "ABC Logistics",
     driverIdx: 0,
-    status: "ready_for_dispatch",
-    timelineIndex: 2,
-    liveIndex: 0,
-    routeCities: ["Jamnagar", "Ahmedabad", "Udaipur", "Jaipur", "Delhi"],
-    routeIndex: 0,
-    remainingKm: 1180,
-    remainingHours: 36,
-    currentCity: "Jamnagar",
-    weather: "Clear · 34°C",
-    traffic: "clear",
-    dispatchDaysAgo: null,
+    status: "in_transit",
+    routeCities: ["Jamnagar", "Ahmedabad", "Vadodara", "Surat", "Mumbai"],
+    routeIndex: 2,
+    remainingKm: 420,
+    remainingHours: 14,
+    currentCity: "Vadodara",
+    dispatchDaysAgo: 1,
     etaDays: 2,
-    createdDaysAgo: 4,
+    createdDaysAgo: 2,
   },
   {
     id: "PT-ORD-88205",
@@ -505,19 +410,15 @@ const SEEDS: Seed[] = [
     capacity: 20,
     transporter: "VRL Logistics",
     driverIdx: 2,
-    status: "vehicle_assigned",
-    timelineIndex: 3,
-    liveIndex: 1,
+    status: "ready_for_dispatch",
     routeCities: ["Hazira", "Vadodara", "Surat", "Vapi", "Mumbai"],
     routeIndex: 0,
     remainingKm: 280,
     remainingHours: 10,
     currentCity: "Hazira",
-    weather: "Humid · 31°C",
-    traffic: "moderate",
     dispatchDaysAgo: null,
     etaDays: 1,
-    createdDaysAgo: 3,
+    createdDaysAgo: 1,
   },
   {
     id: "PT-ORD-88206",
@@ -538,18 +439,14 @@ const SEEDS: Seed[] = [
     transporter: "Mahindra Logistics",
     driverIdx: 1,
     status: "in_transit",
-    timelineIndex: 7,
-    liveIndex: 4,
     routeCities: ["Dahej", "Vadodara", "Indore", "Nagpur", "Hyderabad"],
     routeIndex: 2,
     remainingKm: 620,
     remainingHours: 18,
     currentCity: "Indore",
-    weather: "Partly cloudy · 29°C",
-    traffic: "clear",
     dispatchDaysAgo: 2,
     etaDays: 1,
-    createdDaysAgo: 6,
+    createdDaysAgo: 4,
   },
   {
     id: "PT-ORD-88207",
@@ -570,18 +467,14 @@ const SEEDS: Seed[] = [
     transporter: "Blue Dart B2B",
     driverIdx: 0,
     status: "in_transit",
-    timelineIndex: 7,
-    liveIndex: 5,
     routeCities: ["Mundra", "Ahmedabad", "Pune", "Hubli", "Bangalore"],
     routeIndex: 3,
     remainingKm: 410,
     remainingHours: 14,
     currentCity: "Hubli",
-    weather: "Light rain · 26°C",
-    traffic: "moderate",
     dispatchDaysAgo: 3,
     etaDays: 1,
-    createdDaysAgo: 7,
+    createdDaysAgo: 5,
   },
   {
     id: "PT-ORD-88208",
@@ -602,18 +495,14 @@ const SEEDS: Seed[] = [
     transporter: "Delhivery Enterprise",
     driverIdx: 3,
     status: "delivered",
-    timelineIndex: 9,
-    liveIndex: 7,
     routeCities: ["Panipat", "Sonipat", "Delhi"],
     routeIndex: 2,
     remainingKm: 0,
     remainingHours: 0,
     currentCity: "Delhi",
-    weather: "Clear · 33°C",
-    traffic: "clear",
     dispatchDaysAgo: 4,
     etaDays: 0,
-    createdDaysAgo: 8,
+    createdDaysAgo: 6,
   },
   {
     id: "PT-ORD-88209",
@@ -634,18 +523,14 @@ const SEEDS: Seed[] = [
     transporter: "TCI",
     driverIdx: 4,
     status: "delivered",
-    timelineIndex: 9,
-    liveIndex: 7,
     routeCities: ["Paradip", "Cuttack", "Bhubaneswar", "Kharagpur", "Kolkata"],
     routeIndex: 4,
     remainingKm: 0,
     remainingHours: 0,
     currentCity: "Kolkata",
-    weather: "Humid · 30°C",
-    traffic: "clear",
     dispatchDaysAgo: 5,
     etaDays: -1,
-    createdDaysAgo: 9,
+    createdDaysAgo: 7,
   },
   {
     id: "PT-ORD-88210",
@@ -666,18 +551,14 @@ const SEEDS: Seed[] = [
     transporter: "VRL Logistics",
     driverIdx: 2,
     status: "delivered",
-    timelineIndex: 9,
-    liveIndex: 7,
     routeCities: ["Jamnagar", "Mumbai", "Pune", "Bengaluru", "Chennai"],
     routeIndex: 4,
     remainingKm: 0,
     remainingHours: 0,
     currentCity: "Chennai",
-    weather: "Coastal · 32°C",
-    traffic: "clear",
     dispatchDaysAgo: 6,
     etaDays: -2,
-    createdDaysAgo: 10,
+    createdDaysAgo: 8,
   },
   {
     id: "PT-ORD-88214",
@@ -698,18 +579,14 @@ const SEEDS: Seed[] = [
     transporter: "Mahindra Logistics",
     driverIdx: 0,
     status: "ready_for_dispatch",
-    timelineIndex: 2,
-    liveIndex: 0,
     routeCities: ["Hazira", "Ahmedabad", "Udaipur", "Jaipur", "Delhi"],
     routeIndex: 0,
     remainingKm: 1120,
     remainingHours: 34,
     currentCity: "Hazira",
-    weather: "Clear · 33°C",
-    traffic: "clear",
     dispatchDaysAgo: null,
     etaDays: 2,
-    createdDaysAgo: 3,
+    createdDaysAgo: 1,
   },
   {
     id: "PT-ORD-88215",
@@ -730,18 +607,14 @@ const SEEDS: Seed[] = [
     transporter: "Blue Dart B2B",
     driverIdx: 2,
     status: "out_for_delivery",
-    timelineIndex: 8,
-    liveIndex: 6,
     routeCities: ["Dahej", "Surat", "Vapi", "Thane", "Mumbai"],
     routeIndex: 3,
     remainingKm: 48,
     remainingHours: 3,
     currentCity: "Thane",
-    weather: "Overcast · 28°C",
-    traffic: "heavy",
     dispatchDaysAgo: 1,
     etaDays: 0,
-    createdDaysAgo: 4,
+    createdDaysAgo: 3,
   },
   {
     id: "PT-ORD-88216",
@@ -762,18 +635,14 @@ const SEEDS: Seed[] = [
     transporter: "Delhivery Enterprise",
     driverIdx: 1,
     status: "delivered",
-    timelineIndex: 9,
-    liveIndex: 7,
     routeCities: ["Mundra", "Ahmedabad", "Indore", "Nagpur", "Hyderabad"],
     routeIndex: 4,
     remainingKm: 0,
     remainingHours: 0,
     currentCity: "Hyderabad",
-    weather: "Clear · 31°C",
-    traffic: "clear",
     dispatchDaysAgo: 5,
     etaDays: -1,
-    createdDaysAgo: 9,
+    createdDaysAgo: 7,
   },
   {
     id: "PT-ORD-88218",
@@ -794,20 +663,15 @@ const SEEDS: Seed[] = [
     transporter: "TCI",
     driverIdx: 3,
     status: "delivered",
-    timelineIndex: 9,
-    liveIndex: 7,
     routeCities: ["Panipat", "Delhi", "Nagpur", "Hyderabad", "Bangalore"],
     routeIndex: 4,
     remainingKm: 0,
     remainingHours: 0,
     currentCity: "Bangalore",
-    weather: "Pleasant · 24°C",
-    traffic: "clear",
     dispatchDaysAgo: 7,
     etaDays: -3,
-    createdDaysAgo: 11,
+    createdDaysAgo: 9,
   },
-  // Additional shipments to reach 20
   {
     id: "PT-SHP-90001",
     orderNumber: "PT-ORD-90001",
@@ -821,24 +685,20 @@ const SEEDS: Seed[] = [
     paymentType: "Advance Payment",
     qty: 40,
     rate: 97800,
-    vehicleNumber: "GJ01AB4567",
+    vehicleNumber: "MH12CD7854",
     vehicleType: "Trailer 40 FT",
     capacity: 40,
     transporter: "TCI",
-    driverIdx: 0,
+    driverIdx: 2,
     status: "dispatched",
-    timelineIndex: 5,
-    liveIndex: 3,
     routeCities: ["Jamnagar", "Ahmedabad", "Udaipur", "Jaipur", "Delhi"],
     routeIndex: 1,
     remainingKm: 980,
     remainingHours: 28,
     currentCity: "Ahmedabad",
-    weather: "Hot · 36°C",
-    traffic: "moderate",
     dispatchDaysAgo: 0,
     etaDays: 2,
-    createdDaysAgo: 5,
+    createdDaysAgo: 3,
   },
   {
     id: "PT-SHP-90002",
@@ -848,29 +708,25 @@ const SEEDS: Seed[] = [
     productIdx: 1,
     sellerIdx: 2,
     warehouse: "Hazira",
-    destination: "Kolkata",
-    destinationState: "West Bengal",
-    paymentType: "On Delivery",
+    destination: "Hyderabad",
+    destinationState: "Telangana",
+    paymentType: "Advance Payment",
     qty: 26,
-    rate: 100500,
-    vehicleNumber: "MH12CD7854",
+    rate: 99500,
+    vehicleNumber: "GJ05XY9821",
     vehicleType: "Trailer 32 FT",
     capacity: 28,
     transporter: "VRL Logistics",
-    driverIdx: 2,
-    status: "delayed",
-    timelineIndex: 6,
-    liveIndex: 4,
-    routeCities: ["Hazira", "Indore", "Nagpur", "Raipur", "Kolkata"],
+    driverIdx: 1,
+    status: "in_transit",
+    routeCities: ["Hazira", "Surat", "Nagpur", "Hyderabad"],
     routeIndex: 2,
-    remainingKm: 740,
-    remainingHours: 30,
+    remainingKm: 540,
+    remainingHours: 16,
     currentCity: "Nagpur",
-    weather: "Storm watch · 27°C",
-    traffic: "heavy",
-    dispatchDaysAgo: 3,
-    etaDays: 2,
-    createdDaysAgo: 7,
+    dispatchDaysAgo: 2,
+    etaDays: 1,
+    createdDaysAgo: 4,
   },
   {
     id: "PT-SHP-90003",
@@ -882,27 +738,23 @@ const SEEDS: Seed[] = [
     warehouse: "Dahej",
     destination: "Chennai",
     destinationState: "Tamil Nadu",
-    paymentType: "Advance Payment",
-    qty: 19,
-    rate: 95500,
-    vehicleNumber: "RJ14EF2345",
-    vehicleType: "Trailer 32 FT",
-    capacity: 28,
+    paymentType: "On Loading",
+    qty: 22,
+    rate: 93000,
+    vehicleNumber: "TN09PK6678",
+    vehicleType: "Trailer 40 FT",
+    capacity: 34,
     transporter: "Mahindra Logistics",
-    driverIdx: 1,
+    driverIdx: 4,
     status: "in_transit",
-    timelineIndex: 7,
-    liveIndex: 5,
     routeCities: ["Dahej", "Mumbai", "Pune", "Bengaluru", "Chennai"],
-    routeIndex: 3,
-    remainingKm: 350,
-    remainingHours: 12,
-    currentCity: "Bengaluru",
-    weather: "Clear · 27°C",
-    traffic: "clear",
+    routeIndex: 2,
+    remainingKm: 780,
+    remainingHours: 22,
+    currentCity: "Pune",
     dispatchDaysAgo: 2,
-    etaDays: 1,
-    createdDaysAgo: 5,
+    etaDays: 2,
+    createdDaysAgo: 4,
   },
   {
     id: "PT-SHP-90004",
@@ -910,31 +762,27 @@ const SEEDS: Seed[] = [
     poNumber: "PO-2026-9004",
     invoiceNumber: "INV-2026-9004",
     productIdx: 3,
-    sellerIdx: 4,
+    sellerIdx: 0,
     warehouse: "Mundra",
-    destination: "Mumbai",
-    destinationState: "Maharashtra",
-    paymentType: "On Loading",
-    qty: 14,
-    rate: 89000,
-    vehicleNumber: "GJ05XY9821",
-    vehicleType: "Container 20 FT",
-    capacity: 18,
-    transporter: "Blue Dart B2B",
+    destination: "Delhi",
+    destinationState: "Delhi",
+    paymentType: "Advance Payment",
+    qty: 30,
+    rate: 88000,
+    vehicleNumber: "RJ14EF2345",
+    vehicleType: "Trailer 32 FT",
+    capacity: 28,
+    transporter: "TCI",
     driverIdx: 0,
-    status: "vehicle_assigned",
-    timelineIndex: 3,
-    liveIndex: 1,
-    routeCities: ["Mundra", "Rajkot", "Surat", "Vapi", "Mumbai"],
+    status: "ready_for_dispatch",
+    routeCities: ["Mundra", "Ahmedabad", "Jaipur", "Delhi"],
     routeIndex: 0,
-    remainingKm: 540,
-    remainingHours: 16,
+    remainingKm: 1050,
+    remainingHours: 32,
     currentCity: "Mundra",
-    weather: "Windy · 34°C",
-    traffic: "clear",
     dispatchDaysAgo: null,
-    etaDays: 1,
-    createdDaysAgo: 2,
+    etaDays: 3,
+    createdDaysAgo: 1,
   },
   {
     id: "PT-SHP-90005",
@@ -942,31 +790,27 @@ const SEEDS: Seed[] = [
     poNumber: "PO-2026-9005",
     invoiceNumber: "INV-2026-9005",
     productIdx: 4,
-    sellerIdx: 0,
+    sellerIdx: 1,
     warehouse: "Panipat",
-    destination: "Hyderabad",
-    destinationState: "Telangana",
+    destination: "Mumbai",
+    destinationState: "Maharashtra",
     paymentType: "Credit 15 Days",
-    qty: 21,
+    qty: 14,
     rate: 108000,
     vehicleNumber: "HR55MN3344",
-    vehicleType: "Trailer 32 FT",
-    capacity: 28,
-    transporter: "Delhivery Enterprise",
+    vehicleType: "Container 20 FT",
+    capacity: 18,
+    transporter: "Blue Dart B2B",
     driverIdx: 3,
     status: "dispatched",
-    timelineIndex: 5,
-    liveIndex: 3,
-    routeCities: ["Panipat", "Delhi", "Agra", "Nagpur", "Hyderabad"],
+    routeCities: ["Panipat", "Delhi", "Jaipur", "Ahmedabad", "Mumbai"],
     routeIndex: 1,
-    remainingKm: 1450,
-    remainingHours: 40,
+    remainingKm: 1200,
+    remainingHours: 36,
     currentCity: "Delhi",
-    weather: "Hazy · 35°C",
-    traffic: "moderate",
     dispatchDaysAgo: 0,
     etaDays: 3,
-    createdDaysAgo: 4,
+    createdDaysAgo: 2,
   },
   {
     id: "PT-SHP-90006",
@@ -974,37 +818,27 @@ const SEEDS: Seed[] = [
     poNumber: "PO-2026-9006",
     invoiceNumber: "INV-2026-9006",
     productIdx: 5,
-    sellerIdx: 1,
+    sellerIdx: 2,
     warehouse: "Paradip",
     destination: "Bangalore",
     destinationState: "Karnataka",
     paymentType: "Advance Payment",
-    qty: 32,
-    rate: 91500,
+    qty: 20,
+    rate: 91000,
     vehicleNumber: "KA03ST8890",
-    vehicleType: "Trailer 40 FT",
-    capacity: 36,
-    transporter: "TCI",
+    vehicleType: "Trailer 32 FT",
+    capacity: 28,
+    transporter: "Delhivery Enterprise",
     driverIdx: 4,
-    status: "delayed",
-    timelineIndex: 6,
-    liveIndex: 4,
-    routeCities: [
-      "Paradip",
-      "Visakhapatnam",
-      "Vijayawada",
-      "Tirupati",
-      "Bangalore",
-    ],
+    status: "in_transit",
+    routeCities: ["Paradip", "Visakhapatnam", "Hyderabad", "Bangalore"],
     routeIndex: 2,
-    remainingKm: 680,
-    remainingHours: 26,
-    currentCity: "Vijayawada",
-    weather: "Heavy rain · 25°C",
-    traffic: "heavy",
-    dispatchDaysAgo: 4,
-    etaDays: 2,
-    createdDaysAgo: 8,
+    remainingKm: 650,
+    remainingHours: 20,
+    currentCity: "Hyderabad",
+    dispatchDaysAgo: 2,
+    etaDays: 1,
+    createdDaysAgo: 4,
   },
   {
     id: "PT-SHP-90007",
@@ -1012,31 +846,27 @@ const SEEDS: Seed[] = [
     poNumber: "PO-2026-9007",
     invoiceNumber: "INV-2026-9007",
     productIdx: 0,
-    sellerIdx: 2,
+    sellerIdx: 3,
     warehouse: "Jamnagar",
     destination: "Kolkata",
     destinationState: "West Bengal",
     paymentType: "On Delivery",
-    qty: 27,
-    rate: 98200,
-    vehicleNumber: "GJ01AB4567",
+    qty: 32,
+    rate: 97000,
+    vehicleNumber: "WB20QR1122",
     vehicleType: "Trailer 40 FT",
-    capacity: 32,
-    transporter: "VRL Logistics",
-    driverIdx: 0,
+    capacity: 36,
+    transporter: "TCI",
+    driverIdx: 1,
     status: "out_for_delivery",
-    timelineIndex: 8,
-    liveIndex: 6,
-    routeCities: ["Jamnagar", "Ahmedabad", "Indore", "Raipur", "Kolkata"],
-    routeIndex: 4,
+    routeCities: ["Jamnagar", "Nagpur", "Raipur", "Kolkata"],
+    routeIndex: 3,
     remainingKm: 35,
     remainingHours: 2,
     currentCity: "Kolkata",
-    weather: "Humid · 29°C",
-    traffic: "moderate",
     dispatchDaysAgo: 3,
     etaDays: 0,
-    createdDaysAgo: 6,
+    createdDaysAgo: 5,
   },
   {
     id: "PT-SHP-90008",
@@ -1044,31 +874,27 @@ const SEEDS: Seed[] = [
     poNumber: "PO-2026-9008",
     invoiceNumber: "INV-2026-9008",
     productIdx: 1,
-    sellerIdx: 3,
+    sellerIdx: 4,
     warehouse: "Hazira",
     destination: "Chennai",
     destinationState: "Tamil Nadu",
     paymentType: "Advance Payment",
-    qty: 23,
-    rate: 103000,
-    vehicleNumber: "TN09PK6678",
-    vehicleType: "Trailer 32 FT",
-    capacity: 28,
-    transporter: "Mahindra Logistics",
+    qty: 19,
+    rate: 100500,
+    vehicleNumber: "GJ01AB4567",
+    vehicleType: "Container 20 FT",
+    capacity: 20,
+    transporter: "VRL Logistics",
     driverIdx: 2,
     status: "in_transit",
-    timelineIndex: 7,
-    liveIndex: 4,
     routeCities: ["Hazira", "Mumbai", "Pune", "Bengaluru", "Chennai"],
     routeIndex: 2,
-    remainingKm: 890,
-    remainingHours: 24,
+    remainingKm: 700,
+    remainingHours: 20,
     currentCity: "Pune",
-    weather: "Clear · 30°C",
-    traffic: "clear",
     dispatchDaysAgo: 1,
     etaDays: 2,
-    createdDaysAgo: 4,
+    createdDaysAgo: 3,
   },
   {
     id: "PT-SHP-90009",
@@ -1076,134 +902,112 @@ const SEEDS: Seed[] = [
     poNumber: "PO-2026-9009",
     invoiceNumber: "INV-2026-9009",
     productIdx: 2,
-    sellerIdx: 4,
+    sellerIdx: 0,
     warehouse: "Dahej",
     destination: "Delhi",
     destinationState: "Delhi",
-    paymentType: "Credit 30 Days",
-    qty: 29,
-    rate: 94800,
+    paymentType: "Advance Payment",
+    qty: 28,
+    rate: 94000,
     vehicleNumber: "RJ14EF2345",
-    vehicleType: "Trailer 40 FT",
-    capacity: 34,
-    transporter: "Blue Dart B2B",
-    driverIdx: 1,
-    status: "ready_for_dispatch",
-    timelineIndex: 2,
-    liveIndex: 0,
-    routeCities: ["Dahej", "Ahmedabad", "Udaipur", "Jaipur", "Delhi"],
-    routeIndex: 0,
-    remainingKm: 1050,
-    remainingHours: 32,
-    currentCity: "Dahej",
-    weather: "Clear · 34°C",
-    traffic: "clear",
-    dispatchDaysAgo: null,
-    etaDays: 2,
-    createdDaysAgo: 2,
+    vehicleType: "Trailer 32 FT",
+    capacity: 28,
+    transporter: "Mahindra Logistics",
+    driverIdx: 0,
+    status: "in_transit",
+    routeCities: ["Dahej", "Ahmedabad", "Jaipur", "Delhi"],
+    routeIndex: 2,
+    remainingKm: 480,
+    remainingHours: 14,
+    currentCity: "Jaipur",
+    dispatchDaysAgo: 1,
+    etaDays: 1,
+    createdDaysAgo: 3,
   },
 ];
 
 export const shipmentsCatalogMock: ShipmentRecord[] = SEEDS.map(toRecord);
 
+/** Operational status alerts only — no GPS / delay predictions. */
 export const shipmentNotificationsMock: ShipmentNotification[] = [
   {
     id: "sn-1",
     shipmentId: "PT-ORD-88205",
+    orderNumber: "PT-ORD-88205",
     type: "vehicle_assigned",
     title: "Vehicle Assigned",
-    message: "MH12CD7854 assigned to PT-ORD-88205 · Driver Amit Yadav",
+    message: "MH12CD7854 assigned to PT-ORD-88205",
     at: iso(0, 8, 15),
     read: false,
   },
   {
     id: "sn-2",
     shipmentId: "PT-SHP-90001",
-    type: "shipment_started",
-    title: "Shipment Started",
-    message: "PT-ORD-90001 dispatched from Jamnagar via TCI",
-    at: iso(0, 9, 5),
+    orderNumber: "PT-ORD-90001",
+    type: "shipment_dispatched",
+    title: "Shipment Dispatched",
+    message: "PT-ORD-90001 dispatched from Jamnagar Warehouse",
+    at: iso(0, 14, 15),
     read: false,
   },
   {
     id: "sn-3",
-    shipmentId: "PT-ORD-88206",
-    type: "reached_checkpoint",
-    title: "Reached Checkpoint",
-    message: "PT-ORD-88206 crossed Indore corridor checkpoint",
-    at: iso(0, 7, 40),
+    shipmentId: "PT-ORD-88204",
+    orderNumber: "PT-ORD-88204",
+    type: "in_transit",
+    title: "Shipment In Transit",
+    message: "PT-ORD-88204 moved to In Transit",
+    at: iso(0, 8, 40),
     read: false,
   },
   {
     id: "sn-4",
-    shipmentId: "PT-ORD-88215",
-    type: "delivery_tomorrow",
-    title: "Delivery Tomorrow",
-    message: "PT-ORD-88215 expected at Mumbai buyer site within 3 hours",
-    at: iso(0, 6, 20),
-    read: true,
+    shipmentId: "PT-SHP-90007",
+    orderNumber: "PT-ORD-90007",
+    type: "out_for_delivery",
+    title: "Out for Delivery",
+    message: "PT-ORD-90007 is now Out for Delivery",
+    at: iso(0, 11, 0),
+    read: false,
   },
   {
     id: "sn-5",
     shipmentId: "PT-ORD-88208",
+    orderNumber: "PT-ORD-88208",
     type: "delivered",
-    title: "Delivered Successfully",
-    message: "PT-ORD-88208 delivered in Delhi · POD verified",
-    at: iso(1, 11, 15),
+    title: "Delivered",
+    message: "PT-ORD-88208 successfully delivered",
+    at: iso(1, 15, 30),
     read: true,
   },
   {
     id: "sn-6",
-    shipmentId: "PT-SHP-90002",
-    type: "reached_checkpoint",
-    title: "Delay Alert",
-    message: "PT-ORD-90002 delayed near Nagpur due to congestion",
-    at: iso(0, 10, 0),
+    shipmentId: "PT-ORD-88215",
+    orderNumber: "PT-ORD-88215",
+    type: "out_for_delivery",
+    title: "Out for Delivery",
+    message: "PT-ORD-88215 is now Out for Delivery",
+    at: iso(0, 10, 20),
     read: false,
   },
   {
     id: "sn-7",
-    shipmentId: "PT-SHP-90007",
-    type: "delivery_tomorrow",
-    title: "Out For Delivery",
-    message: "PT-ORD-90007 is out for delivery in Kolkata",
-    at: iso(0, 8, 50),
-    read: false,
-  },
-  {
-    id: "sn-8",
     shipmentId: "PT-ORD-88209",
+    orderNumber: "PT-ORD-88209",
     type: "delivered",
-    title: "Delivered Successfully",
-    message: "PT-ORD-88209 delivered in Kolkata · POD captured",
+    title: "Delivered",
+    message: "PT-ORD-88209 successfully delivered",
     at: iso(2, 12, 0),
     read: true,
   },
+  {
+    id: "sn-8",
+    shipmentId: "PT-ORD-88206",
+    orderNumber: "PT-ORD-88206",
+    type: "in_transit",
+    title: "Shipment In Transit",
+    message: "PT-ORD-88206 moved to In Transit",
+    at: iso(1, 9, 10),
+    read: true,
+  },
 ];
-
-export function computeShipmentSummary(
-  shipments: ShipmentRecord[],
-): ShipmentDashboardSummary {
-  const today = "2026-08-03";
-  const weekStart = new Date("2026-07-28T00:00:00+05:30").getTime();
-
-  return {
-    activeShipments: shipments.filter((s) => s.currentStatus !== "delivered")
-      .length,
-    inTransit: shipments.filter((s) =>
-      ["in_transit", "out_for_delivery", "dispatched"].includes(
-        s.currentStatus,
-      ),
-    ).length,
-    expectedToday: shipments.filter(
-      (s) => s.currentStatus !== "delivered" && s.eta.slice(0, 10) === today,
-    ).length,
-    deliveredThisWeek: shipments.filter(
-      (s) =>
-        s.currentStatus === "delivered" &&
-        new Date(s.updatedAt).getTime() >= weekStart,
-    ).length,
-    delayedShipments: shipments.filter((s) => s.currentStatus === "delayed")
-      .length,
-  };
-}

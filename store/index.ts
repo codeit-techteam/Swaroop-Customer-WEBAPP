@@ -13,6 +13,7 @@ export * from "./approvalStore";
 export * from "./creditStore";
 export * from "./documentsStore";
 export * from "./notificationStore";
+export * from "./notificationsCatalogStore";
 export * from "./profileStore";
 export * from "./supportStore";
 export * from "./searchStore";

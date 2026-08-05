@@ -53,7 +53,7 @@ export function RecommendedOffers({ className }: RecommendedOffersProps) {
                 View all
               </Link>
             </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               {offers.map((offer, index) =>
                 offer ? (
                   <OfferCard key={offer.id} offer={offer} index={index} />

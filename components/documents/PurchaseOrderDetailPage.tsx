@@ -155,13 +155,13 @@ export function PurchaseOrderDetailPage() {
               <Info label="Warehouse" value={po.warehouse} />
               <Info label="Quantity" value={formatQuantityMt(po.quantityMt)} />
               <Info label="Amount" value={formatInr(po.amount)} />
-              <Info label="Seller" value={po.seller} />
+              <Info label="Supply Source" value={po.seller} />
             </CardContent>
           </Card>
 
           <div className="grid gap-4 md:grid-cols-2">
             <PartyCard title="Buyer Information" party={po.buyer} />
-            <PartyCard title="Seller Information" party={po.sellerInfo} />
+            <PartyCard title="Bill From" party={po.sellerInfo} />
           </div>
 
           <Card className="border-slate-200 shadow-card">

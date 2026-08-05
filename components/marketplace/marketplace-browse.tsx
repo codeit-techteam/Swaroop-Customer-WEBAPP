@@ -119,7 +119,7 @@ export function MarketplaceBrowse({
     <PageContainer className="space-y-5">
       <PageHeader
         title={pageTitle}
-        description="Browse verified industrial grades and create purchase requests for seller approval."
+        description="Browse verified industrial grades and create purchase requests for PetroTrade confirmation."
         breadcrumbs={crumbItems}
       />
 

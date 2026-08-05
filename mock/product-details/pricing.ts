@@ -12,7 +12,7 @@ export function buildSpotPrice(pricePerMt: number): SpotPriceInfo {
     trendDirection: "up",
     currency: "INR",
     unit: "MT",
-    note: "Prices are exclusive of GST (18%). Final quote is generated after seller approval of your purchase request.",
+    note: "Prices are exclusive of GST (18%). Final quote is generated after PetroTrade confirmation of your purchase request.",
   };
 }
 

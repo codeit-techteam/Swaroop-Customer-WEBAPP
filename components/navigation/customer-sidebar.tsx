@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { CUSTOMER_NAV, ROUTES, APP_SHORT_NAME } from "@/constants";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -8,6 +10,8 @@ import { SidebarItem } from "@/components/navigation/sidebar-item";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useUiStore } from "@/store/uiStore";
 import { useAuthStore } from "@/store/authStore";
+import { useOnboardingStore } from "@/store/onboardingStore";
+import { findActiveTopNavId } from "@/lib/nav-active";
 import { cn } from "@/lib/utils";
 import type { NavItem } from "@/types";
 
@@ -17,23 +21,54 @@ interface CustomerSidebarProps {
   forceExpanded?: boolean;
 }
 
-const FOOTER_NAV_IDS = new Set(["notifications", "profile", "logout"]);
+const FOOTER_NAV_IDS = new Set(["logout"]);
+
+const ONBOARDING_ONLY_NAV: NavItem = {
+  id: "onboarding",
+  title: "Onboarding Progress",
+  href: ROUTES.onboarding,
+  icon: "ClipboardList",
+};
 
 export function CustomerSidebar({
   className,
   forceExpanded = false,
 }: CustomerSidebarProps) {
+  const pathname = usePathname();
   const sidebarCollapsed = useUiStore((s) => s.sidebarCollapsed);
   const toggleSidebarCollapsed = useUiStore((s) => s.toggleSidebarCollapsed);
   const setSidebarMobileOpen = useUiStore((s) => s.setSidebarMobileOpen);
+  const syncSidebarToPath = useUiStore((s) => s.syncSidebarToPath);
   const logout = useAuthStore((s) => s.logout);
+  const isCompleted = useOnboardingStore((s) => s.isCompleted);
+  const hasStartedOnboarding = useOnboardingStore(
+    (s) => s.hasStartedOnboarding,
+  );
 
   const collapsed = forceExpanded ? false : sidebarCollapsed;
 
-  const primaryNav = CUSTOMER_NAV.filter(
-    (item) => !FOOTER_NAV_IDS.has(item.id),
+  const onboardingIncomplete = hasStartedOnboarding && !isCompleted;
+  const primaryNav = useMemo(
+    () =>
+      onboardingIncomplete
+        ? [ONBOARDING_ONLY_NAV]
+        : CUSTOMER_NAV.filter((item) => !FOOTER_NAV_IDS.has(item.id)),
+    [onboardingIncomplete],
   );
   const footerNav = CUSTOMER_NAV.filter((item) => FOOTER_NAV_IDS.has(item.id));
+
+  useEffect(() => {
+    if (onboardingIncomplete || collapsed) return;
+    const topLevelIds = primaryNav.map((item) => item.id);
+    const activeTopId = findActiveTopNavId(pathname, primaryNav);
+    syncSidebarToPath(activeTopId, topLevelIds);
+  }, [
+    pathname,
+    onboardingIncomplete,
+    collapsed,
+    primaryNav,
+    syncSidebarToPath,
+  ]);
 
   function handleNavigate() {
     setSidebarMobileOpen(false);
@@ -46,11 +81,13 @@ export function CustomerSidebar({
     }
   }
 
+  const logoHref = onboardingIncomplete ? ROUTES.onboarding : ROUTES.dashboard;
+
   const content = (
     <>
       <div className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-slate-200 px-3">
         <Link
-          href={ROUTES.dashboard}
+          href={logoHref}
           className={cn(
             "flex min-w-0 items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
             collapsed && "mx-auto",
@@ -66,7 +103,9 @@ export function CustomerSidebar({
                 {APP_SHORT_NAME}
               </span>
               <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                Enterprise Trading
+                {onboardingIncomplete
+                  ? "Complete Onboarding"
+                  : "Enterprise Trading"}
               </span>
             </span>
           ) : null}
@@ -104,6 +143,7 @@ export function CustomerSidebar({
               key={item.id}
               item={item}
               collapsed={collapsed}
+              siblings={primaryNav}
               onNavigate={handleNavigate}
               onAction={handleAction}
             />
@@ -125,7 +165,9 @@ export function CustomerSidebar({
         </nav>
         {!collapsed ? (
           <p className="mt-3 px-2 text-[10px] leading-relaxed text-slate-400">
-            Marketplace → Purchase Request → Order → Payment → Shipment
+            {onboardingIncomplete
+              ? "Finish onboarding to unlock trading modules"
+              : "Marketplace → Purchase Request → Order → Payment → Shipment"}
           </p>
         ) : null}
       </div>

@@ -21,12 +21,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ROUTES } from "@/constants";
-import { formatInr, formatQuantityMt } from "@/lib/format";
+import { formatQuantityMt } from "@/lib/format";
 import { getOfferDetailHref, getOfferQuoteHref } from "@/mock/offers";
 import { useOffersStore } from "@/store/offersStore";
 import { OfferCountdownBlocks } from "./offer-countdown";
 import { PaymentTypeBadges } from "./payment-type-badges";
 import { OfferCard } from "./offer-card";
+import { SavingsCalculator } from "./savings-calculator";
+import { VolumePricing } from "./volume-pricing";
+import { OfferBadge } from "./offer-badge";
+import { isOfferPurchasable } from "@/lib/offer-utils";
 import { cn } from "@/lib/utils";
 
 interface OfferDetailPageProps {
@@ -36,6 +40,7 @@ interface OfferDetailPageProps {
 export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
   const router = useRouter();
   const [imageFailed, setImageFailed] = useState(false);
+  const [quantityMt, setQuantityMt] = useState<number | null>(null);
   const getOffer = useOffersStore((s) => s.getOffer);
   const offers = useOffersStore((s) => s.offers);
   const markViewed = useOffersStore((s) => s.markViewed);
@@ -45,7 +50,10 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
   const offer = getOffer(offerId);
 
   useEffect(() => {
-    if (offer) markViewed(offer.id);
+    if (offer) {
+      markViewed(offer.id);
+      setQuantityMt(offer.moq);
+    }
   }, [offer, markViewed]);
 
   const related = useMemo(() => {
@@ -84,10 +92,11 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
   }
 
   const wished = wishlistIds.includes(offer.id);
-  const quoteHref = getOfferQuoteHref(offer);
-  const materialSubtotal = offer.offerPrice;
-  const gstAmount = Math.round((materialSubtotal * offer.gstPercent) / 100);
-  const totalEstimate = materialSubtotal + offer.estimatedFreight + gstAmount;
+  const purchasable = isOfferPurchasable(offer);
+  const quoteHref = getOfferQuoteHref(offer, {
+    quantity: quantityMt ?? offer.moq,
+  });
+  const resolvedQty = quantityMt ?? offer.moq;
 
   const handleShare = async () => {
     const url =
@@ -198,7 +207,7 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
                     {offer.productName}
                   </h3>
                   <p className="mt-1 text-sm text-slate-500">
-                    Grade {offer.grade} · Seller {offer.sellerName}
+                    Grade {offer.grade} · Fulfilled by PetroTrade Supply Network
                   </p>
                   <div className="mt-3 flex flex-wrap gap-4 text-sm text-slate-600">
                     <span className="flex items-center gap-1.5">
@@ -244,30 +253,7 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
 
             {offer.bulkTiers?.length ? (
               <section className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-card md:p-6">
-                <h4 className="text-sm font-semibold text-slate-900">
-                  Bulk Discount Tiers
-                </h4>
-                <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {offer.bulkTiers.map((tier) => (
-                    <div
-                      key={tier.id}
-                      className="rounded-xl border border-slate-200 bg-slate-50 p-4"
-                    >
-                      <p className="text-xs font-bold uppercase tracking-wider text-brand">
-                        {tier.label}
-                      </p>
-                      <p className="mt-2 text-lg font-bold tabular-nums text-slate-900">
-                        {formatInr(tier.discountPrice, { compact: true })}
-                        <span className="ml-1 text-xs font-medium text-slate-400">
-                          / MT
-                        </span>
-                      </p>
-                      <p className="mt-1 text-sm text-emerald-700">
-                        Save {formatInr(tier.savings, { compact: true })}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                <VolumePricing offer={offer} quantityMt={resolvedQty} />
               </section>
             ) : null}
 
@@ -286,87 +272,48 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+            <SavingsCalculator
+              offer={offer}
+              quantityMt={resolvedQty}
+              onQuantityChange={setQuantityMt}
+            />
+
             <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-card">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Pricing Summary
-              </p>
-              <div className="mt-3 space-y-2.5 text-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  Offer Details
+                </p>
+                <OfferBadge offer={offer} variant="status" />
+              </div>
+              <div className="space-y-2 text-sm">
                 <PriceRow
-                  label="Price Before"
-                  value={
-                    <span className="text-slate-400 line-through">
-                      {formatInr(offer.priceBefore, { compact: true })}
-                    </span>
-                  }
+                  label="Discount"
+                  value={`${offer.discountPercent}%`}
                 />
                 <PriceRow
-                  label="Offer Price / MT"
-                  value={
-                    <span className="text-lg font-bold text-brand">
-                      {formatInr(offer.offerPrice, { compact: true })}
-                    </span>
-                  }
-                />
-                <PriceRow
-                  label="Savings / MT"
-                  value={
-                    <span className="font-semibold text-emerald-700">
-                      {formatInr(offer.savings, { compact: true })}
-                    </span>
-                  }
-                />
-                <Separator />
-                <PriceRow label="MOQ" value={formatQuantityMt(offer.moq)} />
-                <PriceRow
-                  label="Available Qty"
-                  value={formatQuantityMt(offer.availableQuantity)}
-                />
-                <PriceRow
-                  label="Offer Valid Till"
-                  value={new Date(offer.expiresAt).toLocaleString("en-IN", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  label="Stock"
+                  value={formatQuantityMt(offer.remainingStock)}
                 />
                 <PriceRow label="Warehouse" value={offer.warehouseLabel} />
-                <Separator />
-                <PriceRow
-                  label="Estimated Freight"
-                  value={formatInr(offer.estimatedFreight, { compact: true })}
-                />
-                <PriceRow
-                  label={`GST (${offer.gstPercent}%)`}
-                  value={formatInr(gstAmount, { compact: true })}
-                />
-                <PriceRow
-                  label="Total Estimate / MT"
-                  value={
-                    <span className="text-base font-bold text-slate-900">
-                      {formatInr(totalEstimate, { compact: true })}
-                    </span>
-                  }
-                  strong
-                />
+                <PriceRow label="Delivery Estimate" value="3–5 business days" />
               </div>
 
-              <div className="mt-5">
+              <div className="mt-4">
                 <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  Payment Options
+                  Payment Eligibility
                 </p>
                 <PaymentTypeBadges types={offer.paymentTypes} size="md" />
               </div>
 
-              <div className="mt-5 grid gap-2">
+              <div className="mt-4 grid gap-2">
                 <Button
                   asChild
                   className="h-11 rounded-xl bg-brand font-semibold hover:bg-brand-700"
+                  disabled={!purchasable}
                 >
-                  <Link href={quoteHref}>
+                  <Link href={purchasable ? quoteHref : "#"}>
                     <FilePlus2 className="h-4 w-4" />
-                    Request Quote
+                    Create Purchase Request
                   </Link>
                 </Button>
                 <Button
@@ -394,7 +341,7 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
                     onClick={handleShare}
                   >
                     <Share2 className="h-4 w-4" />
-                    Share Offer
+                    Share
                   </Button>
                   <Button
                     type="button"

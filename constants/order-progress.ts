@@ -30,6 +30,7 @@ const DISPLAY_STATUS_STAGE_INDEX: Record<OrdersDisplayStatus, number> = {
   packed: 1,
   ready: 2,
   in_transit: 3,
+  delayed: 3,
   delivered: 4,
   cancelled: 0,
 };
@@ -68,12 +69,3 @@ export function processingMvpCurrentLabel(
   const index = processingMvpStageIndex(percent, displayStatus);
   return PROCESSING_MVP_STAGES[index]?.label ?? "Received";
 }
-
-/** Mock SLA used for Avg Delivery Time KPI comparison. */
-export const DELIVERY_TIME_KPI = {
-  avgDays: 3.8,
-  slaDays: 5,
-  onTimePercent: 86,
-  delayedPercent: 14,
-  windowLabel: "Last 30 days",
-} as const;
