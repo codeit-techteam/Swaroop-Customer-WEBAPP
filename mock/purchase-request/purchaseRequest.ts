@@ -35,17 +35,16 @@ export function createDefaultFormData(
   moq = 25,
   packaging: string = PACKAGING_OPTIONS[0],
 ): PurchaseRequestFormData {
-  const deliveryDate = new Date();
-  deliveryDate.setDate(deliveryDate.getDate() + 7);
+  const seq = Math.floor(10000 + Math.random() * 90000);
 
   return {
     quantityMt: moq,
     packaging,
     deliveryLocationId: DEFAULT_SHIPPING_ADDRESS_ID,
-    expectedDeliveryDate: deliveryDate.toISOString().slice(0, 10),
+    expectedDeliveryDate: "",
     remarks: "",
     gstNumber: "27AABCP1234D1Z5",
-    purchaseOrderReference: "",
+    purchaseOrderReference: `PO-2026-${seq}`,
     shippingAddressId: DEFAULT_SHIPPING_ADDRESS_ID,
     billingAddressId: DEFAULT_BILLING_ADDRESS_ID,
     sameAsShipping: true,
@@ -68,12 +67,12 @@ export function mapProductToSelected(
     id: product.id,
     name: product.name,
     grade: product.grade,
-    manufacturer: overrides?.manufacturer ?? product.brandName,
-    warehouse: overrides?.warehouse ?? product.warehouseLabel,
-    warehouseRegion: product.origin,
+    manufacturer: "Verified Supply Partner",
+    warehouse: "PetroTrade Network Hub",
+    warehouseRegion: "Western India Region",
     availableStock: product.stock,
     moq: overrides?.moq ?? product.moq,
-    quantityIncrement: 25,
+    quantityIncrement: 1,
     currentPricePerMt: overrides?.currentPricePerMt ?? product.price,
     packaging: PACKAGING_OPTIONS[0],
     imageUrl: product.image,

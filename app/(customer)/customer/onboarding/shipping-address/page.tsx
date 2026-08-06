@@ -38,7 +38,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { ShippingAddress } from "@/types/onboarding";
@@ -103,8 +102,8 @@ function ShippingAddressContent() {
     <div className="mx-auto max-w-5xl">
       <StepHeader
         stepLabel="Step 4 of 6"
-        title="Shipping Terminals & Addresses"
-        description="Manage your delivery locations. You can add multiple terminals for fuel and petrochemical distribution."
+        title="Shipping Addresses"
+        description="Manage your delivery locations. You can add multiple addresses for fuel and petrochemical distribution."
       />
 
       <div className="relative mb-8 overflow-hidden rounded-xl">
@@ -129,16 +128,18 @@ function ShippingAddressContent() {
 
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-slate-900">
-          Active Terminals ({addresses.length})
+          Addresses ({addresses.length})
         </h2>
-        <Button
-          type="button"
-          onClick={openAdd}
-          className="bg-slate-900 hover:bg-slate-800"
-        >
-          <Plus className="h-4 w-4" aria-hidden="true" />
-          Add New Address
-        </Button>
+        {addresses.length > 0 && (
+          <Button
+            type="button"
+            onClick={openAdd}
+            className="bg-slate-900 hover:bg-slate-800"
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Add New Address
+          </Button>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -156,43 +157,19 @@ function ShippingAddressContent() {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Terminal Name
-                    </p>
-                    <p className="mt-0.5 font-semibold text-slate-900">
-                      {addr.terminalName}
-                    </p>
-                    <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Contact Person
-                    </p>
-                    <p className="mt-0.5 text-sm text-slate-700">
-                      {addr.contactPerson}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Full Address
-                    </p>
-                    <p className="mt-0.5 text-sm text-slate-700">
-                      {addr.fullAddress}
-                    </p>
-                    <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Mobile Number
-                    </p>
-                    <p className="mt-0.5 text-sm text-slate-700">
-                      {addr.mobileNumber}
-                    </p>
-                  </div>
-                </div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Address
+                </p>
+                <p className="mt-0.5 text-sm text-slate-700">
+                  {addr.fullAddress}
+                </p>
               </div>
               <div className="flex shrink-0 gap-1">
                 <button
                   type="button"
                   onClick={() => openEdit(addr)}
                   className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-                  aria-label={`Edit ${addr.terminalName}`}
+                  aria-label={`Edit address ${index + 1}`}
                 >
                   <Pencil className="h-4 w-4" />
                 </button>
@@ -200,7 +177,7 @@ function ShippingAddressContent() {
                   type="button"
                   onClick={() => handleDelete(addr.id)}
                   className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                  aria-label={`Delete ${addr.terminalName}`}
+                  aria-label={`Delete address ${index + 1}`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -209,17 +186,17 @@ function ShippingAddressContent() {
           </article>
         ))}
 
-        <button
-          type="button"
-          onClick={openAdd}
-          className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 px-6 py-10 text-slate-500 transition-colors hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-          aria-label="Add additional delivery point"
-        >
-          <Plus className="h-6 w-6" aria-hidden="true" />
-          <span className="text-sm font-medium">
-            Add Additional Delivery Point
-          </span>
-        </button>
+        {addresses.length === 0 && (
+          <button
+            type="button"
+            onClick={openAdd}
+            className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 px-6 py-10 text-slate-500 transition-colors hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
+            aria-label="Add shipping address"
+          >
+            <Plus className="h-6 w-6" aria-hidden="true" />
+            <span className="text-sm font-medium">Add Shipping Address</span>
+          </button>
+        )}
       </div>
 
       <div className="mt-8 flex flex-col gap-4 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
@@ -260,29 +237,14 @@ function ShippingAddressDialog({
   const form = useForm<ShippingAddressFormValues>({
     resolver: zodResolver(shippingAddressSchema),
     defaultValues: {
-      terminalName: "",
       fullAddress: "",
-      contactPerson: "",
-      mobileNumber: "",
     },
   });
 
   useEffect(() => {
     if (!open) return;
     form.reset(
-      initial
-        ? {
-            terminalName: initial.terminalName,
-            fullAddress: initial.fullAddress,
-            contactPerson: initial.contactPerson,
-            mobileNumber: initial.mobileNumber,
-          }
-        : {
-            terminalName: "",
-            fullAddress: "",
-            contactPerson: "",
-            mobileNumber: "",
-          },
+      initial ? { fullAddress: initial.fullAddress } : { fullAddress: "" },
     );
   }, [open, initial, form]);
 
@@ -298,19 +260,6 @@ function ShippingAddressDialog({
           <form onSubmit={form.handleSubmit(onSave)} className="space-y-4">
             <FormField
               control={form.control}
-              name="terminalName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Terminal Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Western Hub Terminal A" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="fullAddress"
               render={({ field }) => (
                 <FormItem>
@@ -319,36 +268,6 @@ function ShippingAddressDialog({
                     <Textarea
                       placeholder="Plot, Industrial Zone, City, State, Pincode"
                       rows={3}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="contactPerson"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact Person</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Amit Shah" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="mobileNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="+91 91234 56789"
-                      inputMode="tel"
                       {...field}
                     />
                   </FormControl>

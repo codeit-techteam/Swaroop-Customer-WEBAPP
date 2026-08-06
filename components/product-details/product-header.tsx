@@ -37,20 +37,20 @@ export function ProductHeader({ product, className }: ProductHeaderProps) {
           {product.name}
         </h1>
         <p className="mt-1 text-sm font-medium text-slate-500">
-          {product.manufacturer}
+          Fulfilled by PetroTrade Network
         </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <InfoChip
           icon={<MapPin className="h-3.5 w-3.5" />}
-          label="Origin"
-          value={product.origin}
+          label="Region"
+          value="Western India Region"
         />
         <InfoChip
           icon={<Warehouse className="h-3.5 w-3.5" />}
-          label="Warehouse"
-          value={product.warehouseLabel}
+          label="Supply Partner"
+          value="Verified by PetroTrade"
         />
         <InfoChip
           icon={<CircleDot className="h-3.5 w-3.5 text-emerald-600" />}

@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { ROUTES } from "@/constants";
+import { Suspense } from "react";
+import { PurchaseRequestsListPage } from "@/components/purchase-requests";
 
 export const metadata: Metadata = {
   title: "Purchase Requests",
 };
 
-/** Purchase Requests hub → Active Requests (tracking only). */
 export default function Page() {
-  redirect(ROUTES.purchaseRequestsActive);
+  return (
+    <Suspense fallback={null}>
+      <PurchaseRequestsListPage />
+    </Suspense>
+  );
 }

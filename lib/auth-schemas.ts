@@ -1,11 +1,21 @@
 import { z } from "zod";
 import {
   emailSchema,
-  gstinSchema,
   panSchema,
   phoneSchema,
   requiredString,
 } from "@/utils/validators";
+
+function isValidIndianMobile(value: string) {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length === 10) {
+    return phoneSchema.safeParse(digits).success;
+  }
+  if (digits.length === 12 && digits.startsWith("91")) {
+    return phoneSchema.safeParse(digits.slice(2)).success;
+  }
+  return false;
+}
 
 /** Email or 10-digit Indian mobile */
 export const identifierSchema = z
@@ -13,37 +23,45 @@ export const identifierSchema = z
   .trim()
   .min(1, "Email or phone is required")
   .refine(
-    (value) => {
-      const isEmail = emailSchema.safeParse(value).success;
-      const digits = value.replace(/\D/g, "");
-      const isPhone =
-        digits.length === 10
-          ? phoneSchema.safeParse(digits).success
-          : digits.length === 12 && digits.startsWith("91")
-            ? phoneSchema.safeParse(digits.slice(2)).success
-            : false;
-      return isEmail || isPhone;
-    },
+    (value) =>
+      emailSchema.safeParse(value).success || isValidIndianMobile(value),
     { message: "Enter a valid email or 10-digit mobile number" },
   );
 
-export const loginSchema = z.object({
-  identifier: identifierSchema,
-  password: requiredString("Password is required"),
-  rememberMe: z.boolean(),
-});
+export const emailLoginIdentifierSchema = z
+  .string()
+  .trim()
+  .min(1, "Email is required")
+  .pipe(emailSchema);
 
-export type LoginFormValues = z.infer<typeof loginSchema>;
+export const phoneLoginIdentifierSchema = z
+  .string()
+  .trim()
+  .min(1, "Phone is required")
+  .refine(isValidIndianMobile, {
+    message: "Enter a valid 10-digit mobile number",
+  });
+
+export type LoginMethod = "email" | "phone";
+
+export function createLoginSchema(method: LoginMethod) {
+  return z.object({
+    identifier:
+      method === "email"
+        ? emailLoginIdentifierSchema
+        : phoneLoginIdentifierSchema,
+    password: requiredString("Password is required"),
+    rememberMe: z.boolean(),
+  });
+}
+
+export const loginSchema = createLoginSchema("email");
+
+export type LoginFormValues = z.infer<ReturnType<typeof createLoginSchema>>;
 
 export const registerSchema = z
   .object({
     businessName: requiredString("Business name is required"),
-    gstNumber: z
-      .string()
-      .trim()
-      .toUpperCase()
-      .length(15, "GST number must be 15 characters")
-      .pipe(gstinSchema),
     panNumber: z
       .string()
       .trim()

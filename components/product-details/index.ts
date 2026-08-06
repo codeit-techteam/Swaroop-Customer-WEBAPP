@@ -10,7 +10,7 @@ export { BulkPricingCard } from "./bulk-pricing-card";
 export { PaymentOptionsCard } from "./payment-options-card";
 export { LogisticsCard } from "./logistics-card";
 export { CreatePurchaseRequestButton } from "./create-purchase-request-button";
-export { WishlistButton } from "./wishlist-button";
+export { AddToCartPanel } from "./add-to-cart-panel";
 export { DownloadSpecButton } from "./download-spec-button";
 export { RelatedProductsCarousel } from "./related-products-carousel";
 export { ProductDetailsPageSkeleton } from "./product-details-skeleton";

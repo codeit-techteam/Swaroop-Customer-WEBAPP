@@ -1,4 +1,4 @@
-import { ROUTES } from "@/constants";
+import { ROUTES, purchaseRequestsFiltered } from "@/constants";
 import type {
   AppNotification,
   NotificationActionType,
@@ -96,11 +96,11 @@ export function getNotificationHref(n: AppNotification): string {
         n.category === "purchase_requests" ||
         n.category === "seller_approval"
       ) {
-        return ROUTES.purchaseRequestsActive;
+        return purchaseRequestsFiltered("active");
       }
       return n.orderNumber
         ? `${ROUTES.orders}/${n.orderNumber}`
-        : ROUTES.ordersActive;
+        : ROUTES.orders;
     case "trackShipment":
       return n.shipmentId
         ? `${ROUTES.shipmentTracking}/${n.shipmentId}`

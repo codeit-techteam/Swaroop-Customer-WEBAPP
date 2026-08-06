@@ -70,9 +70,9 @@ export function CatalogOrderDetailPage({
         />
         <Button
           className="rounded-xl"
-          onClick={() => router.push(ROUTES.ordersActive)}
+          onClick={() => router.push(ROUTES.orders)}
         >
-          Back to Active Orders
+          Back to Orders
         </Button>
       </PageContainer>
     );
@@ -87,7 +87,6 @@ export function CatalogOrderDetailPage({
         description={`${order.id} · ${order.poNumber}`}
         breadcrumbs={[
           { label: "Orders", href: ROUTES.orders },
-          { label: "Active", href: ROUTES.ordersActive },
           { label: order.id },
         ]}
       />
@@ -126,7 +125,7 @@ export function CatalogOrderDetailPage({
                     <dt className="text-[11px] uppercase text-slate-500">
                       Supply Source
                     </dt>
-                    <dd className="font-medium">{order.sellerName}</dd>
+                    <dd className="font-medium">{"Verified Supply Partner"}</dd>
                   </div>
                   <div>
                     <dt className="text-[11px] uppercase text-slate-500">
@@ -275,8 +274,8 @@ export function CatalogOrderDetailPage({
           </Card>
         </div>
 
-        <div className="space-y-4">
-          <Card className="border-slate-200 shadow-card lg:sticky lg:top-24">
+        <aside className="space-y-4 self-start lg:sticky lg:top-24">
+          <Card className="border-slate-200 shadow-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Invoice & Documents</CardTitle>
             </CardHeader>
@@ -347,14 +346,14 @@ export function CatalogOrderDetailPage({
               <Button
                 variant="ghost"
                 className="h-10 w-full rounded-xl"
-                onClick={() => router.push(ROUTES.ordersActive)}
+                onClick={() => router.push(ROUTES.orders)}
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Orders
               </Button>
             </CardContent>
           </Card>
-        </div>
+        </aside>
       </motion.div>
     </PageContainer>
   );

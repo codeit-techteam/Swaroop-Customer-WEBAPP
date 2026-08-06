@@ -46,7 +46,7 @@ export function AdvancePaymentTrackerPage({
   }, []);
 
   useEffect(() => {
-    if (isHydrated && !payment) router.replace(ROUTES.paymentsAdvance);
+    if (isHydrated && !payment) router.replace(ROUTES.payments);
   }, [isHydrated, payment, router]);
 
   useEffect(() => {
@@ -69,7 +69,7 @@ export function AdvancePaymentTrackerPage({
         description="Live verification timeline for your advance payment."
         breadcrumbs={[
           { label: "Payments", href: ROUTES.payments },
-          { label: "Advance Payment", href: ROUTES.paymentsAdvance },
+          { label: "Advance Payment", href: ROUTES.payments },
           { label: payment.orderNumber },
           { label: "Tracker" },
         ]}

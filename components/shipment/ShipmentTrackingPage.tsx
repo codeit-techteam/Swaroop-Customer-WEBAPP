@@ -61,7 +61,7 @@ export function ShipmentTrackingPage({ orderId }: ShipmentTrackingPageProps) {
   }, []);
 
   useEffect(() => {
-    if (isHydrated && !order && !catalog) router.replace(ROUTES.ordersActive);
+    if (isHydrated && !order && !catalog) router.replace(ROUTES.orders);
   }, [isHydrated, order, catalog, router]);
 
   useEffect(() => {
@@ -195,7 +195,9 @@ export function ShipmentTrackingPage({ orderId }: ShipmentTrackingPageProps) {
                 ) : (
                   <Button
                     className="h-11 min-w-[200px] rounded-xl bg-brand hover:bg-brand-700"
-                    onClick={() => router.push(ROUTES.ordersInTransit)}
+                    onClick={() =>
+                      router.push(`${ROUTES.orders}?status=in_transit`)
+                    }
                   >
                     <Navigation className="h-4 w-4" />
                     View In Transit Board

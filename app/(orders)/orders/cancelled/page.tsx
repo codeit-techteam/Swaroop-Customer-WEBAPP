@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
-import { CancelledOrdersPage } from "@/components/orders";
-
-export const metadata: Metadata = {
-  title: "Cancelled Orders",
-};
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
 export default function Page() {
-  return <CancelledOrdersPage />;
+  redirect(`${ROUTES.orders}?status=cancelled`);
 }

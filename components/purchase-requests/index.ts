@@ -28,6 +28,7 @@ export { PendingApprovalPage } from "./PendingApprovalPage";
 export { ApprovedPurchaseRequestPage } from "./ApprovedPurchaseRequestPage";
 export { RejectedPurchaseRequestPage } from "./RejectedPurchaseRequestPage";
 export {
+  PurchaseRequestsListPage,
   ActiveRequestsPage,
   PendingRequestsListPage,
   ApprovedRequestsListPage,

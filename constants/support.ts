@@ -1,6 +1,4 @@
 import type {
-  KnowledgeCategoryId,
-  SupportSectionId,
   TicketCategory,
   TicketPriority,
   TicketStatus,
@@ -10,16 +8,20 @@ const SUPPORT_ROOT = "/support";
 
 export const SUPPORT_ROUTES = {
   root: SUPPORT_ROOT,
-  tickets: `${SUPPORT_ROOT}/tickets`,
-  liveChat: `${SUPPORT_ROOT}/live-chat`,
-  accountManager: `${SUPPORT_ROOT}/account-manager`,
-  documentation: `${SUPPORT_ROOT}/documentation`,
-  knowledgeBase: `${SUPPORT_ROOT}/knowledge-base`,
-  settings: `${SUPPORT_ROOT}/settings`,
+  /** Legacy aliases — all redirect to Help Center MVP */
+  tickets: SUPPORT_ROOT,
+  liveChat: SUPPORT_ROOT,
+  accountManager: SUPPORT_ROOT,
+  documentation: SUPPORT_ROOT,
+  knowledgeBase: SUPPORT_ROOT,
+  settings: SUPPORT_ROOT,
 } as const;
 
+export const SUPPORT_SLA_COPY =
+  "Our support team typically responds within 24 business hours.";
+
 export const SUPPORT_NAV: Array<{
-  id: SupportSectionId;
+  id: string;
   title: string;
   href: string;
   icon: string;
@@ -27,51 +29,36 @@ export const SUPPORT_NAV: Array<{
 }> = [
   {
     id: "overview",
-    title: "Overview",
-    href: SUPPORT_ROUTES.root,
+    title: "Help & Support",
+    href: SUPPORT_ROOT,
     icon: "LayoutDashboard",
-  },
-  {
-    id: "tickets",
-    title: "My Tickets",
-    href: SUPPORT_ROUTES.tickets,
-    icon: "Ticket",
-    badgeKey: "openTickets",
-  },
-  {
-    id: "live-chat",
-    title: "Live Chat",
-    href: SUPPORT_ROUTES.liveChat,
-    icon: "MessageSquare",
-  },
-  {
-    id: "documentation",
-    title: "Documentation",
-    href: SUPPORT_ROUTES.documentation,
-    icon: "BookOpen",
-  },
-  {
-    id: "knowledge-base",
-    title: "Knowledge Base",
-    href: SUPPORT_ROUTES.knowledgeBase,
-    icon: "Library",
   },
 ];
 
-export const TICKET_CATEGORY_OPTIONS: Array<{
+export const KNOWLEDGE_CATEGORY_LABELS = {
+  orders: "Orders",
+  payments: "Payments",
+  credit: "Credit",
+  invoices: "Invoices",
+  logistics: "Logistics",
+  marketplace: "Marketplace",
+} as const;
+
+/** MVP raise-ticket category options */
+export const MVP_TICKET_CATEGORY_OPTIONS: Array<{
   value: TicketCategory;
   label: string;
 }> = [
+  { value: "orders", label: "Order" },
   { value: "payment", label: "Payment" },
-  { value: "orders", label: "Orders" },
   { value: "shipment", label: "Shipment" },
-  { value: "invoice", label: "Invoice" },
-  { value: "gst", label: "GST" },
-  { value: "credit", label: "Credit" },
-  { value: "technical", label: "Technical" },
+  { value: "invoice", label: "Documents" },
   { value: "marketplace", label: "Marketplace" },
-  { value: "others", label: "Others" },
+  { value: "credit", label: "Account" },
+  { value: "others", label: "Other" },
 ];
+
+export const TICKET_CATEGORY_OPTIONS = MVP_TICKET_CATEGORY_OPTIONS;
 
 export const TICKET_PRIORITY_OPTIONS: Array<{
   value: TicketPriority;
@@ -83,6 +70,53 @@ export const TICKET_PRIORITY_OPTIONS: Array<{
   { value: "critical", label: "Critical" },
 ];
 
+/** MVP Help Center contact details */
+export const SUPPORT_CONTACT = {
+  phone: "+91 98765 43210",
+  phoneHref: "tel:+919876543210",
+  email: "support@petrotrade.com",
+  emailHref: "mailto:support@petrotrade.com",
+  businessHours: "Monday – Saturday",
+  businessHoursTime: "9:00 AM – 7:00 PM IST",
+  emergencyNote: "For urgent shipment issues please call directly.",
+} as const;
+
+export const TICKET_CATEGORY_LABELS: Record<TicketCategory, string> = {
+  payment: "Payment",
+  orders: "Order",
+  shipment: "Shipment",
+  invoice: "Documents",
+  gst: "Documents",
+  technical: "Account",
+  marketplace: "Marketplace",
+  credit: "Account",
+  others: "Other",
+};
+
+export const ALLOWED_ATTACHMENT_ACCEPT =
+  ".pdf,.png,.jpg,.jpeg,.doc,.docx,application/pdf,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+/** Map internal statuses to MVP display labels */
+export const MVP_STATUS_LABELS: Record<TicketStatus, string> = {
+  open: "Open",
+  in_progress: "Pending",
+  waiting_customer: "Pending",
+  resolved: "Resolved",
+  closed: "Closed",
+};
+
+export const MVP_STATUS_CLASS: Record<string, string> = {
+  Open: "bg-sky-50 text-sky-700 ring-sky-200",
+  Pending: "bg-amber-50 text-amber-700 ring-amber-200",
+  Resolved: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  Closed: "bg-slate-100 text-slate-600 ring-slate-200",
+};
+
+export function getMvpStatus(status: TicketStatus): string {
+  return MVP_STATUS_LABELS[status];
+}
+
+/** Legacy exports for unused enterprise components */
 export const TICKET_STATUS_LABELS: Record<TicketStatus, string> = {
   open: "Open",
   in_progress: "In Progress",
@@ -97,23 +131,3 @@ export const TICKET_PRIORITY_LABELS: Record<TicketPriority, string> = {
   high: "High",
   critical: "Critical",
 };
-
-export const TICKET_CATEGORY_LABELS: Record<TicketCategory, string> =
-  Object.fromEntries(
-    TICKET_CATEGORY_OPTIONS.map((o) => [o.value, o.label]),
-  ) as Record<TicketCategory, string>;
-
-export const KNOWLEDGE_CATEGORY_LABELS: Record<KnowledgeCategoryId, string> = {
-  orders: "Orders",
-  payments: "Payments",
-  credit: "Credit",
-  invoices: "Invoices",
-  logistics: "Logistics",
-  marketplace: "Marketplace",
-};
-
-export const ALLOWED_ATTACHMENT_ACCEPT =
-  ".pdf,.png,.jpg,.jpeg,.doc,.docx,application/pdf,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-
-export const SUPPORT_SLA_COPY =
-  "PetroTrade Support typically responds within 4 business hours for Critical tickets and 24 hours for standard requests.";

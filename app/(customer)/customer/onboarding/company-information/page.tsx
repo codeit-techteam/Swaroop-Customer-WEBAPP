@@ -13,6 +13,7 @@ import {
   INDUSTRY_SECTOR_OPTIONS,
   ONBOARDING_ROUTES,
 } from "@/constants/onboarding";
+import { useAuthStore } from "@/store/authStore";
 import { useOnboardingStore } from "@/store/onboardingStore";
 import {
   OnboardingLayout,
@@ -55,11 +56,17 @@ function CompanyInformationForm() {
   const router = useRouter();
   const companyInfo = useOnboardingStore((s) => s.companyInfo);
   const saveCompany = useOnboardingStore((s) => s.saveCompany);
+  const user = useAuthStore((s) => s.user);
+
+  const legalName =
+    companyInfo.legalName.trim() ||
+    user?.companyName?.trim() ||
+    user?.name?.trim() ||
+    "";
 
   const form = useForm<CompanyInfoFormValues>({
     resolver: zodResolver(companyInfoSchema),
     defaultValues: {
-      legalName: companyInfo.legalName,
       constitutionType: (companyInfo.constitutionType ||
         undefined) as CompanyInfoFormValues["constitutionType"],
       industrySector: (companyInfo.industrySector ||
@@ -72,11 +79,11 @@ function CompanyInformationForm() {
 
   function onSubmit(values: CompanyInfoFormValues) {
     saveCompany({
-      legalName: values.legalName,
+      legalName,
       constitutionType: values.constitutionType as ConstitutionType,
-      industrySector: values.industrySector as IndustrySector,
-      registrationNumber: values.registrationNumber,
-      dateOfIncorporation: values.dateOfIncorporation,
+      industrySector: (values.industrySector || "") as IndustrySector | "",
+      registrationNumber: values.registrationNumber ?? "",
+      dateOfIncorporation: values.dateOfIncorporation ?? "",
     });
     router.push(ONBOARDING_ROUTES.gstVerification);
   }
@@ -93,22 +100,17 @@ function CompanyInformationForm() {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-            <FormField
-              control={form.control}
-              name="legalName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Company Legal Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g. PetroTrade Industrial Solutions Ltd."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <p className="mb-1.5 text-sm font-medium text-slate-900">
+                Company Legal Name
+              </p>
+              <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                {legalName || "—"}
+              </div>
+              <p className="mt-1.5 text-xs text-slate-500">
+                Taken from your registration business name.
+              </p>
+            </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
               <FormField
@@ -144,7 +146,7 @@ function CompanyInformationForm() {
                 name="industrySector"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Industry Sector</FormLabel>
+                    <FormLabel>Industry Sector (Optional)</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value || undefined}
@@ -174,7 +176,9 @@ function CompanyInformationForm() {
                 name="registrationNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Registration Number (CIN/LLPIN)</FormLabel>
+                    <FormLabel>
+                      Registration Number (CIN/LLPIN) (Optional)
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="U00000XX0000XXX000000" {...field} />
                     </FormControl>
@@ -188,7 +192,7 @@ function CompanyInformationForm() {
                 name="dateOfIncorporation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date of Incorporation</FormLabel>
+                    <FormLabel>Date of Incorporation (Optional)</FormLabel>
                     <FormControl>
                       <DatePicker
                         value={field.value ? new Date(field.value) : undefined}
@@ -207,8 +211,8 @@ function CompanyInformationForm() {
             </div>
 
             <InfoCard>
-              Ensure the legal name matches exactly as per your Incorporation
-              Certificate to avoid delays in GST verification.
+              This name comes from registration and is used for GST
+              verification.
             </InfoCard>
 
             <div className="mt-6 flex flex-col gap-4 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">

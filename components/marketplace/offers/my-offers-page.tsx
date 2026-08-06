@@ -112,7 +112,7 @@ export function MyOffersPage() {
                               {offer.productName}
                             </p>
                             <p className="text-xs text-slate-400">
-                              {offer.brandName}
+                              {"Verified Supply Partner"}
                             </p>
                           </TableCell>
                           <TableCell className="tabular-nums text-emerald-700">

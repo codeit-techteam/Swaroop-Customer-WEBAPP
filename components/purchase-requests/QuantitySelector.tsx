@@ -10,6 +10,7 @@ interface QuantitySelectorProps {
   value: number;
   moq: number;
   max: number;
+  /** Ignored — quantity always steps by 1 MT */
   increment?: number;
   onChange: (value: number) => void;
   error?: string | null;
@@ -20,11 +21,11 @@ export function QuantitySelector({
   value,
   moq,
   max,
-  increment = 1,
   onChange,
   error,
   className,
 }: QuantitySelectorProps) {
+  const step = 1;
   const clamp = (next: number) =>
     Math.max(moq, Math.min(max, Math.round(next)));
 
@@ -38,7 +39,7 @@ export function QuantitySelector({
           size="icon"
           aria-label="Decrease quantity"
           disabled={value <= moq}
-          onClick={() => onChange(clamp(value - increment))}
+          onClick={() => onChange(clamp(value - step))}
         >
           <Minus className="h-4 w-4" />
         </Button>
@@ -47,11 +48,16 @@ export function QuantitySelector({
           type="number"
           min={moq}
           max={max}
-          step={increment}
+          step={step}
           value={value}
           onChange={(e) => {
             const parsed = Number(e.target.value);
-            if (Number.isFinite(parsed)) onChange(clamp(parsed));
+            if (!Number.isFinite(parsed)) return;
+            if (parsed < moq) {
+              onChange(moq);
+              return;
+            }
+            onChange(clamp(parsed));
           }}
           className="h-10 text-center font-semibold"
         />
@@ -61,15 +67,21 @@ export function QuantitySelector({
           size="icon"
           aria-label="Increase quantity"
           disabled={value >= max}
-          onClick={() => onChange(clamp(value + increment))}
+          onClick={() => onChange(clamp(value + step))}
         >
           <Plus className="h-4 w-4" />
         </Button>
       </div>
       <p className="text-xs text-slate-500">
-        MOQ {moq} MT · Available {max} MT · Increment {increment} MT
+        MOQ {moq} MT · Available {max} MT
       </p>
-      {error ? <p className="text-xs text-red-600">{error}</p> : null}
+      {error ? (
+        <p className="text-xs text-red-600">{error}</p>
+      ) : (
+        <p className="text-xs text-slate-400">
+          Minimum Order Quantity is {moq} MT
+        </p>
+      )}
     </div>
   );
 }

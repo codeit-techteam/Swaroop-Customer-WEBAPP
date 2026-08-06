@@ -50,7 +50,6 @@ const emptyBusinessAddress: BusinessAddress = {
 };
 
 const emptyCreditDocuments: CreditDocuments = {
-  auditedFinancials: null,
   bankStatements: null,
   itr: null,
 };
@@ -89,6 +88,7 @@ function mockVerifyGst(gstin: string): GstVerificationResult {
 
 export interface OnboardingStoreActions {
   setCurrentStep: (step: OnboardingStepId) => void;
+  seedCompanyLegalName: (legalName: string) => void;
   saveCompany: (data: CompanyInfo) => void;
   verifyGST: (gstin: string) => GstVerificationResult;
   setGstCertificate: (fileName: string | null) => void;
@@ -117,6 +117,17 @@ export const useOnboardingStore = create<OnboardingStore>()(
       ...initialState,
 
       setCurrentStep: (step) => set({ currentStep: step }),
+
+      seedCompanyLegalName: (legalName) => {
+        const trimmed = legalName.trim();
+        if (!trimmed) return;
+        set({
+          companyInfo: {
+            ...get().companyInfo,
+            legalName: trimmed,
+          },
+        });
+      },
 
       saveCompany: (data) => {
         const next = getNextStep("company-information");
@@ -173,7 +184,6 @@ export const useOnboardingStore = create<OnboardingStore>()(
           shippingAddresses = [
             {
               id: createId(),
-              terminalName: "Registered Office",
               fullAddress: [
                 data.addressLine1,
                 data.addressLine2,
@@ -182,8 +192,6 @@ export const useOnboardingStore = create<OnboardingStore>()(
               ]
                 .filter(Boolean)
                 .join(", "),
-              contactPerson: state.companyInfo.legalName || "Primary Contact",
-              mobileNumber: "+91 9000000000",
             },
           ];
         }

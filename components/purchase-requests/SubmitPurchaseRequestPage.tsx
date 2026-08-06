@@ -10,7 +10,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
-import { ROUTES } from "@/constants";
+import { ROUTES, purchaseRequestsFiltered } from "@/constants";
 import { usePurchaseRequestStore } from "@/store/purchaseRequestStore";
 import { usePurchaseRequestTrackingStore } from "@/store/purchaseRequestTrackingStore";
 import { PurchaseRequestStepper } from "./PurchaseRequestStepper";
@@ -70,7 +70,7 @@ export function SubmitPurchaseRequestPage() {
       status: "pending_approval",
     });
     toast.success("Purchase request created");
-    router.push(ROUTES.purchaseRequestsActive);
+    router.push(purchaseRequestsFiltered("active"));
   };
 
   return (

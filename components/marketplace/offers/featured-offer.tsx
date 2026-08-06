@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FilePlus2, MapPin } from "lucide-react";
+import { MapPin, ShoppingCart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants";
@@ -17,7 +17,7 @@ import {
   getStatusLabel,
   isOfferPurchasable,
 } from "@/lib/offer-utils";
-import { getOfferDetailHref, getOfferQuoteHref } from "@/mock/offers";
+import { getOfferDetailHref } from "@/mock/offers";
 import type { MarketplaceOffer } from "@/types/offers";
 import { OfferBadge } from "./offer-badge";
 import { OfferCountdown } from "./offer-countdown";
@@ -32,7 +32,6 @@ export function FeaturedOffer({ offer, className }: FeaturedOfferProps) {
   const purchasable = isOfferPurchasable(offer);
   const status = getOfferStatus(offer);
   const detailHref = getOfferDetailHref(offer.id);
-  const quoteHref = getOfferQuoteHref(offer);
   const productHref = `${ROUTES.marketplaceProduct}/${offer.productId}`;
 
   return (
@@ -61,10 +60,12 @@ export function FeaturedOffer({ offer, className }: FeaturedOfferProps) {
               <h2 className="mt-2 text-2xl font-bold text-white md:text-3xl">
                 {offer.productName}
               </h2>
-              <p className="mt-1 text-sm text-white/80">{offer.brandName}</p>
+              <p className="mt-1 text-sm text-white/80">
+                Fulfilled by PetroTrade Network
+              </p>
               <p className="mt-2 flex items-center gap-1.5 text-sm text-white/90">
                 <MapPin className="h-4 w-4" />
-                {offer.warehouseLabel}
+                Western India Region
               </p>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
@@ -126,11 +127,9 @@ export function FeaturedOffer({ offer, className }: FeaturedOfferProps) {
               className="h-11 flex-1 rounded-xl bg-brand font-semibold hover:bg-brand-700"
               disabled={!purchasable}
             >
-              <Link href={purchasable ? quoteHref : detailHref}>
-                <FilePlus2 className="h-4 w-4" />
-                {purchasable
-                  ? "Create Purchase Request"
-                  : getStatusLabel(status)}
+              <Link href={purchasable ? productHref : detailHref}>
+                <ShoppingCart className="h-4 w-4" />
+                {purchasable ? "Add to Cart" : getStatusLabel(status)}
               </Link>
             </Button>
           </div>

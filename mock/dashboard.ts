@@ -23,7 +23,7 @@ export const heroBannerMock: HeroBannerContent = {
   },
   secondaryCta: {
     label: "Download Market Report",
-    href: ROUTES.documentsDownloads,
+    action: "download-market-report",
   },
 };
 
@@ -66,6 +66,8 @@ export const promotionMock: PromotionOffer = {
     "Order >500MT of PET Bottle grade and receive a 4% institutional discount on logistics.",
   ctaLabel: "Request Quote",
   href: ROUTES.purchaseRequestsCreate,
+  ctaAction: "quote-form",
+  minQuantityMt: 500,
 };
 
 export const dashboardMock: DashboardData = {

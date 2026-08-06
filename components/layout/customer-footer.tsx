@@ -30,12 +30,6 @@ export function CustomerFooter({ className }: CustomerFooterProps) {
           className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-slate-500"
         >
           <Link
-            href={ROUTES.support}
-            className="transition-colors hover:text-brand"
-          >
-            Help Center
-          </Link>
-          <Link
             href={ROUTES.documents}
             className="transition-colors hover:text-brand"
           >

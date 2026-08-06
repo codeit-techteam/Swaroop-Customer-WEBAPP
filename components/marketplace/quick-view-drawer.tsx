@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, FilePlus2 } from "lucide-react";
+import { ArrowRight, ShoppingCart } from "lucide-react";
 import { ROUTES } from "@/constants";
 import { formatInr, formatQuantityMt } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +40,7 @@ export function QuickViewDrawer({
               <div className="pr-6">
                 <SheetTitle className="text-xl">{product.name}</SheetTitle>
                 <SheetDescription className="mt-1">
-                  {product.brandName} · {product.materialType}
+                  Fulfilled by PetroTrade Network · {product.materialType}
                 </SheetDescription>
               </div>
             </SheetHeader>
@@ -93,7 +93,7 @@ export function QuickViewDrawer({
                       Warehouse
                     </p>
                     <p className="font-medium text-slate-700">
-                      {product.warehouseLabel}
+                      Western India Region
                     </p>
                   </div>
                   <div>
@@ -126,11 +126,9 @@ export function QuickViewDrawer({
                   asChild
                   className="h-11 rounded-xl bg-brand font-semibold hover:bg-brand-700"
                 >
-                  <Link
-                    href={`${ROUTES.purchaseRequestsCreate}?productId=${product.id}`}
-                  >
-                    <FilePlus2 className="h-4 w-4" aria-hidden="true" />
-                    Create Purchase Request
+                  <Link href={`${ROUTES.marketplaceProduct}/${product.id}`}>
+                    <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+                    Add to Cart
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="h-11 rounded-xl">

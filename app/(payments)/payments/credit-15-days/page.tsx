@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
-import { CreditPaymentPage } from "@/components/payments";
-
-export const metadata: Metadata = {
-  title: "Credit 15 Days",
-};
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
 export default function Page() {
-  return <CreditPaymentPage mode="credit_15" />;
+  redirect(`${ROUTES.payments}?type=credit_15`);
 }

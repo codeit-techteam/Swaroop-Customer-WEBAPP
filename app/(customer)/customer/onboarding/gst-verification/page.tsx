@@ -29,7 +29,11 @@ const GSTIN_REGEX =
 export default function GstVerificationPage() {
   return (
     <RouteGuard stepId="gst-verification">
-      <OnboardingLayout saveDraftVariant="link" helpVariant="button">
+      <OnboardingLayout
+        saveDraftVariant="link"
+        helpVariant="button"
+        contentClassName="lg:py-6"
+      >
         <GstVerificationForm />
       </OnboardingLayout>
     </RouteGuard>
@@ -83,15 +87,16 @@ function GstVerificationForm() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-5xl">
       <StepHeader
         title="GST & Tax Verification"
         description="Verify your business's legal identity to unlock trading credit limits."
+        className="mb-5 sm:mb-6"
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
-        <div className="space-y-5">
-          <SectionCard>
+      <div className="grid gap-5 lg:grid-cols-[1fr_250px]">
+        <div className="space-y-4">
+          <SectionCard className="p-4 sm:p-5">
             <Label htmlFor="gstin" className="mb-2 block">
               GST Identification Number (GSTIN)
             </Label>
@@ -163,7 +168,10 @@ function GstVerificationForm() {
             ) : null}
           </SectionCard>
 
-          <SectionCard title="GST Registration Certificate">
+          <SectionCard
+            title="GST Registration Certificate"
+            className="p-4 sm:p-5"
+          >
             <UploadCard
               accept={{
                 "application/pdf": [".pdf"],
@@ -179,6 +187,7 @@ function GstVerificationForm() {
               onRemove={() => setGstCertificate(null)}
               dropLabel="Click to upload or drag & drop"
               helperText="PDF, JPG, or PNG (Max 5MB)"
+              compact
             />
             {certError ? (
               <p className="mt-2 text-xs text-red-600" role="alert">
@@ -188,8 +197,8 @@ function GstVerificationForm() {
           </SectionCard>
         </div>
 
-        <aside className="space-y-4">
-          <div className="relative overflow-hidden rounded-xl bg-slate-900 p-5 text-white shadow-md">
+        <aside className="space-y-3">
+          <div className="relative overflow-hidden rounded-xl bg-slate-900 p-4 text-white shadow-md">
             <div
               className="absolute inset-0 opacity-40"
               style={{
@@ -232,7 +241,7 @@ function GstVerificationForm() {
         </aside>
       </div>
 
-      <div className="mt-8 flex flex-col gap-4 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-6 flex flex-col gap-4 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
         <BackButton href={ONBOARDING_ROUTES.companyInformation} />
         <div className="flex items-center justify-end gap-3">
           <SaveDraftButton variant="outline" />

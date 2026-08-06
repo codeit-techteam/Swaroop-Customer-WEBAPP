@@ -13,16 +13,18 @@ export const purchaseRequestFormSchema = z.object({
     .number({ invalid_type_error: "Quantity is required" })
     .positive("Quantity must be greater than 0"),
   packaging: packagingEnum,
-  deliveryLocationId: z.string().min(1, "Select a delivery location"),
-  expectedDeliveryDate: z.string().min(1, "Expected delivery date is required"),
+  deliveryLocationId: z.string().min(1, "Select a delivery address"),
+  expectedDeliveryDate: z.string().optional().or(z.literal("")),
   remarks: z.string().max(500, "Remarks must be under 500 characters"),
   gstNumber: z
     .string()
     .min(1, "GST number is required")
     .regex(gstinRegex, "Enter a valid GSTIN"),
   purchaseOrderReference: z.string().max(50).optional().or(z.literal("")),
-  shippingAddressId: z.string().min(1, "Select a shipping address"),
+  /** Mirrors deliveryLocationId — kept for downstream PO/order payloads */
+  shippingAddressId: z.string().min(1, "Select a delivery address"),
   billingAddressId: z.string().min(1, "Select a billing address"),
+  /** When true, billing is treated as same as delivery address */
   sameAsShipping: z.boolean(),
 });
 
@@ -36,7 +38,7 @@ export function refineQuantityAgainstMoq(
   stock: number,
 ): string | null {
   if (quantityMt < moq) {
-    return `Quantity must be at least ${moq} MT (MOQ)`;
+    return `Minimum Order Quantity is ${moq} MT`;
   }
   if (quantityMt > stock) {
     return `Quantity cannot exceed available stock (${stock} MT)`;

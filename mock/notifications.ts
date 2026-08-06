@@ -1,5 +1,5 @@
 import type { ActivityItem } from "@/types/dashboard";
-import { ROUTES } from "@/constants";
+import { ROUTES, purchaseRequestsFiltered } from "@/constants";
 
 /**
  * Recent activity timeline — mirrors Customer App notification/toast themes
@@ -49,7 +49,7 @@ export const recentActivityMock: ActivityItem[] = [
     description: "#PR-99104 awaiting order confirmation (15 min window).",
     timestamp: "2026-07-31T09:45:00.000Z",
     relativeTime: "45 minutes ago",
-    href: ROUTES.purchaseRequestsPending,
+    href: purchaseRequestsFiltered("pending"),
   },
 ];
 

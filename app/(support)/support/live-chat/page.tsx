@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
-import { SupportLiveChatPage } from "@/components/support";
-
-export const metadata: Metadata = {
-  title: "Live Chat",
-};
+import { redirect } from "next/navigation";
+import { SUPPORT_ROUTES } from "@/constants/support";
 
 export default function Page() {
-  return <SupportLiveChatPage />;
+  redirect(SUPPORT_ROUTES.root);
 }

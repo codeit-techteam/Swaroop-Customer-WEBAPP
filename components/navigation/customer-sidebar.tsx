@@ -167,7 +167,7 @@ export function CustomerSidebar({
           <p className="mt-3 px-2 text-[10px] leading-relaxed text-slate-400">
             {onboardingIncomplete
               ? "Finish onboarding to unlock trading modules"
-              : "Marketplace → Purchase Request → Order → Payment → Shipment"}
+              : "Purchase Request → Order → Payment → Shipment"}
           </p>
         ) : null}
       </div>

@@ -14,11 +14,11 @@ export type {
   DashboardPeriod,
   MarketplaceViewMode,
   MarketplaceSortBy,
-  CartItem,
-  CheckoutPaymentMethod,
   DocumentCategoryFilter,
   UiTheme,
 } from "@/store";
+
+export type { CartLineItem as CartItem } from "@/store/cartStore";
 
 export type OrderStatusFilter =
   "all" | "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
@@ -136,6 +136,16 @@ export type {
   DeliveryDetails,
   RejectionInfo,
 } from "./order-journey";
+
+export type {
+  CheckoutPaymentMethodId,
+  CreditTermDays,
+  CheckoutPaymentStatus,
+  CheckoutPaymentOption,
+  CheckoutCreditProfile,
+  AdaptiveTimelineStepId,
+  AdaptiveTimelineStep,
+} from "./checkout-payment";
 
 export type {
   ActiveTrackingStatus,

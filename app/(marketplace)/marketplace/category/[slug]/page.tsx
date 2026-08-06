@@ -44,7 +44,6 @@ export default async function MarketplaceCategoryPage({
       pageTitle={category.name}
       breadcrumbs={[
         { label: "Marketplace", href: ROUTES.marketplace },
-        { label: "Categories", href: ROUTES.marketplaceCategories },
         { label: category.name },
       ]}
     />

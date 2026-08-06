@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
-import { AdvancePaymentPage } from "@/components/payments";
-
-export const metadata: Metadata = {
-  title: "Advance Payment",
-};
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
 export default function Page() {
-  return <AdvancePaymentPage />;
+  redirect(`${ROUTES.payments}?type=advance`);
 }

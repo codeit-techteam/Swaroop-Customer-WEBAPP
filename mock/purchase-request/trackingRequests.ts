@@ -481,6 +481,38 @@ export const HISTORY_STATUSES: TrackingListStatus[] = [
   "withdrawn",
 ];
 
+/** Sidebar category filters for unified Purchase Requests page. */
+export type PurchaseRequestStatusCategory =
+  "all" | "active" | "pending" | "approved" | "rejected" | "expired";
+
+export const PURCHASE_REQUEST_STATUS_CATEGORIES: PurchaseRequestStatusCategory[] =
+  ["all", "active", "pending", "approved", "rejected", "expired"];
+
+export const purchaseRequestStatusCategoryLabel: Record<
+  PurchaseRequestStatusCategory,
+  string
+> = {
+  all: "All statuses",
+  active: "Active",
+  pending: "Pending Confirmation",
+  approved: "Approved",
+  rejected: "Rejected",
+  expired: "Expired",
+};
+
+export function matchesPurchaseRequestCategory(
+  status: TrackingListStatus,
+  category: PurchaseRequestStatusCategory,
+): boolean {
+  if (category === "all") return true;
+  if (category === "active") return ACTIVE_STATUSES.includes(status);
+  if (category === "pending") return PENDING_STATUSES.includes(status);
+  if (category === "approved") return status === "approved";
+  if (category === "rejected") return status === "rejected";
+  if (category === "expired") return status === "expired";
+  return true;
+}
+
 export function mapSubmittedToTrackingItem(
   submitted: SubmittedPurchaseRequest,
 ): PurchaseRequestTrackingItem {

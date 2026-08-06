@@ -2,11 +2,9 @@
 
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import { SupportSidebar } from "./SupportSidebar";
-import { SupportFooter } from "./SupportFooter";
 import { RaiseTicketDialog } from "./RaiseTicketDialog";
-import { TicketDetailsDrawer } from "./TicketDetailsDrawer";
-import { SupportDocPreviewModal } from "./SupportDocPreviewModal";
+import { ChatSupportModal } from "./ChatSupportModal";
+import { TicketViewModal } from "./TicketViewModal";
 import { useSupportStore } from "@/store/supportStore";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -19,33 +17,29 @@ export function SupportModuleShell({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <div className="-mx-4 -my-5 flex min-h-[calc(100vh-7.5rem)] overflow-hidden rounded-none border-y border-slate-200 bg-white md:-mx-6 md:-my-6 md:min-h-[calc(100vh-8rem)] md:rounded-tl-2xl md:border md:border-slate-200 md:shadow-card">
-      <SupportSidebar />
-      <div className="flex min-w-0 flex-1 flex-col bg-slate-50/80">
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">{children}</div>
-        <SupportFooter />
-      </div>
+    <div className="-mx-4 -my-5 min-h-[calc(100vh-7.5rem)] bg-white md:-mx-6 md:-my-6 md:min-h-[calc(100vh-8rem)]">
+      <div className="px-4 py-6 md:px-8 md:py-8">{children}</div>
       <RaiseTicketDialog />
-      <TicketDetailsDrawer />
-      <SupportDocPreviewModal />
+      <ChatSupportModal />
+      <TicketViewModal />
     </div>
   );
 }
 
 export function SupportLoadingSkeleton() {
   return (
-    <div className="space-y-4">
-      <Skeleton className="h-10 w-80 rounded-xl" />
-      <Skeleton className="h-4 w-96 rounded-lg" />
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="mx-auto max-w-5xl space-y-8">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-48 rounded-xl" />
+        <Skeleton className="h-4 w-96 rounded-lg" />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-28 rounded-2xl" />
+          <Skeleton key={i} className="h-36 rounded-2xl" />
         ))}
       </div>
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Skeleton className="h-56 rounded-2xl lg:col-span-2" />
-        <Skeleton className="h-56 rounded-2xl" />
-      </div>
+      <Skeleton className="h-64 rounded-2xl" />
+      <Skeleton className="h-40 rounded-2xl" />
     </div>
   );
 }

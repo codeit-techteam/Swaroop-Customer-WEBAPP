@@ -1012,6 +1012,12 @@ export const ACTIVE_ORDER_STATUSES: OrdersDisplayStatus[] = [
   "delayed",
 ];
 
+export const ALL_ORDER_STATUSES: OrdersDisplayStatus[] = [
+  ...ACTIVE_ORDER_STATUSES,
+  "delivered",
+  "cancelled",
+];
+
 export function ordersDisplayStatusLabel(status: OrdersDisplayStatus): string {
   const map: Record<OrdersDisplayStatus, string> = {
     processing: "Processing",

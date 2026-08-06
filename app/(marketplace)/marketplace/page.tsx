@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { MarketplaceBrowse } from "@/components/marketplace";
 
 export const metadata: Metadata = {
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function MarketplacePage() {
-  return <MarketplaceBrowse pageTitle="Marketplace" />;
+  return (
+    <Suspense fallback={null}>
+      <MarketplaceBrowse pageTitle="Marketplace" />
+    </Suspense>
+  );
 }

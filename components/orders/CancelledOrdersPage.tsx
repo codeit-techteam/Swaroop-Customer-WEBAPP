@@ -78,7 +78,8 @@ export function CancelledOrdersPage() {
                       {row.productName}
                     </p>
                     <p className="text-xs text-slate-500">
-                      {formatQuantityMt(row.quantityMt)} · {row.sellerName}
+                      {formatQuantityMt(row.quantityMt)} ·{" "}
+                      {"Verified Supply Partner"}
                     </p>
                   </div>
                   <OrderStatusChip status="cancelled" />

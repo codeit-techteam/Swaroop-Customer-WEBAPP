@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import { toast } from "sonner";
-import { ROUTES } from "@/constants";
 import { useAuthStore } from "@/store/authStore";
 import { useOnboardingStore } from "@/store/onboardingStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,18 +33,9 @@ export function OnboardingTopNav({
       )}
       role="banner"
     >
-      <Link
-        href={ROUTES.dashboard}
-        className="shrink-0 text-base font-bold tracking-tight text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 sm:text-lg"
-      >
+      <p className="shrink-0 text-base font-bold tracking-tight text-slate-900 sm:text-lg">
         PetroTrade Portal
-      </Link>
-
-      <nav className="hidden items-center gap-6 md:flex" aria-label="Primary">
-        <NavLink href={ROUTES.dashboard}>Dashboard</NavLink>
-        <NavLink href={ROUTES.support}>Help Center</NavLink>
-        <NavLink href={ROUTES.support}>Support</NavLink>
-      </nav>
+      </p>
 
       <div className="flex items-center gap-3">
         <button
@@ -74,23 +63,6 @@ export function OnboardingTopNav({
         </Avatar>
       </div>
     </header>
-  );
-}
-
-function NavLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className="text-sm font-medium text-slate-500 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
-    >
-      {children}
-    </Link>
   );
 }
 

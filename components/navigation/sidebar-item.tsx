@@ -9,7 +9,11 @@ import type { NavItem } from "@/types";
 import { getNavIcon } from "@/components/navigation/nav-icons";
 import { NavBadge } from "@/components/navigation/nav-badge";
 import { useUiStore } from "@/store/uiStore";
-import { isNavItemActive, isNavBranchActive } from "@/lib/nav-active";
+import {
+  isNavItemActive,
+  isNavBranchActive,
+  isSectionPath,
+} from "@/lib/nav-active";
 import { cn } from "@/lib/utils";
 
 interface SidebarItemProps {
@@ -46,7 +50,8 @@ export function SidebarItem({
     Boolean(item.href) &&
     hasChildren &&
     (pathname === item.href ||
-      (item.href !== "/" && pathname.startsWith(`${item.href}/`)));
+      (item.href !== "/" && pathname.startsWith(`${item.href}/`)) ||
+      isSectionPath(pathname, item));
 
   const showActive =
     depth === 0

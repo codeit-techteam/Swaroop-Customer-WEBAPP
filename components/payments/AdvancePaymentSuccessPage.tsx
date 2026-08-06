@@ -35,7 +35,7 @@ export function AdvancePaymentSuccessPage({
   }, []);
 
   useEffect(() => {
-    if (isHydrated && !payment) router.replace(ROUTES.paymentsAdvance);
+    if (isHydrated && !payment) router.replace(ROUTES.payments);
   }, [isHydrated, payment, router]);
 
   if (!payment) return null;
@@ -46,7 +46,7 @@ export function AdvancePaymentSuccessPage({
         title="Submission Successful"
         breadcrumbs={[
           { label: "Payments", href: ROUTES.payments },
-          { label: "Advance Payment", href: ROUTES.paymentsAdvance },
+          { label: "Advance Payment", href: ROUTES.payments },
           { label: "Success" },
         ]}
       />
@@ -102,7 +102,7 @@ export function AdvancePaymentSuccessPage({
               <Button
                 variant="ghost"
                 className="h-11 rounded-xl"
-                onClick={() => router.push(ROUTES.paymentsAdvance)}
+                onClick={() => router.push(ROUTES.payments)}
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Back to Dashboard

@@ -9,7 +9,7 @@ export { OrdersPagination } from "./OrdersPagination";
 export { OrderProgressTrack } from "./OrderProgressTrack";
 export { OrdersRequiringAttentionCard } from "./OrdersRequiringAttentionCard";
 export { OrdersActiveFilterHeader } from "./OrdersActiveFilterHeader";
-export { ActiveOrdersPage } from "./ActiveOrdersPage";
+export { OrdersPage, OrdersPage as ActiveOrdersPage } from "./OrdersPage";
 export { ProcessingOrdersPage } from "./ProcessingOrdersPage";
 export { ReadyForDispatchPage } from "./ReadyForDispatchPage";
 export { InTransitOrdersPage } from "./InTransitOrdersPage";

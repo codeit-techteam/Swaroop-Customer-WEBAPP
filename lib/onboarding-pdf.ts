@@ -1,15 +1,18 @@
 import { jsPDF } from "jspdf";
 import type { OnboardingState } from "@/types/onboarding";
-import {
-  CONSTITUTION_OPTIONS,
-  INDUSTRY_SECTOR_OPTIONS,
-} from "@/constants/onboarding";
+import { INDUSTRY_SECTOR_OPTIONS } from "@/constants/onboarding";
 
 function labelFor(
   options: readonly { value: string; label: string }[],
   value: string,
 ): string {
-  return options.find((o) => o.value === value)?.label ?? (value || "—");
+  return options.find((o) => o.value === value)?.label ?? value;
+}
+
+function formatCreditLimit(value: string): string {
+  const amount = Number(value.replace(/[^\d.]/g, ""));
+  if (!amount) return "Not specified";
+  return `Rs. ${amount.toLocaleString("en-IN")}`;
 }
 
 function addSection(
@@ -71,18 +74,22 @@ export function generateOnboardingPdf(state: OnboardingState): void {
 
   let y = 54;
 
-  y = addSection(
-    doc,
-    "1. Company Information",
-    [
-      `Legal Name: ${state.companyInfo.legalName || "—"}`,
-      `Constitution: ${labelFor(CONSTITUTION_OPTIONS, state.companyInfo.constitutionType)}`,
-      `Industry Sector: ${labelFor(INDUSTRY_SECTOR_OPTIONS, state.companyInfo.industrySector)}`,
-      `Registration Number: ${state.companyInfo.registrationNumber || "—"}`,
-      `Date of Incorporation: ${state.companyInfo.dateOfIncorporation || "—"}`,
-    ],
-    y,
-  );
+  const companyLines = [
+    `Legal Name: ${state.companyInfo.legalName || "—"}`,
+    ...(state.companyInfo.industrySector
+      ? [
+          `Industry Sector: ${labelFor(INDUSTRY_SECTOR_OPTIONS, state.companyInfo.industrySector)}`,
+        ]
+      : []),
+    ...(state.companyInfo.registrationNumber
+      ? [`Registration Number: ${state.companyInfo.registrationNumber}`]
+      : []),
+    ...(state.companyInfo.dateOfIncorporation
+      ? [`Date of Incorporation: ${state.companyInfo.dateOfIncorporation}`]
+      : []),
+  ];
+
+  y = addSection(doc, "1. Company Information", companyLines, y);
 
   y = addSection(
     doc,
@@ -117,38 +124,21 @@ export function generateOnboardingPdf(state: OnboardingState): void {
   const shippingLines =
     state.shippingAddresses.length === 0
       ? ["No shipping addresses added."]
-      : state.shippingAddresses.flatMap((addr, i) => [
-          `Terminal ${i + 1}: ${addr.terminalName}`,
-          `  Address: ${addr.fullAddress}`,
-          `  Contact: ${addr.contactPerson} | ${addr.mobileNumber}`,
-        ]);
+      : state.shippingAddresses.map(
+          (addr, i) => `Address ${i + 1}: ${addr.fullAddress}`,
+        );
 
   y = addSection(doc, "4. Shipping Addresses", shippingLines, y);
 
-  y = addSection(
+  addSection(
     doc,
     "5. Credit Request",
     [
-      `Audited Financials: ${state.creditDocuments.auditedFinancials?.fileName || "—"}`,
       `Bank Statements: ${state.creditDocuments.bankStatements?.fileName || "—"}`,
       `ITR: ${state.creditDocuments.itr?.fileName || "—"}`,
-      `Requested Credit Limit: ${state.creditLimit ? `₹ ${state.creditLimit}` : "Not specified"}`,
+      `Requested Credit Limit: ${formatCreditLimit(state.creditLimit)}`,
     ],
     y,
-  );
-
-  if (y > 260) {
-    doc.addPage();
-    y = 20;
-  }
-
-  doc.setFont("helvetica", "italic");
-  doc.setFontSize(9);
-  doc.setTextColor(100, 116, 139);
-  doc.text(
-    "This document is a frontend-generated summary for review purposes only.",
-    20,
-    y + 4,
   );
 
   doc.save("PetroTrade_Onboarding_Submission.pdf");

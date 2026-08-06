@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ROUTES, documentsPoPath } from "@/constants";
+import { documentsPoPath } from "@/constants";
 import { formatDateDdMmYyyy, formatInr, formatQuantityMt } from "@/lib/format";
 import {
   buildPoDocumentContent,
@@ -93,10 +93,7 @@ export function PurchaseOrdersPage() {
       <PageHeader
         title="Purchase Orders"
         description="Formal POs linked to approved purchase requests and PetroTrade confirmations."
-        breadcrumbs={[
-          { label: "Documents", href: ROUTES.documents },
-          { label: "Purchase Orders" },
-        ]}
+        breadcrumbs={[{ label: "Documents" }]}
       />
 
       <DocumentFiltersBar

@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
-import { SubmittedPurchaseRequestPage } from "@/components/purchase-requests";
+import { Suspense } from "react";
+import { PurchaseOrderSuccessPage } from "@/components/cart";
 
 export const metadata: Metadata = {
-  title: "Purchase Request Submitted",
+  title: "Purchase Order Generated",
 };
 
 export default function Page() {
-  return <SubmittedPurchaseRequestPage />;
+  return (
+    <Suspense fallback={null}>
+      <PurchaseOrderSuccessPage />
+    </Suspense>
+  );
 }

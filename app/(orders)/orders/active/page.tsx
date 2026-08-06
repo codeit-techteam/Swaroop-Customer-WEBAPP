@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
-import { ActiveOrdersPage } from "@/components/orders";
-
-export const metadata: Metadata = {
-  title: "Active Orders",
-};
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
 export default function Page() {
-  return <ActiveOrdersPage />;
+  redirect(ROUTES.orders);
 }

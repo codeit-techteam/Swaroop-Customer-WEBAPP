@@ -105,7 +105,7 @@ export function DocumentQuickActions({
         </p>
         <Button
           className="rounded-xl bg-brand hover:bg-brand-700"
-          onClick={() => router.push(ROUTES.documentsPurchaseOrders)}
+          onClick={() => router.push(ROUTES.documents)}
         >
           <Search className="h-4 w-4" />
           Search Documents

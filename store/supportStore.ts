@@ -52,6 +52,8 @@ export interface SupportStoreState {
   raiseTicketOpen: boolean;
   raiseTicketSuccessOpen: boolean;
   lastCreatedTicketId: string | null;
+  chatModalOpen: boolean;
+  floatingChatOpen: boolean;
   replyDraft: string;
   chatDraft: string;
   chatTyping: boolean;
@@ -68,6 +70,8 @@ export interface SupportStoreState {
   setSelectedTicketId: (id: string | null) => void;
   setRaiseTicketOpen: (open: boolean) => void;
   setRaiseTicketSuccessOpen: (open: boolean) => void;
+  setChatModalOpen: (open: boolean) => void;
+  setFloatingChatOpen: (open: boolean) => void;
   createTicket: (input: RaiseTicketInput) => string;
   updateTicketStatus: (id: string, status: TicketStatus) => void;
   replyToTicket: (id: string, body: string, attachmentName?: string) => void;
@@ -90,11 +94,15 @@ function nowIso() {
 }
 
 function nextTicketNumber(tickets: SupportTicket[]) {
+  const year = new Date().getFullYear();
   const nums = tickets
-    .map((t) => Number(t.ticketId.replace(/\D/g, "")))
+    .map((t) => {
+      const match = t.ticketId.match(/SUP-\d{4}-(\d+)/);
+      return match ? Number(match[1]) : NaN;
+    })
     .filter((n) => !Number.isNaN(n));
-  const next = (nums.length ? Math.max(...nums) : 10391) + 1;
-  return `SUP-${next}`;
+  const next = (nums.length ? Math.max(...nums) : 101) + 1;
+  return `SUP-${year}-${String(next).padStart(5, "0")}`;
 }
 
 export function computeOpenTicketCount(tickets: SupportTicket[]) {
@@ -203,6 +211,8 @@ export const useSupportStore = create<SupportStoreState>()(
       raiseTicketOpen: false,
       raiseTicketSuccessOpen: false,
       lastCreatedTicketId: null,
+      chatModalOpen: false,
+      floatingChatOpen: false,
       replyDraft: "",
       chatDraft: "",
       chatTyping: false,
@@ -222,6 +232,8 @@ export const useSupportStore = create<SupportStoreState>()(
       setRaiseTicketOpen: (open) => set({ raiseTicketOpen: open }),
       setRaiseTicketSuccessOpen: (open) =>
         set({ raiseTicketSuccessOpen: open }),
+      setChatModalOpen: (open) => set({ chatModalOpen: open }),
+      setFloatingChatOpen: (open) => set({ floatingChatOpen: open }),
 
       createTicket: (input) => {
         const ticketId = nextTicketNumber(get().tickets);
@@ -232,7 +244,7 @@ export const useSupportStore = create<SupportStoreState>()(
           ticketId,
           category: input.category,
           categoryLabel: TICKET_CATEGORY_LABELS[input.category],
-          priority: input.priority,
+          priority: input.priority ?? "medium",
           status: "open",
           subject: input.subject.trim(),
           description: input.description.trim(),

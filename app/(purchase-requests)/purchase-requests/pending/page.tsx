@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { PendingRequestsListPage } from "@/components/purchase-requests";
+import { redirect } from "next/navigation";
+import { purchaseRequestsFiltered } from "@/constants";
 
 export const metadata: Metadata = {
-  title: "Pending Confirmation",
+  title: "Purchase Requests",
 };
 
 export default function Page() {
-  return <PendingRequestsListPage />;
+  redirect(purchaseRequestsFiltered("pending"));
 }

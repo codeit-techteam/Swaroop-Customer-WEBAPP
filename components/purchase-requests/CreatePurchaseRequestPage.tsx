@@ -11,6 +11,7 @@ import { ROUTES } from "@/constants";
 import { getEffectiveOfferPrice } from "@/lib/offer-utils";
 import { getOfferById } from "@/mock/offers";
 import { usePurchaseRequestStore } from "@/store/purchaseRequestStore";
+import { useCartStore } from "@/store/cartStore";
 import { useOffersStore } from "@/store/offersStore";
 import { PurchaseRequestStepper } from "./PurchaseRequestStepper";
 import { PurchaseRequestForm } from "./PurchaseRequestForm";
@@ -47,7 +48,6 @@ export function CreatePurchaseRequestPage() {
   const hydrateProduct = usePurchaseRequestStore((s) => s.hydrateProduct);
   const setForm = usePurchaseRequestStore((s) => s.setForm);
   const setQuantity = usePurchaseRequestStore((s) => s.setQuantity);
-  const setCurrentStep = usePurchaseRequestStore((s) => s.setCurrentStep);
   const getOrderSummary = usePurchaseRequestStore((s) => s.getOrderSummary);
   const markOfferApplied = useOffersStore((s) => s.markOfferApplied);
 
@@ -86,8 +86,8 @@ export function CreatePurchaseRequestPage() {
 
     hydrateProduct(productId, {
       currentPricePerMt: effectiveOfferPrice,
-      warehouse: offer?.warehouseLabel,
-      manufacturer: offer?.brandName,
+      warehouse: "Western India Region",
+      manufacturer: "Verified Supply Partner",
       moq: offer?.moq,
       paymentMethodId,
     });
@@ -118,10 +118,17 @@ export function CreatePurchaseRequestPage() {
   const summary = getOrderSummary();
 
   const handleSubmit = (data: PurchaseRequestFormData) => {
+    if (!product) return;
     setForm(data);
-    setCurrentStep("review");
-    toast.success("Request details saved");
-    router.push(ROUTES.purchaseRequestsReview);
+    const result = useCartStore
+      .getState()
+      .addItem(product.id, data.quantityMt, data.packaging);
+    if (!result.ok) {
+      toast.error(result.message);
+      return;
+    }
+    toast.success("Added to cart — continue to checkout");
+    router.push(ROUTES.checkout);
   };
 
   if (!isHydrated || !product || !summary) {

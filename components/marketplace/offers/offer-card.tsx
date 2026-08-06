@@ -4,8 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, FilePlus2, Heart, MapPin } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowRight, MapPin, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   formatDateDdMmYyyy,
@@ -18,8 +17,8 @@ import {
   getStatusLabel,
   isOfferPurchasable,
 } from "@/lib/offer-utils";
-import { getOfferDetailHref, getOfferQuoteHref } from "@/mock/offers";
-import { useOffersStore } from "@/store/offersStore";
+import { getOfferDetailHref } from "@/mock/offers";
+import { ROUTES } from "@/constants";
 import type { MarketplaceOffer } from "@/types/offers";
 import { OfferBadge } from "./offer-badge";
 import { OfferCountdown } from "./offer-countdown";
@@ -35,14 +34,10 @@ interface OfferCardProps {
 
 export function OfferCard({ offer, index = 0, className }: OfferCardProps) {
   const [imageFailed, setImageFailed] = useState(false);
-  const wishlistIds = useOffersStore((s) => s.wishlistIds);
-  const toggleWishlist = useOffersStore((s) => s.toggleWishlist);
-
-  const wished = wishlistIds.includes(offer.id);
   const status = getOfferStatus(offer);
   const purchasable = isOfferPurchasable(offer);
   const detailHref = getOfferDetailHref(offer.id);
-  const quoteHref = getOfferQuoteHref(offer);
+  const productHref = `${ROUTES.marketplaceProduct}/${offer.productId}`;
 
   return (
     <motion.article
@@ -68,22 +63,6 @@ export function OfferCard({ offer, index = 0, className }: OfferCardProps) {
           <OfferBadge offer={offer} variant="discount" />
           <OfferBadge offer={offer} variant="type" />
         </div>
-        <button
-          type="button"
-          aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
-          className={cn(
-            "absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm transition hover:bg-white",
-            wished && "text-rose-600",
-          )}
-          onClick={() => {
-            toggleWishlist(offer.id);
-            toast.success(
-              wished ? "Removed from wishlist" : "Saved to wishlist",
-            );
-          }}
-        >
-          <Heart className={cn("h-4 w-4", wished && "fill-current")} />
-        </button>
         {status === "ending_soon" ? (
           <div className="absolute bottom-3 left-3">
             <OfferCountdown expiresAt={offer.expiresAt} compact />
@@ -117,7 +96,7 @@ export function OfferCard({ offer, index = 0, className }: OfferCardProps) {
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                {offer.brandName}
+                Verified Partner
               </span>
               <span className="text-slate-300">·</span>
               <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
@@ -131,7 +110,7 @@ export function OfferCard({ offer, index = 0, className }: OfferCardProps) {
             </Link>
             <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
               <MapPin className="h-3 w-3" />
-              {offer.warehouseLabel}
+              Western India Region
             </p>
           </div>
         </div>
@@ -203,9 +182,9 @@ export function OfferCard({ offer, index = 0, className }: OfferCardProps) {
             className="h-11 min-w-0 rounded-xl bg-brand px-3 text-sm hover:bg-brand-700"
             disabled={!purchasable}
           >
-            <Link href={purchasable ? quoteHref : detailHref}>
-              <FilePlus2 className="h-3.5 w-3.5" />
-              {purchasable ? "Create Request" : getStatusLabel(status)}
+            <Link href={purchasable ? productHref : detailHref}>
+              <ShoppingCart className="h-3.5 w-3.5" />
+              {purchasable ? "Add to Cart" : getStatusLabel(status)}
             </Link>
           </Button>
         </div>

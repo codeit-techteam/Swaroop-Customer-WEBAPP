@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
-import { InTransitOrdersPage } from "@/components/orders";
-
-export const metadata: Metadata = {
-  title: "In Transit",
-};
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
 export default function Page() {
-  return <InTransitOrdersPage />;
+  redirect(`${ROUTES.orders}?status=in_transit`);
 }

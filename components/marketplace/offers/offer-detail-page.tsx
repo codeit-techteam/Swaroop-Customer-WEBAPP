@@ -8,10 +8,9 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Download,
-  FilePlus2,
-  Heart,
   MapPin,
   Share2,
+  ShoppingCart,
   Warehouse,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -22,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ROUTES } from "@/constants";
 import { formatQuantityMt } from "@/lib/format";
-import { getOfferDetailHref, getOfferQuoteHref } from "@/mock/offers";
+import { getOfferDetailHref } from "@/mock/offers";
 import { useOffersStore } from "@/store/offersStore";
 import { OfferCountdownBlocks } from "./offer-countdown";
 import { PaymentTypeBadges } from "./payment-type-badges";
@@ -44,8 +43,6 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
   const getOffer = useOffersStore((s) => s.getOffer);
   const offers = useOffersStore((s) => s.offers);
   const markViewed = useOffersStore((s) => s.markViewed);
-  const wishlistIds = useOffersStore((s) => s.wishlistIds);
-  const toggleWishlist = useOffersStore((s) => s.toggleWishlist);
 
   const offer = getOffer(offerId);
 
@@ -91,11 +88,7 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
     );
   }
 
-  const wished = wishlistIds.includes(offer.id);
   const purchasable = isOfferPurchasable(offer);
-  const quoteHref = getOfferQuoteHref(offer, {
-    quantity: quantityMt ?? offer.moq,
-  });
   const resolvedQty = quantityMt ?? offer.moq;
 
   const handleShare = async () => {
@@ -196,7 +189,7 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      {offer.brandShortName}
+                      Verified Partner
                     </span>
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                       {offer.categoryLabel}
@@ -212,7 +205,7 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
                   <div className="mt-3 flex flex-wrap gap-4 text-sm text-slate-600">
                     <span className="flex items-center gap-1.5">
                       <MapPin className="h-4 w-4 text-slate-400" />
-                      {offer.warehouseLabel}
+                      Western India Region
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Warehouse className="h-4 w-4 text-slate-400" />
@@ -294,8 +287,11 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
                   label="Stock"
                   value={formatQuantityMt(offer.remainingStock)}
                 />
-                <PriceRow label="Warehouse" value={offer.warehouseLabel} />
-                <PriceRow label="Delivery Estimate" value="3–5 business days" />
+                <PriceRow label="Region" value="Western India Region" />
+                <PriceRow
+                  label="Delivery Estimate"
+                  value="After seller approval"
+                />
               </div>
 
               <div className="mt-4">
@@ -311,27 +307,16 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
                   className="h-11 rounded-xl bg-brand font-semibold hover:bg-brand-700"
                   disabled={!purchasable}
                 >
-                  <Link href={purchasable ? quoteHref : "#"}>
-                    <FilePlus2 className="h-4 w-4" />
-                    Create Purchase Request
+                  <Link
+                    href={
+                      purchasable
+                        ? `${ROUTES.marketplaceProduct}/${offer.productId}`
+                        : "#"
+                    }
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                    Add to Cart
                   </Link>
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className={cn(
-                    "h-11 rounded-xl",
-                    wished && "border-rose-200 bg-rose-50 text-rose-600",
-                  )}
-                  onClick={() => {
-                    toggleWishlist(offer.id);
-                    toast.success(
-                      wished ? "Removed from wishlist" : "Added to wishlist",
-                    );
-                  }}
-                >
-                  <Heart className={cn("h-4 w-4", wished && "fill-current")} />
-                  {wished ? "Saved" : "Add to Wishlist"}
                 </Button>
                 <div className="grid grid-cols-2 gap-2">
                   <Button

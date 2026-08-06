@@ -13,14 +13,11 @@ import type {
 export interface ProductStoreState {
   selectedProduct: ProductDetailRecord | null;
   galleryIndex: number;
-  wishlistIds: string[];
   relatedProducts: RelatedProductCard[];
   isLoading: boolean;
 
   loadProduct: (productId: string) => void;
   setGalleryIndex: (index: number) => void;
-  toggleWishlist: (productId: string) => void;
-  isWishlisted: (productId: string) => boolean;
   clearProduct: () => void;
 }
 
@@ -28,10 +25,9 @@ export interface ProductStoreState {
  * productStore — mock-backed Product Details state.
  * Ready for API hydration; no network calls yet.
  */
-export const useProductStore = create<ProductStoreState>((set, get) => ({
+export const useProductStore = create<ProductStoreState>((set) => ({
   selectedProduct: null,
   galleryIndex: 0,
-  wishlistIds: [],
   relatedProducts: [],
   isLoading: false,
 
@@ -49,15 +45,6 @@ export const useProductStore = create<ProductStoreState>((set, get) => ({
   },
 
   setGalleryIndex: (index) => set({ galleryIndex: index }),
-
-  toggleWishlist: (productId) =>
-    set((state) => ({
-      wishlistIds: state.wishlistIds.includes(productId)
-        ? state.wishlistIds.filter((id) => id !== productId)
-        : [...state.wishlistIds, productId],
-    })),
-
-  isWishlisted: (productId) => get().wishlistIds.includes(productId),
 
   clearProduct: () =>
     set({

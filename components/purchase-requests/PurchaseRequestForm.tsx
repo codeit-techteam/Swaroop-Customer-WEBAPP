@@ -33,7 +33,6 @@ import type {
 } from "@/types/purchase-request";
 import { ProductSummary } from "./ProductSummary";
 import { QuantitySelector } from "./QuantitySelector";
-import { ShippingCard } from "./ShippingCard";
 import { BillingCard } from "./BillingCard";
 import { AddressCard } from "./AddressCard";
 
@@ -48,7 +47,7 @@ export function PurchaseRequestForm({
   product,
   defaultValues,
   onSubmit,
-  submitLabel = "Continue to Review",
+  submitLabel = "Proceed to Checkout",
 }: PurchaseRequestFormProps) {
   const form = useForm<PurchaseRequestFormSchema>({
     resolver: zodResolver(purchaseRequestFormSchema),
@@ -78,7 +77,6 @@ export function PurchaseRequestForm({
 
   const quantityMt = watch("quantityMt");
   const sameAsShipping = watch("sameAsShipping");
-  const shippingAddressId = watch("shippingAddressId");
   const deliveryLocationId = watch("deliveryLocationId");
   const billingAddressId = watch("billingAddressId");
 
@@ -99,10 +97,10 @@ export function PurchaseRequestForm({
 
     onSubmit({
       ...data,
+      expectedDeliveryDate: data.expectedDeliveryDate ?? "",
       purchaseOrderReference: data.purchaseOrderReference ?? "",
-      shippingAddressId: data.sameAsShipping
-        ? data.deliveryLocationId
-        : data.shippingAddressId,
+      // Delivery address is the single destination — shipping mirrors it
+      shippingAddressId: data.deliveryLocationId,
     });
   };
 
@@ -123,7 +121,7 @@ export function PurchaseRequestForm({
                 value={field.value}
                 moq={product.moq}
                 max={product.availableStock}
-                increment={product.quantityIncrement}
+                increment={1}
                 onChange={field.onChange}
                 error={quantityError}
                 className="sm:col-span-2"
@@ -157,20 +155,6 @@ export function PurchaseRequestForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="expectedDeliveryDate">Expected Delivery Date</Label>
-            <Input
-              id="expectedDeliveryDate"
-              type="date"
-              {...register("expectedDeliveryDate")}
-            />
-            {errors.expectedDeliveryDate ? (
-              <p className="text-xs text-red-600">
-                {errors.expectedDeliveryDate.message}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="gstNumber">GST Number</Label>
             <Input
               id="gstNumber"
@@ -183,20 +167,21 @@ export function PurchaseRequestForm({
             ) : null}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="purchaseOrderReference">
-              Purchase Order Reference{" "}
-              <span className="font-normal text-slate-400">(Optional)</span>
-            </Label>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="purchaseOrderReference">Purchase Order ID</Label>
             <div className="relative">
               <FileText className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
                 id="purchaseOrderReference"
-                className="pl-9"
-                placeholder="PO-2026-001"
-                {...register("purchaseOrderReference")}
+                className="pl-9 font-mono"
+                readOnly
+                value={
+                  watch("purchaseOrderReference") ||
+                  defaultValues.purchaseOrderReference
+                }
               />
             </div>
+            <p className="text-xs text-slate-400">Generated Automatically</p>
           </div>
 
           <div className="space-y-2 sm:col-span-2">
@@ -216,10 +201,10 @@ export function PurchaseRequestForm({
 
       <Card className="border-slate-200">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Delivery Location</CardTitle>
+          <CardTitle className="text-base">Delivery Address</CardTitle>
           <p className="text-xs text-slate-500">
-            Freight is calculated from the selected hub — same as Customer App
-            checkout.
+            Where goods should be delivered. Freight is calculated from the
+            selected hub.
           </p>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2">
@@ -230,55 +215,10 @@ export function PurchaseRequestForm({
               selected={deliveryLocationId === address.id}
               onSelect={(id) => {
                 setValue("deliveryLocationId", id, { shouldValidate: true });
-                if (sameAsShipping) {
-                  setValue("shippingAddressId", id, { shouldValidate: true });
-                }
+                setValue("shippingAddressId", id, { shouldValidate: true });
               }}
             />
           ))}
-        </CardContent>
-      </Card>
-
-      <Card className="border-slate-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Shipping Address</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <label className="flex items-center gap-2 text-sm text-slate-600">
-            <Checkbox
-              checked={sameAsShipping}
-              onCheckedChange={(checked) => {
-                const next = checked === true;
-                setValue("sameAsShipping", next);
-                if (next) {
-                  setValue("shippingAddressId", deliveryLocationId);
-                }
-              }}
-            />
-            Same as delivery location
-          </label>
-          {!sameAsShipping ? (
-            <div className="grid gap-3 md:grid-cols-2">
-              {shippingAddressesMock.map((address) => (
-                <ShippingCard
-                  key={address.id}
-                  address={address}
-                  selected={shippingAddressId === address.id}
-                  onSelect={(id) =>
-                    setValue("shippingAddressId", id, { shouldValidate: true })
-                  }
-                />
-              ))}
-            </div>
-          ) : (
-            <ShippingCard
-              address={
-                shippingAddressesMock.find(
-                  (a) => a.id === deliveryLocationId,
-                ) ?? shippingAddressesMock[0]
-              }
-            />
-          )}
         </CardContent>
       </Card>
 
@@ -286,17 +226,35 @@ export function PurchaseRequestForm({
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Billing Address</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2">
-          {billingAddressesMock.map((address) => (
-            <BillingCard
-              key={address.id}
-              address={address}
-              selected={billingAddressId === address.id}
-              onSelect={(id) =>
-                setValue("billingAddressId", id, { shouldValidate: true })
-              }
+        <CardContent className="space-y-3">
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <Checkbox
+              checked={sameAsShipping}
+              onCheckedChange={(checked) => {
+                setValue("sameAsShipping", checked === true);
+              }}
             />
-          ))}
+            Same as delivery address
+          </label>
+          {!sameAsShipping ? (
+            <div className="grid gap-3 md:grid-cols-2">
+              {billingAddressesMock.map((address) => (
+                <BillingCard
+                  key={address.id}
+                  address={address}
+                  selected={billingAddressId === address.id}
+                  onSelect={(id) =>
+                    setValue("billingAddressId", id, { shouldValidate: true })
+                  }
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm text-slate-600">
+              {shippingAddressesMock.find((a) => a.id === deliveryLocationId)
+                ?.warehouseName ?? "Selected delivery address"}
+            </div>
+          )}
         </CardContent>
       </Card>
 

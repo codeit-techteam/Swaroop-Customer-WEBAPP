@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
-import { OnLoadingPaymentPage } from "@/components/payments";
-
-export const metadata: Metadata = {
-  title: "On Loading Payment",
-};
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
 export default function Page() {
-  return <OnLoadingPaymentPage />;
+  redirect(`${ROUTES.payments}?type=on_loading`);
 }

@@ -45,7 +45,7 @@ export function DispatchDetailPage({ orderId }: DispatchDetailPageProps) {
   }, []);
 
   useEffect(() => {
-    if (isHydrated && !order && !catalog) router.replace(ROUTES.ordersActive);
+    if (isHydrated && !order && !catalog) router.replace(ROUTES.orders);
   }, [isHydrated, order, catalog, router]);
 
   useEffect(() => {

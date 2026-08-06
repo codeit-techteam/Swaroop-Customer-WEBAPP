@@ -28,7 +28,6 @@ interface OffersStoreState {
   categoryChip: OfferCategoryChip;
   search: string;
   sortBy: OfferSortBy;
-  wishlistIds: string[];
   compareIds: string[];
   recentlyViewedIds: string[];
   myOfferRecords: MyOfferRecord[];
@@ -54,7 +53,6 @@ interface OffersStoreState {
   applyCampaignType: (
     offerType: OfferFiltersState["offerTypes"][number],
   ) => void;
-  toggleWishlist: (offerId: string) => void;
   toggleCompare: (offerId: string) => void;
   markViewed: (offerId: string) => void;
   markOfferApplied: (offerId: string) => void;
@@ -211,7 +209,6 @@ export const useOffersStore = create<OffersStoreState>()(
       categoryChip: "all",
       search: "",
       sortBy: "recommended",
-      wishlistIds: [],
       compareIds: [],
       recentlyViewedIds: [
         "offer-pp-week",
@@ -333,11 +330,6 @@ export const useOffersStore = create<OffersStoreState>()(
           },
         }),
 
-      toggleWishlist: (offerId) =>
-        set((state) => ({
-          wishlistIds: toggleInList(state.wishlistIds, offerId),
-        })),
-
       toggleCompare: (offerId) =>
         set((state) => {
           const exists = state.compareIds.includes(offerId);
@@ -443,7 +435,6 @@ export const useOffersStore = create<OffersStoreState>()(
     {
       name: "swaroop-marketplace-offers",
       partialize: (state) => ({
-        wishlistIds: state.wishlistIds,
         compareIds: state.compareIds,
         recentlyViewedIds: state.recentlyViewedIds,
         myOfferRecords: state.myOfferRecords,

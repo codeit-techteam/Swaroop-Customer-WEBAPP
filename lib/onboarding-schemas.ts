@@ -1,10 +1,6 @@
 import { z } from "zod";
 
 export const companyInfoSchema = z.object({
-  legalName: z
-    .string()
-    .min(2, "Company legal name is required")
-    .max(200, "Name is too long"),
   constitutionType: z.enum(
     [
       "private_limited",
@@ -16,8 +12,8 @@ export const companyInfoSchema = z.object({
     ],
     { required_error: "Select constitution type" },
   ),
-  industrySector: z.enum(
-    [
+  industrySector: z
+    .enum([
       "petrochemicals",
       "polymers",
       "lubricants",
@@ -25,14 +21,18 @@ export const companyInfoSchema = z.object({
       "trading",
       "manufacturing",
       "others",
-    ],
-    { required_error: "Select industry sector" },
-  ),
+    ])
+    .optional()
+    .or(z.literal("")),
   registrationNumber: z
     .string()
-    .min(5, "Registration number is required")
-    .max(30, "Registration number is too long"),
-  dateOfIncorporation: z.string().min(1, "Date of incorporation is required"),
+    .max(30, "Registration number is too long")
+    .refine((val) => !val || val.length >= 5, {
+      message: "Registration number must be at least 5 characters",
+    })
+    .optional()
+    .or(z.literal("")),
+  dateOfIncorporation: z.string().optional().or(z.literal("")),
 });
 
 export type CompanyInfoFormValues = z.infer<typeof companyInfoSchema>;
@@ -67,27 +67,18 @@ export const businessAddressSchema = z.object({
 export type BusinessAddressFormValues = z.infer<typeof businessAddressSchema>;
 
 export const shippingAddressSchema = z.object({
-  terminalName: z.string().min(2, "Terminal name is required"),
-  fullAddress: z.string().min(5, "Full address is required"),
-  contactPerson: z.string().min(2, "Contact person is required"),
-  mobileNumber: z
-    .string()
-    .regex(/^(\+91[\s-]?)?[6-9]\d{9}$/, "Enter a valid mobile number"),
+  fullAddress: z.string().min(5, "Address is required"),
 });
 
 export type ShippingAddressFormValues = z.infer<typeof shippingAddressSchema>;
 
 export const creditEligibilitySchema = z.object({
-  auditedFinancials: z.string().min(1, "Audited financials are required"),
   bankStatements: z.string().min(1, "Bank statements are required"),
   itr: z.string().min(1, "ITR documents are required"),
   creditLimit: z
     .string()
-    .optional()
-    .refine(
-      (val) => !val || /^\d+(\.\d{1,2})?$/.test(val),
-      "Enter a valid amount",
-    ),
+    .min(1, "Target facility amount is required")
+    .regex(/^\d+(\.\d{1,2})?$/, "Enter a valid amount"),
 });
 
 export type CreditEligibilityFormValues = z.infer<

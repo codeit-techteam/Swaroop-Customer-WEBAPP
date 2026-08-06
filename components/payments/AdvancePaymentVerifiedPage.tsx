@@ -37,7 +37,7 @@ export function AdvancePaymentVerifiedPage({
   }, []);
 
   useEffect(() => {
-    if (isHydrated && !payment) router.replace(ROUTES.paymentsAdvance);
+    if (isHydrated && !payment) router.replace(ROUTES.payments);
   }, [isHydrated, payment, router]);
 
   if (!payment) return null;
@@ -48,7 +48,7 @@ export function AdvancePaymentVerifiedPage({
         title="Advance Payment Verified"
         breadcrumbs={[
           { label: "Payments", href: ROUTES.payments },
-          { label: "Advance Payment", href: ROUTES.paymentsAdvance },
+          { label: "Advance Payment", href: ROUTES.payments },
           { label: "Verified" },
         ]}
       />
@@ -98,7 +98,7 @@ export function AdvancePaymentVerifiedPage({
               <Button
                 variant="outline"
                 className="h-11 flex-1 rounded-xl"
-                onClick={() => router.push(ROUTES.ordersActive)}
+                onClick={() => router.push(ROUTES.orders)}
               >
                 <PackageSearch className="h-4 w-4" />
                 Track Order

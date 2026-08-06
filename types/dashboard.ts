@@ -99,6 +99,10 @@ export interface PromotionOffer {
   description: string;
   ctaLabel: string;
   href: string;
+  /** Opens in-card quote form instead of navigating to `href` */
+  ctaAction?: "quote-form";
+  /** Minimum quantity (MT) enforced in the quote form */
+  minQuantityMt?: number;
 }
 
 export interface HeroBannerContent {
@@ -106,7 +110,11 @@ export interface HeroBannerContent {
   subtitle: string;
   imageUrl: string;
   primaryCta: { label: string; href: string };
-  secondaryCta: { label: string; href: string };
+  secondaryCta: {
+    label: string;
+    href?: string;
+    action?: "download-market-report";
+  };
 }
 
 export interface DashboardData {

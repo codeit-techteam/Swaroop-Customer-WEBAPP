@@ -1,10 +1,11 @@
 "use client";
 
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LogIn, Mail, MessageSquare } from "lucide-react";
+import { LogIn, Mail, MessageSquare, Phone } from "lucide-react";
 import {
   AuthCard,
   AuthCheckbox,
@@ -16,10 +17,24 @@ import {
   PrimaryButton,
   SecondaryButton,
 } from "@/components/auth";
-import { loginSchema, type LoginFormValues } from "@/lib/auth-schemas";
+import {
+  createLoginSchema,
+  type LoginFormValues,
+  type LoginMethod,
+} from "@/lib/auth-schemas";
 import { getPostAuthDestination } from "@/lib/post-auth-redirect";
 import { useAuthStore } from "@/store/authStore";
 import { ROUTES } from "@/constants";
+import { cn } from "@/lib/utils";
+
+const LOGIN_METHOD_OPTIONS: Array<{
+  value: LoginMethod;
+  label: string;
+  icon: typeof Mail;
+}> = [
+  { value: "email", label: "Email", icon: Mail },
+  { value: "phone", label: "Phone", icon: Phone },
+];
 
 export function LoginForm() {
   const router = useRouter();
@@ -27,16 +42,26 @@ export function LoginForm() {
   const login = useAuthStore((s) => s.login);
   const continueWithOTP = useAuthStore((s) => s.continueWithOTP);
   const isLoading = useAuthStore((s) => s.isLoading);
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>("email");
+  const loginMethodRef = useRef(loginMethod);
+  loginMethodRef.current = loginMethod;
 
   const {
     register,
     control,
     handleSubmit,
     getValues,
+    setValue,
+    clearErrors,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+    resolver: async (values, context, options) =>
+      zodResolver(createLoginSchema(loginMethodRef.current))(
+        values,
+        context,
+        options,
+      ),
     defaultValues: {
       identifier: "",
       password: "",
@@ -45,6 +70,14 @@ export function LoginForm() {
   });
 
   const loading = isLoading || isSubmitting;
+  const isEmailMethod = loginMethod === "email";
+
+  const switchLoginMethod = (method: LoginMethod) => {
+    if (method === loginMethod) return;
+    setLoginMethod(method);
+    setValue("identifier", "");
+    clearErrors("identifier");
+  };
 
   const onLogin = handleSubmit(async (values) => {
     await login(values.identifier, values.password, values.rememberMe);
@@ -54,14 +87,14 @@ export function LoginForm() {
 
   const onContinueWithOtp = async () => {
     const identifier = getValues("identifier");
-    const result = loginSchema
+    const result = createLoginSchema(loginMethod)
       .pick({ identifier: true })
       .safeParse({ identifier });
 
     if (!result.success) {
       const message =
         result.error.flatten().fieldErrors.identifier?.[0] ??
-        "Email or phone is required";
+        (isEmailMethod ? "Email is required" : "Phone is required");
       setError("identifier", { message });
       return;
     }
@@ -83,11 +116,55 @@ export function LoginForm() {
         </div>
 
         <form onSubmit={onLogin} className="space-y-5" noValidate>
+          <div className="space-y-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              Login with
+            </p>
+            <div
+              role="tablist"
+              aria-label="Login method"
+              className="grid grid-cols-2 gap-1 rounded-md border border-input bg-muted/40 p-1"
+            >
+              {LOGIN_METHOD_OPTIONS.map((option) => {
+                const active = loginMethod === option.value;
+                const Icon = option.icon;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    disabled={loading}
+                    onClick={() => switchLoginMethod(option.value)}
+                    className={cn(
+                      "inline-flex h-9 items-center justify-center gap-2 rounded-sm text-sm font-medium transition-colors",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue/40",
+                      "disabled:cursor-not-allowed disabled:opacity-50",
+                      active
+                        ? "bg-white text-brand shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" aria-hidden />
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <AuthInput
-            label="Email or Phone"
-            placeholder="e.g. procurement@reliance.com"
-            leftIcon={Mail}
-            autoComplete="username"
+            key={loginMethod}
+            label={isEmailMethod ? "Email Address" : "Mobile Number"}
+            placeholder={
+              isEmailMethod
+                ? "e.g. procurement@reliance.com"
+                : "e.g. 98765 43210"
+            }
+            leftIcon={isEmailMethod ? Mail : Phone}
+            type={isEmailMethod ? "email" : "tel"}
+            inputMode={isEmailMethod ? "email" : "numeric"}
+            autoComplete={isEmailMethod ? "email" : "tel"}
             error={errors.identifier?.message}
             disabled={loading}
             {...register("identifier")}

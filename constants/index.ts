@@ -57,6 +57,7 @@ export const ROUTES = {
 
   payments: "/payments",
   paymentDetail: "/payments",
+  paymentsRequestCredit: "/payments/request-credit",
   paymentsAdvance: "/payments/advance",
   paymentsOnLoading: "/payments/on-loading",
   paymentsOnDelivery: "/payments/on-delivery",
@@ -111,6 +112,14 @@ export const ROUTES = {
   onboardingCompletion: "/customer/onboarding/completion",
 } as const;
 
+/** Purchase Requests list with optional status category filter. */
+export function purchaseRequestsFiltered(
+  status?: "active" | "pending" | "approved" | "rejected" | "expired",
+): string {
+  if (!status) return ROUTES.purchaseRequests;
+  return `${ROUTES.purchaseRequests}?status=${status}`;
+}
+
 export const AUTH_ROUTES = [
   ROUTES.login,
   ROUTES.register,
@@ -162,11 +171,6 @@ export const CUSTOMER_NAV: NavItem[] = [
         href: ROUTES.marketplace,
       },
       {
-        id: "marketplace-categories",
-        title: "Categories",
-        href: ROUTES.marketplaceCategories,
-      },
-      {
         id: "marketplace-offers",
         title: "Offers",
         href: ROUTES.marketplaceOffers,
@@ -182,48 +186,6 @@ export const CUSTOMER_NAV: NavItem[] = [
     icon: "Mail",
     badge: 6,
     badgeVariant: "pending",
-    children: [
-      {
-        id: "pr-active",
-        title: "Active Requests",
-        href: ROUTES.purchaseRequestsActive,
-        badge: 6,
-        badgeVariant: "default",
-      },
-      {
-        id: "pr-pending",
-        title: "Pending Confirmation",
-        href: ROUTES.purchaseRequestsPending,
-        badge: 4,
-        badgeVariant: "pending",
-      },
-      {
-        id: "pr-approved",
-        title: "Approved Requests",
-        href: ROUTES.purchaseRequestsApproved,
-        badge: 2,
-        badgeVariant: "approved",
-      },
-      {
-        id: "pr-rejected",
-        title: "Rejected Requests",
-        href: ROUTES.purchaseRequestsRejected,
-        badge: 1,
-        badgeVariant: "rejected",
-      },
-      {
-        id: "pr-expired",
-        title: "Expired Requests",
-        href: ROUTES.purchaseRequestsExpired,
-        badge: 3,
-        badgeVariant: "expired",
-      },
-      {
-        id: "pr-history",
-        title: "Request History",
-        href: ROUTES.purchaseRequestsHistory,
-      },
-    ],
   },
   {
     id: "orders",
@@ -232,55 +194,6 @@ export const CUSTOMER_NAV: NavItem[] = [
     icon: "Package",
     badge: 5,
     badgeVariant: "processing",
-    children: [
-      {
-        id: "orders-active",
-        title: "Active Orders",
-        href: ROUTES.ordersActive,
-        badge: 5,
-        badgeVariant: "processing",
-      },
-      {
-        id: "orders-processing",
-        title: "Processing",
-        href: ROUTES.ordersProcessing,
-        badge: 2,
-        badgeVariant: "processing",
-      },
-      {
-        id: "orders-ready",
-        title: "Ready for Dispatch",
-        href: ROUTES.ordersReadyForDispatch,
-        badge: 1,
-        badgeVariant: "dispatched",
-      },
-      {
-        id: "orders-transit",
-        title: "In Transit",
-        href: ROUTES.ordersInTransit,
-        badge: 2,
-        badgeVariant: "dispatched",
-      },
-      {
-        id: "orders-delivered",
-        title: "Delivered",
-        href: ROUTES.ordersDelivered,
-        badge: 12,
-        badgeVariant: "delivered",
-      },
-      {
-        id: "orders-cancelled",
-        title: "Cancelled",
-        href: ROUTES.ordersCancelled,
-        badge: 1,
-        badgeVariant: "cancelled",
-      },
-      {
-        id: "orders-reorder",
-        title: "Reorder",
-        href: ROUTES.ordersReorder,
-      },
-    ],
   },
   {
     id: "payments",
@@ -291,29 +204,9 @@ export const CUSTOMER_NAV: NavItem[] = [
     badgeVariant: "pending",
     children: [
       {
-        id: "pay-advance",
-        title: "Advance Payment",
-        href: ROUTES.paymentsAdvance,
-      },
-      {
-        id: "pay-loading",
-        title: "On Loading Payment",
-        href: ROUTES.paymentsOnLoading,
-      },
-      {
-        id: "pay-delivery",
-        title: "On Delivery Payment",
-        href: ROUTES.paymentsOnDelivery,
-      },
-      {
-        id: "pay-credit-15",
-        title: "Credit 15 Days",
-        href: ROUTES.paymentsCredit15,
-      },
-      {
-        id: "pay-credit-30",
-        title: "Credit 30 Days",
-        href: ROUTES.paymentsCredit30,
+        id: "pay-request-credit",
+        title: "Request Credit",
+        href: ROUTES.paymentsRequestCredit,
       },
       {
         id: "pay-history",
@@ -373,7 +266,7 @@ export const CUSTOMER_NAV: NavItem[] = [
       {
         id: "docs-po",
         title: "Purchase Orders",
-        href: ROUTES.documentsPurchaseOrders,
+        href: ROUTES.documents,
       },
       {
         id: "docs-invoices",
@@ -407,37 +300,6 @@ export const CUSTOMER_NAV: NavItem[] = [
     title: "Support",
     href: ROUTES.support,
     icon: "LifeBuoy",
-    badge: 12,
-    badgeVariant: "pending",
-    children: [
-      {
-        id: "support-overview",
-        title: "Overview",
-        href: ROUTES.support,
-      },
-      {
-        id: "support-tickets",
-        title: "My Tickets",
-        href: ROUTES.supportTickets,
-        badge: 12,
-        badgeVariant: "pending",
-      },
-      {
-        id: "support-chat",
-        title: "Live Chat",
-        href: ROUTES.supportLiveChat,
-      },
-      {
-        id: "support-docs",
-        title: "Documentation",
-        href: ROUTES.supportDocumentation,
-      },
-      {
-        id: "support-kb",
-        title: "Knowledge Base",
-        href: ROUTES.supportKnowledgeBase,
-      },
-    ],
   },
   {
     id: "logout",
@@ -487,12 +349,11 @@ export {
 
 export {
   SUPPORT_ROUTES,
-  SUPPORT_NAV,
-  TICKET_CATEGORY_OPTIONS,
-  TICKET_PRIORITY_OPTIONS,
-  TICKET_STATUS_LABELS,
-  TICKET_PRIORITY_LABELS,
+  SUPPORT_CONTACT,
+  MVP_TICKET_CATEGORY_OPTIONS,
   TICKET_CATEGORY_LABELS,
-  KNOWLEDGE_CATEGORY_LABELS,
-  SUPPORT_SLA_COPY,
+  ALLOWED_ATTACHMENT_ACCEPT,
+  getMvpStatus,
+  MVP_STATUS_LABELS,
+  MVP_STATUS_CLASS,
 } from "./support";

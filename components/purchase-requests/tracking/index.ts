@@ -1,6 +1,7 @@
 export { TrackingStatusBadge } from "./TrackingStatusBadge";
 export { TrackingFiltersBar } from "./TrackingFiltersBar";
 export { TrackingEmptyState } from "./TrackingEmptyState";
+export { PurchaseRequestsListPage } from "./PurchaseRequestsListPage";
 export { ActiveRequestsPage } from "./ActiveRequestsPage";
 export { PendingRequestsListPage } from "./PendingRequestsListPage";
 export { ApprovedRequestsListPage } from "./ApprovedRequestsListPage";

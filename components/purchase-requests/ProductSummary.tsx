@@ -48,11 +48,11 @@ export function ProductSummary({
             </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant="secondary" className="font-normal">
-                {product.manufacturer}
+                Verified Supply Partner
               </Badge>
               <Badge variant="outline" className="gap-1 font-normal">
                 <Warehouse className="h-3 w-3" aria-hidden />
-                {product.warehouse}
+                {product.warehouseRegion || "Western India Region"}
               </Badge>
             </div>
           </div>

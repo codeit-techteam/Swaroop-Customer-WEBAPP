@@ -8,6 +8,7 @@ import {
   PRICE_RANGE_BOUNDS,
 } from "@/mock/filters";
 import type {
+  GradeOriginFilter,
   MarketplaceBrand,
   MarketplaceCategory,
   MarketplaceFiltersState,
@@ -17,6 +18,7 @@ import type {
   MarketplaceViewMode,
   MarketplaceWarehouse,
 } from "@/types/marketplace";
+import { getProductSupplyOrigin } from "@/lib/grade-search";
 
 export type { MarketplaceViewMode, MarketplaceSortBy };
 
@@ -29,6 +31,7 @@ export interface MarketplaceStoreState {
   filters: MarketplaceFiltersState;
   draftFilters: MarketplaceFiltersState;
   search: string;
+  originFilter: GradeOriginFilter;
   sortBy: MarketplaceSortBy;
   viewMode: MarketplaceViewMode;
   selectedWarehouse: string | null;
@@ -40,6 +43,7 @@ export interface MarketplaceStoreState {
   priceBounds: typeof PRICE_RANGE_BOUNDS;
 
   setSearch: (search: string) => void;
+  setOriginFilter: (origin: GradeOriginFilter) => void;
   setSortBy: (sortBy: MarketplaceSortBy) => void;
   setViewMode: (viewMode: MarketplaceViewMode) => void;
   setPage: (page: number) => void;
@@ -50,6 +54,7 @@ export interface MarketplaceStoreState {
   setDraftWarehouse: (warehouseId: string | null) => void;
   setDraftCreditEligible: (enabled: boolean) => void;
   applyFilters: () => void;
+  applyCategoryFilter: (categoryId: MarketplaceParentCategoryId | null) => void;
   resetFilters: () => void;
   hydrateCategorySlug: (slug: string | null) => void;
   openQuickView: (productId: string) => void;
@@ -99,10 +104,18 @@ function applyCatalogFilters(
   products: MarketplaceProduct[],
   filters: MarketplaceFiltersState,
   search: string,
+  originFilter: GradeOriginFilter,
   selectedCategoryId: MarketplaceParentCategoryId | null,
 ): MarketplaceProduct[] {
   return products.filter((product) => {
     if (!matchesSearch(product, search)) return false;
+
+    if (
+      originFilter !== "all" &&
+      getProductSupplyOrigin(product) !== originFilter
+    ) {
+      return false;
+    }
 
     if (selectedCategoryId && product.categoryId !== selectedCategoryId) {
       return false;
@@ -180,6 +193,7 @@ export const useMarketplaceStore = create<MarketplaceStoreState>(
     filters: { ...DEFAULT_MARKETPLACE_FILTERS },
     draftFilters: { ...DEFAULT_MARKETPLACE_FILTERS },
     search: "",
+    originFilter: "all",
     sortBy: "recommended",
     viewMode: "grid",
     selectedWarehouse: null,
@@ -191,6 +205,7 @@ export const useMarketplaceStore = create<MarketplaceStoreState>(
     priceBounds: PRICE_RANGE_BOUNDS,
 
     setSearch: (search) => set({ search, page: 1 }),
+    setOriginFilter: (originFilter) => set({ originFilter, page: 1 }),
     setSortBy: (sortBy) => set({ sortBy, page: 1 }),
     setViewMode: (viewMode) => set({ viewMode }),
     setPage: (page) => set({ page }),
@@ -266,6 +281,22 @@ export const useMarketplaceStore = create<MarketplaceStoreState>(
         page: 1,
       })),
 
+    applyCategoryFilter: (categoryId) => {
+      const categories = categoryId ? [categoryId] : [];
+      set((state) => {
+        const nextFilters = {
+          ...state.draftFilters,
+          categories,
+        };
+        return {
+          draftFilters: nextFilters,
+          filters: nextFilters,
+          selectedCategoryId: categoryId,
+          page: 1,
+        };
+      });
+    },
+
     resetFilters: () =>
       set({
         filters: { ...DEFAULT_MARKETPLACE_FILTERS },
@@ -273,6 +304,7 @@ export const useMarketplaceStore = create<MarketplaceStoreState>(
         selectedCategoryId: null,
         selectedWarehouse: null,
         creditEligible: false,
+        originFilter: "all",
         page: 1,
       }),
 
@@ -295,6 +327,7 @@ export const useMarketplaceStore = create<MarketplaceStoreState>(
         state.products,
         state.filters,
         state.search,
+        state.originFilter,
         // When filters already include categories, selectedCategoryId is reflected there
         state.filters.categories.length > 0 ? null : state.selectedCategoryId,
       );

@@ -1,5 +1,6 @@
 export { MarketplaceBrowse } from "./marketplace-browse";
-export { MarketplaceCategoriesPage } from "./marketplace-categories-page";
+export { FilterTopBar } from "./filter-top-bar";
+export { MarketplaceCategoryChips } from "./marketplace-category-chips";
 export { MarketplaceHeader } from "./marketplace-header";
 export { FilterSidebar } from "./filter-sidebar";
 export { CategoryFilter } from "./category-filter";

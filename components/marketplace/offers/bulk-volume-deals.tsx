@@ -60,7 +60,7 @@ export function BulkVolumeDeals({ offers, className }: BulkVolumeDealsProps) {
                     {offer.productName}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    {offer.brandName} · {offer.warehouseLabel}
+                    {"Verified Supply Partner"} · Western India Region
                   </p>
                   {starting ? (
                     <p className="mt-2 text-sm">

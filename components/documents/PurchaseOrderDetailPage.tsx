@@ -61,7 +61,7 @@ export function PurchaseOrderDetailPage() {
             { label: "Documents", href: ROUTES.documents },
             {
               label: "Purchase Orders",
-              href: ROUTES.documentsPurchaseOrders,
+              href: ROUTES.documents,
             },
             { label: "Details" },
           ]}
@@ -72,7 +72,7 @@ export function PurchaseOrderDetailPage() {
             <button
               type="button"
               className="font-semibold text-brand underline"
-              onClick={() => router.push(ROUTES.documentsPurchaseOrders)}
+              onClick={() => router.push(ROUTES.documents)}
             >
               Back to list
             </button>
@@ -94,7 +94,7 @@ export function PurchaseOrderDetailPage() {
           { label: "Documents", href: ROUTES.documents },
           {
             label: "Purchase Orders",
-            href: ROUTES.documentsPurchaseOrders,
+            href: ROUTES.documents,
           },
           { label: po.poNumber },
         ]}

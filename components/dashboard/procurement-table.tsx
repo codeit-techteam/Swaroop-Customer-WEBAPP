@@ -1,13 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Eye, MoreHorizontal } from "lucide-react";
 import type { PurchaseRequestSummary } from "@/types/dashboard";
 import { ROUTES } from "@/constants";
 import { formatQuantityMt } from "@/lib/format";
@@ -16,8 +14,8 @@ import {
   PURCHASE_REQUEST_STATUS_TONE,
 } from "@/lib/purchase-request-status";
 import { SectionTitle } from "@/components/dashboard/section-title";
+import { ProcurementRowActionsMenu } from "@/components/dashboard/procurement-row-actions";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
@@ -95,38 +93,7 @@ export function ProcurementTable({ rows, className }: ProcurementTableProps) {
     columnHelper.display({
       id: "actions",
       header: "Actions",
-      cell: ({ row }) => {
-        const item = row.original;
-        const href =
-          item.status === "pending_seller_approval"
-            ? ROUTES.purchaseRequestsPending
-            : item.status === "in_transit"
-              ? ROUTES.shipmentTracking
-              : ROUTES.orders;
-        return (
-          <div className="flex items-center gap-1">
-            <Button
-              asChild
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-slate-500 hover:text-brand"
-              aria-label={`View ${item.displayId}`}
-            >
-              <Link href={href}>
-                <Eye className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-slate-400"
-              aria-label={`More actions for ${item.displayId}`}
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </div>
-        );
-      },
+      cell: ({ row }) => <ProcurementRowActionsMenu item={row.original} />,
     }),
   ];
 

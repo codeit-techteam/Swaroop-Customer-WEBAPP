@@ -57,10 +57,7 @@ export interface BusinessAddress {
 
 export interface ShippingAddress {
   id: string;
-  terminalName: string;
   fullAddress: string;
-  contactPerson: string;
-  mobileNumber: string;
 }
 
 export interface UploadedDocument {
@@ -69,7 +66,6 @@ export interface UploadedDocument {
 }
 
 export interface CreditDocuments {
-  auditedFinancials: UploadedDocument | null;
   bankStatements: UploadedDocument | null;
   itr: UploadedDocument | null;
 }

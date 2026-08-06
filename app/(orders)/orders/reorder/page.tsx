@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
-import { ReorderOrdersPage } from "@/components/orders";
-
-export const metadata: Metadata = {
-  title: "Reorder",
-};
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
 export default function Page() {
-  return <ReorderOrdersPage />;
+  redirect(`${ROUTES.orders}?status=delivered`);
 }

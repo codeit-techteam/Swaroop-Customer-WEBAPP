@@ -32,7 +32,6 @@ export function RequestHistoryPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [warehouse, setWarehouse] = useState("all");
-  const [seller, setSeller] = useState("all");
   const [paymentType, setPaymentType] = useState("all");
   const [page, setPage] = useState(1);
 
@@ -49,11 +48,6 @@ export function RequestHistoryPage() {
     () => [...new Set(items.map((i) => i.warehouse))].sort(),
     [items],
   );
-  const sellers = useMemo(
-    () => [...new Set(items.map((i) => i.sellerName))].sort(),
-    [items],
-  );
-
   const filtered = useMemo(() => {
     return items
       .filter(
@@ -64,7 +58,6 @@ export function RequestHistoryPage() {
       .filter((item) =>
         warehouse === "all" ? true : item.warehouse === warehouse,
       )
-      .filter((item) => (seller === "all" ? true : item.sellerName === seller))
       .filter((item) =>
         paymentType === "all" ? true : item.paymentMethodId === paymentType,
       )
@@ -73,15 +66,14 @@ export function RequestHistoryPage() {
         if (!q) return true;
         return (
           item.displayId.toLowerCase().includes(q) ||
-          item.productName.toLowerCase().includes(q) ||
-          item.sellerName.toLowerCase().includes(q)
+          item.productName.toLowerCase().includes(q)
         );
       })
       .sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
-  }, [items, search, status, warehouse, seller, paymentType]);
+  }, [items, search, status, warehouse, paymentType]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageSafe = Math.min(page, totalPages);
@@ -89,7 +81,7 @@ export function RequestHistoryPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, status, warehouse, seller, paymentType]);
+  }, [search, status, warehouse, paymentType]);
 
   return (
     <PageContainer>
@@ -113,9 +105,6 @@ export function RequestHistoryPage() {
           warehouse={warehouse}
           onWarehouseChange={setWarehouse}
           warehouses={warehouses}
-          seller={seller}
-          onSellerChange={setSeller}
-          sellers={sellers}
           paymentType={paymentType}
           onPaymentTypeChange={setPaymentType}
           paymentTypes={paymentMethodsMock.map((m) => ({
@@ -158,7 +147,7 @@ export function RequestHistoryPage() {
                         </p>
                       </TableCell>
                       <TableCell className="text-sm">
-                        {row.sellerName}
+                        {"Verified Supply Partner"}
                       </TableCell>
                       <TableCell className="text-sm">{row.warehouse}</TableCell>
                       <TableCell className="text-sm">

@@ -55,7 +55,6 @@ export function ActiveRequestsPage() {
         return (
           item.displayId.toLowerCase().includes(q) ||
           item.productName.toLowerCase().includes(q) ||
-          item.sellerName.toLowerCase().includes(q) ||
           item.warehouse.toLowerCase().includes(q)
         );
       });
@@ -115,7 +114,9 @@ export function ActiveRequestsPage() {
                         </p>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm">{row.sellerName}</TableCell>
+                    <TableCell className="text-sm">
+                      {"Verified Supply Partner"}
+                    </TableCell>
                     <TableCell className="text-sm">{row.warehouse}</TableCell>
                     <TableCell className="text-sm">
                       {formatDateDdMmYyyy(row.createdAt)}

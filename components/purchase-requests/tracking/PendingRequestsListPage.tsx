@@ -120,7 +120,7 @@ export function PendingRequestsListPage() {
                       </p>
                       <p className="text-xs text-slate-500">
                         {row.grade} · {formatQuantityMt(row.quantityMt)} ·{" "}
-                        {row.sellerName}
+                        {"Verified Supply Partner"}
                       </p>
                     </div>
                     <TrackingStatusBadge status={row.status} />

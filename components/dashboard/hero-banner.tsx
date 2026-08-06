@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import type { HeroBannerContent } from "@/types/dashboard";
 import { Button } from "@/components/ui/button";
+import { generateMarketReportPdf } from "@/lib/market-report-pdf";
 import { cn } from "@/lib/utils";
+import { useDashboardStore } from "@/store/dashboardStore";
 
 interface HeroBannerProps {
   content: HeroBannerContent;
@@ -12,6 +15,28 @@ interface HeroBannerProps {
 }
 
 export function HeroBanner({ content, className }: HeroBannerProps) {
+  const marketPrices = useDashboardStore((s) => s.marketPrices);
+  const marketPricesUpdatedAt = useDashboardStore(
+    (s) => s.marketPricesUpdatedAt,
+  );
+
+  function handleSecondaryCta() {
+    if (content.secondaryCta.action !== "download-market-report") return;
+
+    try {
+      generateMarketReportPdf({
+        prices: marketPrices,
+        updatedAt: marketPricesUpdatedAt,
+      });
+      toast.success("Market report downloaded");
+    } catch {
+      toast.error("Unable to generate market report");
+    }
+  }
+
+  const secondaryIsDownload =
+    content.secondaryCta.action === "download-market-report";
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 12 }}
@@ -48,15 +73,26 @@ export function HeroBanner({ content, className }: HeroBannerProps) {
               {content.primaryCta.label}
             </Link>
           </Button>
-          <Button
-            asChild
-            variant="outline"
-            className="h-10 rounded-xl border-white/70 bg-transparent px-5 font-semibold text-white hover:bg-white/10 hover:text-white"
-          >
-            <Link href={content.secondaryCta.href}>
+          {secondaryIsDownload ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 rounded-xl border-white/70 bg-transparent px-5 font-semibold text-white hover:bg-white/10 hover:text-white"
+              onClick={handleSecondaryCta}
+            >
               {content.secondaryCta.label}
-            </Link>
-          </Button>
+            </Button>
+          ) : (
+            <Button
+              asChild
+              variant="outline"
+              className="h-10 rounded-xl border-white/70 bg-transparent px-5 font-semibold text-white hover:bg-white/10 hover:text-white"
+            >
+              <Link href={content.secondaryCta.href ?? "#"}>
+                {content.secondaryCta.label}
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
     </motion.section>

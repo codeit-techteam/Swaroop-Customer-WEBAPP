@@ -34,6 +34,11 @@ export type StockLevel = "high" | "medium" | "low";
 
 export type ProductStockStatus = "in_stock" | "limited" | "out_of_stock";
 
+/** Domestic Indian supply vs imported international grades */
+export type ProductSupplyOrigin = "domestic" | "imported";
+
+export type GradeOriginFilter = "all" | ProductSupplyOrigin;
+
 export type MarketplaceViewMode = "grid" | "list";
 
 export type MarketplaceSortBy =
@@ -133,6 +138,8 @@ export interface MarketplaceProduct {
   stockStatus: ProductStockStatus;
   createdAt: string;
   popularityScore: number;
+  /** Supply chain origin — domestic (India) or imported */
+  supplyOrigin?: ProductSupplyOrigin;
 }
 
 export interface MarketplaceProductDetails extends MarketplaceProduct {

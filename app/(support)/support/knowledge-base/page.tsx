@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
-import { SupportKnowledgeBasePage } from "@/components/support";
-
-export const metadata: Metadata = {
-  title: "Knowledge Base",
-};
+import { redirect } from "next/navigation";
+import { SUPPORT_ROUTES } from "@/constants/support";
 
 export default function Page() {
-  return <SupportKnowledgeBasePage />;
+  redirect(SUPPORT_ROUTES.root);
 }

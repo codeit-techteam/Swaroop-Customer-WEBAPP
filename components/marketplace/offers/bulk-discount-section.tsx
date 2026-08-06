@@ -40,7 +40,7 @@ export function BulkDiscountSection({
               Bulk Discount Tiers
             </h2>
             <p className="mt-0.5 text-sm text-slate-500">
-              {bulkOffer.title} — volume pricing from {bulkOffer.warehouseLabel}
+              {`${bulkOffer.title} — volume pricing from PetroTrade Network`}
             </p>
           </div>
         </div>

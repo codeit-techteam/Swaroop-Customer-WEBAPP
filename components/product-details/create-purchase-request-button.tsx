@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FilePlus2, ArrowRight } from "lucide-react";
+import { ShoppingCart, ArrowRight } from "lucide-react";
 import { ROUTES } from "@/constants";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ interface CreatePurchaseRequestButtonProps {
   className?: string;
 }
 
+/** @deprecated Prefer AddToCartPanel — kept as a thin link to product cart CTA */
 export function CreatePurchaseRequestButton({
   productId,
   className,
@@ -23,9 +24,9 @@ export function CreatePurchaseRequestButton({
         className,
       )}
     >
-      <Link href={`${ROUTES.purchaseRequestsCreate}?productId=${productId}`}>
-        <FilePlus2 className="h-4 w-4" aria-hidden="true" />
-        Create Purchase Request
+      <Link href={`${ROUTES.marketplaceProduct}/${productId}`}>
+        <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+        Add to Cart
         <ArrowRight className="h-4 w-4" aria-hidden="true" />
       </Link>
     </Button>

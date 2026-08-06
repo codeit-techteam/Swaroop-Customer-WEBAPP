@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Popover,
   PopoverContent,
@@ -231,58 +231,27 @@ export function TrackShipmentPage() {
         destinationStates={destinationStates}
       />
 
-      <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
-        <div className="space-y-4">
-          <ShipmentActiveFilterHeader
-            title={shipmentKpiFocusTitle(kpiFocus)}
-            count={rows.length}
-            chipLabel={shipmentKpiFocusChipLabel(kpiFocus)}
-            onClearKpiFilter={
-              hasKpiFilter ? () => setKpiFocus("none") : undefined
-            }
-          />
+      <div className="space-y-4">
+        <ShipmentActiveFilterHeader
+          title={shipmentKpiFocusTitle(kpiFocus)}
+          count={rows.length}
+          chipLabel={shipmentKpiFocusChipLabel(kpiFocus)}
+          onClearKpiFilter={
+            hasKpiFilter ? () => setKpiFocus("none") : undefined
+          }
+        />
 
-          {rows.length === 0 ? (
-            <Card className="border-dashed border-slate-200 shadow-none">
-              <CardContent className="py-12 text-center text-sm text-slate-500">
-                No shipments match your filters.
-              </CardContent>
-            </Card>
-          ) : (
-            rows.map((shipment) => (
-              <ShipmentCard key={shipment.id} shipment={shipment} />
-            ))
-          )}
-        </div>
-
-        <Card className="h-fit border-slate-200 shadow-card">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Recent Alerts</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {recentAlerts.slice(0, 6).map((n) => (
-              <button
-                key={n.id}
-                type="button"
-                onClick={() => openAlert(n.shipmentId, n.id)}
-                className="w-full rounded-xl border border-slate-100 px-3 py-3 text-left transition hover:border-brand/30 hover:bg-brand/[0.02]"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-semibold text-slate-900">
-                    {n.title}
-                  </p>
-                  {!n.read ? (
-                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-accent-blue" />
-                  ) : null}
-                </div>
-                <p className="mt-1 font-mono text-[11px] text-slate-500">
-                  {n.orderNumber}
-                </p>
-                <p className="mt-1 text-xs text-slate-500">{n.message}</p>
-              </button>
-            ))}
-          </CardContent>
-        </Card>
+        {rows.length === 0 ? (
+          <Card className="border-dashed border-slate-200 shadow-none">
+            <CardContent className="py-12 text-center text-sm text-slate-500">
+              No shipments match your filters.
+            </CardContent>
+          </Card>
+        ) : (
+          rows.map((shipment) => (
+            <ShipmentCard key={shipment.id} shipment={shipment} />
+          ))
+        )}
       </div>
     </PageContainer>
   );

@@ -28,6 +28,11 @@ function formatContact(contact: string | null): string {
   return contact;
 }
 
+function backLabel(contact: string | null): string {
+  if (!contact) return "Go Back";
+  return contact.includes("@") ? "Change Email" : "Change Number";
+}
+
 function formatTimer(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
@@ -132,7 +137,7 @@ export function OtpForm() {
         className="mb-8 inline-flex items-center gap-1.5 text-sm font-medium text-accent-blue transition-colors hover:text-accent-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden />
-        Change Number
+        {backLabel(pendingContact)}
       </Link>
 
       <motion.div

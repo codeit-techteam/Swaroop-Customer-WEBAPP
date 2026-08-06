@@ -95,6 +95,17 @@ export const INDUSTRY_SECTOR_OPTIONS = [
 
 export const COUNTRY_OPTIONS = [{ value: "India", label: "India" }] as const;
 
+/** Onboarding help desk contact — shown in the Need Help dialog */
+export const ONBOARDING_SUPPORT_CONTACT = {
+  phone: "+91 22 6987 4500",
+  phoneHref: "tel:+912269874500",
+  email: "support@petrotrade.com",
+  emailHref: "mailto:support@petrotrade.com",
+  address:
+    "12th Floor, One BKC, Bandra Kurla Complex, Mumbai, Maharashtra 400051",
+  hours: "Mon–Fri · 9:30 AM – 6:30 PM IST",
+} as const;
+
 /** Indian states and union territories */
 export const INDIAN_STATE_OPTIONS = [
   {

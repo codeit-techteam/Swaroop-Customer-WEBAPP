@@ -111,7 +111,9 @@ export function RelatedProductsCarousel({
                 <h3 className="line-clamp-1 text-sm font-semibold text-slate-900">
                   {product.name}
                 </h3>
-                <p className="text-xs text-slate-500">{product.brandName}</p>
+                <p className="text-xs text-slate-500">
+                  Verified Supply Partner
+                </p>
               </div>
               <p className="text-xs text-slate-500">
                 {product.warehouseLabel} · {product.stockLabel}

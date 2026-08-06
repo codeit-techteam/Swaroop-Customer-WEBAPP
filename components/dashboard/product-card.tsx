@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { FilePlus2 } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import type { RecommendedProduct } from "@/types/dashboard";
 import { ROUTES } from "@/constants";
 import { formatInrPerMt } from "@/lib/format";
@@ -94,11 +94,9 @@ export function DashboardProductCard({
             size="sm"
             className="h-9 w-full rounded-xl bg-brand text-xs font-semibold hover:bg-brand-700"
           >
-            <Link
-              href={`${ROUTES.purchaseRequestsCreate}?productId=${product.id}`}
-            >
-              <FilePlus2 className="h-3.5 w-3.5" aria-hidden="true" />
-              Create Purchase Request
+            <Link href={`${ROUTES.marketplaceProduct}/${product.id}`}>
+              <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />
+              Add to Cart
             </Link>
           </Button>
         </div>

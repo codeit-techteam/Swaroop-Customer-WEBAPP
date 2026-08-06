@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
-import { PaymentsDashboardPage } from "@/components/payments";
+import { Suspense } from "react";
+import { PaymentsPage } from "@/components/payments";
 
 export const metadata: Metadata = {
   title: "Payments",
 };
 
 export default function Page() {
-  return <PaymentsDashboardPage />;
+  return (
+    <Suspense fallback={null}>
+      <PaymentsPage />
+    </Suspense>
+  );
 }

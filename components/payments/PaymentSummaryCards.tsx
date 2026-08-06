@@ -107,7 +107,7 @@ export function PaymentQuickActions() {
         </p>
         <Button
           className="rounded-xl bg-brand hover:bg-brand-700"
-          onClick={() => router.push(ROUTES.paymentsAdvance)}
+          onClick={() => router.push(ROUTES.payments)}
         >
           <IndianRupee className="h-4 w-4" />
           Pay Now

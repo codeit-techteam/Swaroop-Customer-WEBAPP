@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, ArrowLeftRight, FilePlus2 } from "lucide-react";
+import { ArrowRight, ArrowLeftRight, ShoppingCart } from "lucide-react";
 import { ROUTES } from "@/constants";
 import { formatInr, formatQuantityMt } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,10 @@ function stockBadgeLabel(status: MarketplaceProduct["stockStatus"]): string {
   return "OUT OF STOCK";
 }
 
+function regionLabel(_product: MarketplaceProduct): string {
+  return "Western India Region";
+}
+
 export function ProductCard({
   product,
   index = 0,
@@ -35,7 +39,7 @@ export function ProductCard({
 }: ProductCardProps) {
   const [imageFailed, setImageFailed] = useState(false);
   const productHref = `${ROUTES.marketplaceProduct}/${product.id}`;
-  const purchaseHref = `${ROUTES.purchaseRequestsCreate}?productId=${product.id}`;
+  const cartHref = productHref;
 
   if (variant === "list") {
     return (
@@ -69,7 +73,7 @@ export function ProductCard({
                     {product.name}
                   </h3>
                 </Link>
-                <BrandPill label={product.brandShortName} />
+                <BrandPill label="PetroTrade Network" />
               </div>
               <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 {product.materialType}
@@ -99,7 +103,7 @@ export function ProductCard({
                   <span className="font-semibold text-slate-400">
                     Location:
                   </span>{" "}
-                  {product.warehouseLabel}
+                  {regionLabel(product)}
                 </span>
                 <span>
                   <span className="font-semibold text-slate-400">
@@ -113,8 +117,9 @@ export function ProductCard({
               asChild
               className="h-10 rounded-xl bg-brand px-4 text-sm font-semibold hover:bg-brand-700"
             >
-              <Link href={purchaseHref}>
-                Create Purchase Request
+              <Link href={cartHref}>
+                <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+                Add to Cart
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -162,7 +167,7 @@ export function ProductCard({
                 {product.name}
               </h3>
             </Link>
-            <BrandPill label={product.brandShortName} />
+            <BrandPill label="Verified Partner" />
           </div>
           <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             {product.materialType}
@@ -188,7 +193,7 @@ export function ProductCard({
                 Location
               </p>
               <p className="mt-0.5 font-medium text-slate-700">
-                {product.warehouseLabel}
+                {regionLabel(product)}
               </p>
             </div>
             <div>
@@ -205,9 +210,9 @@ export function ProductCard({
             asChild
             className="h-10 w-full rounded-xl bg-brand text-xs font-semibold hover:bg-brand-700"
           >
-            <Link href={purchaseHref}>
-              <FilePlus2 className="h-3.5 w-3.5" aria-hidden="true" />
-              Create Purchase Request
+            <Link href={cartHref}>
+              <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />
+              Add to Cart
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </Button>

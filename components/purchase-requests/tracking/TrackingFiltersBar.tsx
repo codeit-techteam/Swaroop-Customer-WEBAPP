@@ -12,18 +12,21 @@ import {
 import { trackingStatusLabel } from "@/mock/purchase-request/trackingRequests";
 import type { TrackingListStatus } from "@/types/purchase-request-tracking";
 
+export interface StatusFilterOption {
+  value: string;
+  label: string;
+}
+
 interface TrackingFiltersBarProps {
   search: string;
   onSearchChange: (value: string) => void;
   status: string;
   onStatusChange: (value: string) => void;
-  statusOptions: TrackingListStatus[] | readonly TrackingListStatus[];
+  statusOptions?: TrackingListStatus[] | readonly TrackingListStatus[];
+  statusFilterOptions?: StatusFilterOption[];
   warehouse?: string;
   onWarehouseChange?: (value: string) => void;
   warehouses?: string[];
-  seller?: string;
-  onSellerChange?: (value: string) => void;
-  sellers?: string[];
   paymentType?: string;
   onPaymentTypeChange?: (value: string) => void;
   paymentTypes?: { id: string; title: string }[];
@@ -35,13 +38,11 @@ export function TrackingFiltersBar({
   onSearchChange,
   status,
   onStatusChange,
-  statusOptions,
+  statusOptions = [],
+  statusFilterOptions,
   warehouse = "all",
   onWarehouseChange,
   warehouses = [],
-  seller = "all",
-  onSellerChange,
-  sellers = [],
   paymentType = "all",
   onPaymentTypeChange,
   paymentTypes = [],
@@ -63,38 +64,35 @@ export function TrackingFiltersBar({
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All statuses</SelectItem>
-          {statusOptions.map((option) => (
-            <SelectItem key={option} value={option}>
-              {trackingStatusLabel(option)}
-            </SelectItem>
-          ))}
+          {statusFilterOptions ? (
+            statusFilterOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))
+          ) : (
+            <>
+              <SelectItem value="all">All statuses</SelectItem>
+              {statusOptions.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {trackingStatusLabel(option)}
+                </SelectItem>
+              ))}
+            </>
+          )}
         </SelectContent>
       </Select>
       {showExtended ? (
         <>
           <Select value={warehouse} onValueChange={onWarehouseChange}>
             <SelectTrigger className="h-10 w-full rounded-xl lg:w-[180px]">
-              <SelectValue placeholder="Warehouse" />
+              <SelectValue placeholder="Region" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All warehouses</SelectItem>
+              <SelectItem value="all">All regions</SelectItem>
               {warehouses.map((w) => (
                 <SelectItem key={w} value={w}>
                   {w}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={seller} onValueChange={onSellerChange}>
-            <SelectTrigger className="h-10 w-full rounded-xl lg:w-[180px]">
-              <SelectValue placeholder="Supply Source" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All supply sources</SelectItem>
-              {sellers.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
                 </SelectItem>
               ))}
             </SelectContent>

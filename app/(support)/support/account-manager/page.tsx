@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
-import { ROUTES } from "@/constants";
+import { SUPPORT_ROUTES } from "@/constants/support";
 
-/** Account Manager removed — send legacy links to Support overview */
 export default function Page() {
-  redirect(ROUTES.support);
+  redirect(SUPPORT_ROUTES.root);
 }

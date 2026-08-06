@@ -1,11 +1,6 @@
-import type { Metadata } from "next";
-import { MarketplaceCategoriesPage } from "@/components/marketplace";
-
-export const metadata: Metadata = {
-  title: "Categories | Marketplace",
-  description: "Browse marketplace material categories.",
-};
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
 export default function MarketplaceCategoriesRoute() {
-  return <MarketplaceCategoriesPage />;
+  redirect(ROUTES.marketplace);
 }

@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { ROUTES } from "@/constants";
+import { Suspense } from "react";
+import { OrdersPage } from "@/components/orders";
 
 export const metadata: Metadata = {
   title: "Orders",
 };
 
 export default function Page() {
-  redirect(ROUTES.ordersActive);
+  return (
+    <Suspense fallback={null}>
+      <OrdersPage />
+    </Suspense>
+  );
 }

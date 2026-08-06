@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
-import { ModulePage } from "@/components/common/module-page";
+import { CheckoutPage } from "@/components/cart";
 
 export const metadata: Metadata = {
   title: "Checkout",
 };
 
 export default function Page() {
-  return (
-    <ModulePage
-      title={"Checkout"}
-      description={"Confirm purchase request details."}
-    />
-  );
+  return <CheckoutPage />;
 }

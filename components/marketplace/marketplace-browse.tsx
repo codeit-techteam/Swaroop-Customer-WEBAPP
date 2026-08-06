@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ROUTES } from "@/constants";
 import { useMarketplaceStore } from "@/store/marketplaceStore";
-import { FilterSidebar } from "./filter-sidebar";
+import { FilterTopBar } from "./filter-top-bar";
 import { MarketplaceHeader } from "./marketplace-header";
 import { MarketplaceSearchBar } from "./search-bar";
 import { SortDropdown } from "./sort-dropdown";
@@ -19,7 +20,14 @@ import { MarketplacePagination } from "./pagination";
 import { QuickViewDrawer } from "./quick-view-drawer";
 import { MarketplaceBrowseSkeleton } from "./marketplace-skeleton";
 import { MARKETPLACE_SEARCH_PLACEHOLDER } from "@/mock/filters";
-import type { MarketplaceParentCategoryId } from "@/types/marketplace";
+import type { GradeOriginFilter } from "@/types/marketplace";
+import { cn } from "@/lib/utils";
+
+const ORIGIN_FILTERS: Array<{ value: GradeOriginFilter; label: string }> = [
+  { value: "all", label: "All Origins" },
+  { value: "domestic", label: "Domestic" },
+  { value: "imported", label: "Imported" },
+];
 
 interface MarketplaceBrowseProps {
   initialCategorySlug?: string | null;
@@ -32,14 +40,17 @@ export function MarketplaceBrowse({
   pageTitle = "Marketplace",
   breadcrumbs,
 }: MarketplaceBrowseProps) {
+  const searchParams = useSearchParams();
   const [ready, setReady] = useState(false);
 
   const categories = useMarketplaceStore((s) => s.categories);
   const brands = useMarketplaceStore((s) => s.brands);
   const warehouses = useMarketplaceStore((s) => s.warehouses);
   const draftFilters = useMarketplaceStore((s) => s.draftFilters);
+  const filters = useMarketplaceStore((s) => s.filters);
   const priceBounds = useMarketplaceStore((s) => s.priceBounds);
   const search = useMarketplaceStore((s) => s.search);
+  const originFilter = useMarketplaceStore((s) => s.originFilter);
   const sortBy = useMarketplaceStore((s) => s.sortBy);
   const viewMode = useMarketplaceStore((s) => s.viewMode);
   const page = useMarketplaceStore((s) => s.page);
@@ -48,10 +59,10 @@ export function MarketplaceBrowse({
   const selectedCategoryId = useMarketplaceStore((s) => s.selectedCategoryId);
 
   const setSearch = useMarketplaceStore((s) => s.setSearch);
+  const setOriginFilter = useMarketplaceStore((s) => s.setOriginFilter);
   const setSortBy = useMarketplaceStore((s) => s.setSortBy);
   const setViewMode = useMarketplaceStore((s) => s.setViewMode);
   const setPage = useMarketplaceStore((s) => s.setPage);
-  const toggleDraftCategory = useMarketplaceStore((s) => s.toggleDraftCategory);
   const toggleDraftBrand = useMarketplaceStore((s) => s.toggleDraftBrand);
   const setDraftPriceRange = useMarketplaceStore((s) => s.setDraftPriceRange);
   const setDraftWarehouse = useMarketplaceStore((s) => s.setDraftWarehouse);
@@ -59,6 +70,7 @@ export function MarketplaceBrowse({
     (s) => s.setDraftCreditEligible,
   );
   const applyFilters = useMarketplaceStore((s) => s.applyFilters);
+  const applyCategoryFilter = useMarketplaceStore((s) => s.applyCategoryFilter);
   const resetFilters = useMarketplaceStore((s) => s.resetFilters);
   const hydrateCategorySlug = useMarketplaceStore((s) => s.hydrateCategorySlug);
   const openQuickView = useMarketplaceStore((s) => s.openQuickView);
@@ -73,23 +85,32 @@ export function MarketplaceBrowse({
     return () => window.clearTimeout(timer);
   }, [hydrateCategorySlug, initialCategorySlug]);
 
+  useEffect(() => {
+    const q = searchParams.get("search");
+    const origin = searchParams.get("origin");
+    if (q) setSearch(q);
+    if (origin === "domestic" || origin === "imported") {
+      setOriginFilter(origin);
+    } else if (origin === "all") {
+      setOriginFilter("all");
+    }
+  }, [searchParams, setSearch, setOriginFilter]);
+
   const pagination = getPaginatedProducts();
 
+  const activeCategoryId = useMemo(() => {
+    if (selectedCategoryId) return selectedCategoryId;
+    if (filters.categories.length === 1) return filters.categories[0]!;
+    return null;
+  }, [filters.categories, selectedCategoryId]);
+
   const headingTitle = useMemo(() => {
-    if (selectedCategoryId) {
-      const category = categories.find(
-        (item) => item.id === selectedCategoryId,
-      );
-      return category?.name ?? pageTitle;
-    }
-    if (draftFilters.categories.length === 1) {
-      const category = categories.find(
-        (item) => item.id === draftFilters.categories[0],
-      );
+    if (activeCategoryId) {
+      const category = categories.find((item) => item.id === activeCategoryId);
       return category?.name ?? pageTitle;
     }
     return "All Materials";
-  }, [categories, draftFilters.categories, pageTitle, selectedCategoryId]);
+  }, [activeCategoryId, categories, pageTitle]);
 
   const quickViewProduct = useMemo(
     () => products.find((product) => product.id === quickViewProductId) ?? null,
@@ -127,18 +148,17 @@ export function MarketplaceBrowse({
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]"
+        className="space-y-4"
       >
-        <FilterSidebar
-          className="hidden lg:flex"
+        <FilterTopBar
           categories={categories}
           brands={brands}
           warehouses={warehouses}
           draftFilters={draftFilters}
+          appliedFilters={filters}
+          activeCategoryId={activeCategoryId}
           priceBounds={priceBounds}
-          onToggleCategory={(id: MarketplaceParentCategoryId) =>
-            toggleDraftCategory(id)
-          }
+          onSelectCategory={applyCategoryFilter}
           onToggleBrand={toggleDraftBrand}
           onPriceChange={setDraftPriceRange}
           onWarehouseChange={setDraftWarehouse}
@@ -147,63 +167,64 @@ export function MarketplaceBrowse({
           onReset={resetFilters}
         />
 
-        <div className="min-w-0 space-y-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-            <MarketplaceSearchBar
-              value={search}
-              onChange={setSearch}
-              placeholder={MARKETPLACE_SEARCH_PLACEHOLDER}
-            />
-            <SortDropdown value={sortBy} onChange={setSortBy} />
-          </div>
-
-          {/* Mobile filter strip */}
-          <div className="lg:hidden">
-            <FilterSidebar
-              categories={categories}
-              brands={brands}
-              warehouses={warehouses}
-              draftFilters={draftFilters}
-              priceBounds={priceBounds}
-              onToggleCategory={toggleDraftCategory}
-              onToggleBrand={toggleDraftBrand}
-              onPriceChange={setDraftPriceRange}
-              onWarehouseChange={setDraftWarehouse}
-              onCreditChange={setDraftCreditEligible}
-              onApply={handleApply}
-              onReset={resetFilters}
-            />
-          </div>
-
-          <MarketplaceHeader
-            title={headingTitle}
-            resultCount={pagination.total}
-            actions={<ViewToggle value={viewMode} onChange={setViewMode} />}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <MarketplaceSearchBar
+            value={search}
+            onChange={setSearch}
+            placeholder={MARKETPLACE_SEARCH_PLACEHOLDER}
           />
-
-          {pagination.items.length === 0 ? (
-            <MarketplaceEmptyState onReset={resetFilters} />
-          ) : viewMode === "grid" ? (
-            <ProductGrid
-              products={pagination.items}
-              onQuickView={openQuickView}
-            />
-          ) : (
-            <ProductList
-              products={pagination.items}
-              onQuickView={openQuickView}
-            />
-          )}
-
-          <MarketplacePagination
-            page={Math.min(page, pagination.totalPages)}
-            totalPages={pagination.totalPages}
-            from={pagination.from}
-            to={pagination.to}
-            total={pagination.total}
-            onPageChange={setPage}
-          />
+          <SortDropdown value={sortBy} onChange={setSortBy} />
         </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            Origin:
+          </span>
+          {ORIGIN_FILTERS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setOriginFilter(option.value)}
+              className={cn(
+                "rounded-lg px-3 py-1.5 text-sm font-medium transition",
+                originFilter === option.value
+                  ? "bg-brand text-white shadow-sm"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+
+        <MarketplaceHeader
+          title={headingTitle}
+          resultCount={pagination.total}
+          actions={<ViewToggle value={viewMode} onChange={setViewMode} />}
+        />
+
+        {pagination.items.length === 0 ? (
+          <MarketplaceEmptyState onReset={resetFilters} />
+        ) : viewMode === "grid" ? (
+          <ProductGrid
+            products={pagination.items}
+            onQuickView={openQuickView}
+          />
+        ) : (
+          <ProductList
+            products={pagination.items}
+            onQuickView={openQuickView}
+          />
+        )}
+
+        <MarketplacePagination
+          page={Math.min(page, pagination.totalPages)}
+          totalPages={pagination.totalPages}
+          from={pagination.from}
+          to={pagination.to}
+          total={pagination.total}
+          onPageChange={setPage}
+        />
       </motion.div>
 
       <QuickViewDrawer

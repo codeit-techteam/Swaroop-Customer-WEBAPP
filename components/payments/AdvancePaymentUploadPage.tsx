@@ -50,7 +50,7 @@ export function AdvancePaymentUploadPage({
   }, []);
 
   useEffect(() => {
-    if (isHydrated && !payment) router.replace(ROUTES.paymentsAdvance);
+    if (isHydrated && !payment) router.replace(ROUTES.payments);
   }, [isHydrated, payment, router]);
 
   useEffect(() => {
@@ -92,7 +92,7 @@ export function AdvancePaymentUploadPage({
         description="Submit UTR and supporting documents for finance verification."
         breadcrumbs={[
           { label: "Payments", href: ROUTES.payments },
-          { label: "Advance Payment", href: ROUTES.paymentsAdvance },
+          { label: "Advance Payment", href: ROUTES.payments },
           {
             label: payment.orderNumber,
             href: paymentsAdvancePayPath(payment.id),

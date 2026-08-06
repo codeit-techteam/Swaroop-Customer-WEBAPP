@@ -76,11 +76,11 @@ export function kpiFocusTitle(focus: OrdersKpiFocus): string {
     case "ready_for_dispatch":
       return "Ready for Dispatch Orders";
     case "value":
-      return "Active Orders · Highest Value";
+      return "Orders · Highest Value";
     case "all":
     case "none":
     default:
-      return "Active Orders";
+      return "Orders";
   }
 }
 

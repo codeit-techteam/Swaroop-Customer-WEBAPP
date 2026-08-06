@@ -176,7 +176,7 @@ export function AdvancePaymentCard({ payment }: AdvancePaymentCardProps) {
           <Button
             variant="ghost"
             className="h-9 rounded-xl"
-            onClick={() => router.push(ROUTES.ordersActive)}
+            onClick={() => router.push(ROUTES.orders)}
           >
             View Order
           </Button>

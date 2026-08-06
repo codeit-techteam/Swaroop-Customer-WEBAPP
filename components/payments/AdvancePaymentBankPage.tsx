@@ -38,7 +38,7 @@ export function AdvancePaymentBankPage({
   }, []);
 
   useEffect(() => {
-    if (isHydrated && !payment) router.replace(ROUTES.paymentsAdvance);
+    if (isHydrated && !payment) router.replace(ROUTES.payments);
   }, [isHydrated, payment, router]);
 
   if (!payment) return null;
@@ -58,7 +58,7 @@ export function AdvancePaymentBankPage({
         description="Transfer the exact advance amount using the company bank details below, then upload your UTR."
         breadcrumbs={[
           { label: "Payments", href: ROUTES.payments },
-          { label: "Advance Payment", href: ROUTES.paymentsAdvance },
+          { label: "Advance Payment", href: ROUTES.payments },
           { label: payment.orderNumber },
         ]}
       />
@@ -149,7 +149,7 @@ export function AdvancePaymentBankPage({
             <Button
               variant="outline"
               className="h-11 rounded-xl"
-              onClick={() => router.push(ROUTES.paymentsAdvance)}
+              onClick={() => router.push(ROUTES.payments)}
             >
               <ArrowLeft className="h-4 w-4" />
               Back to Advance Payments

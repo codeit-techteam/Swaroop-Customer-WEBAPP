@@ -17,8 +17,7 @@ import { SpotPriceCard } from "./spot-price-card";
 import { BulkPricingCard } from "./bulk-pricing-card";
 import { PaymentOptionsCard } from "./payment-options-card";
 import { LogisticsCard } from "./logistics-card";
-import { CreatePurchaseRequestButton } from "./create-purchase-request-button";
-import { WishlistButton } from "./wishlist-button";
+import { AddToCartPanel } from "./add-to-cart-panel";
 import { DownloadSpecButton } from "./download-spec-button";
 import { RelatedProductsCarousel } from "./related-products-carousel";
 import { ProductDetailsPageSkeleton } from "./product-details-skeleton";
@@ -106,11 +105,11 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
               Fulfilled by
             </p>
             <p className="mt-1 text-sm font-semibold text-slate-900">
-              PetroTrade Supply Network
+              PetroTrade Network
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {[
-                "Verified Enterprise Supplier",
+                "Verified Supply Partner",
                 "Quality Assured",
                 "GST Compliant",
               ].map((badge) => (
@@ -133,8 +132,12 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
           <BulkPricingCard tiers={product.bulkPricing} />
           <PaymentOptionsCard options={product.paymentOptions} />
           <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-card">
-            <CreatePurchaseRequestButton productId={product.id} />
-            <WishlistButton productId={product.id} />
+            <AddToCartPanel
+              productId={product.id}
+              moq={product.moq}
+              maxStock={product.stock}
+              packaging={product.packaging}
+            />
             <DownloadSpecButton productName={product.name} />
             <p className="px-1 text-[11px] leading-relaxed text-slate-400">
               {product.spotPrice.note}

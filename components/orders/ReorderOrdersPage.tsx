@@ -50,7 +50,7 @@ export function ReorderOrdersPage() {
     <PageContainer>
       <PageHeader
         title="Reorder"
-        description="Repeat previous delivered orders — pre-fills Create Purchase Request from Marketplace."
+        description="Repeat previous delivered orders — opens the product page to add to cart again."
         breadcrumbs={[
           { label: "Orders", href: ROUTES.orders },
           { label: "Reorder" },
@@ -82,7 +82,7 @@ export function ReorderOrdersPage() {
                       {row.grade} · {formatQuantityMt(row.quantityMt)}
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
-                      {row.sellerName} · {row.warehouse}
+                      {"Verified Supply Partner"} · {row.warehouse}
                     </p>
                   </div>
 

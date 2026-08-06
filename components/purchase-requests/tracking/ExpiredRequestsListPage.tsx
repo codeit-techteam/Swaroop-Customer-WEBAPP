@@ -83,7 +83,9 @@ export function ExpiredRequestsListPage() {
                       {formatQuantityMt(row.quantityMt)} · {row.warehouse}
                     </p>
                   </TableCell>
-                  <TableCell className="text-sm">{row.sellerName}</TableCell>
+                  <TableCell className="text-sm">
+                    {"Verified Supply Partner"}
+                  </TableCell>
                   <TableCell className="text-sm">
                     {row.expiredAt
                       ? formatDateDdMmYyyy(row.expiredAt)

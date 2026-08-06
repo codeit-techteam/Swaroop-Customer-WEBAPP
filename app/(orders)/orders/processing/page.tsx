@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
-import { ProcessingOrdersPage } from "@/components/orders";
-
-export const metadata: Metadata = {
-  title: "Processing Orders",
-};
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
 export default function Page() {
-  return <ProcessingOrdersPage />;
+  redirect(`${ROUTES.orders}?status=processing`);
 }

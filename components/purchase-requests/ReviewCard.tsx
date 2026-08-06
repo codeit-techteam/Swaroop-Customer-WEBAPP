@@ -90,8 +90,8 @@ export function ReviewCard({
       >
         <Row label="Material" value={product.name} />
         <Row label="Grade" value={product.grade} />
-        <Row label="Manufacturer" value={product.manufacturer} />
-        <Row label="Warehouse" value={product.warehouse} />
+        <Row label="Supply Partner" value="Verified by PetroTrade" />
+        <Row label="Location" value={product.warehouseRegion} />
         <Row label="Quantity" value={formatQuantityMt(form.quantityMt)} />
         <Row label="Packaging" value={packaging} />
         <Row
@@ -104,32 +104,29 @@ export function ReviewCard({
         title="Delivery"
         onEdit={onEdit ? () => onEdit("delivery") : undefined}
       >
-        <Row label="Delivery Location" value={shipping.warehouseName} />
-        <Row label="Expected Delivery" value={form.expectedDeliveryDate} />
-        <Row label="ETA" value={shipping.etaLabel} />
-        <Row label="Remarks" value={form.remarks.trim() ? form.remarks : "—"} />
-        <Row label="GST Number" value={form.gstNumber} />
+        <Row label="Delivery Address" value={shipping.warehouseName} />
         <Row
-          label="PO Reference"
-          value={
-            form.purchaseOrderReference.trim()
-              ? form.purchaseOrderReference
-              : "—"
-          }
-        />
-      </Section>
-
-      <Section
-        title="Addresses"
-        onEdit={onEdit ? () => onEdit("addresses") : undefined}
-      >
-        <Row
-          label="Shipping"
+          label="Address"
           value={`${shipping.line1}, ${shipping.line2}, ${shipping.state} ${shipping.pincode}`}
         />
         <Row
           label="Billing"
-          value={`${billing.companyName}, ${billing.city}, ${billing.state}`}
+          value={
+            form.sameAsShipping
+              ? "Same as delivery address"
+              : `${billing.companyName}, ${billing.city}, ${billing.state}`
+          }
+        />
+        <Row label="Delivery ETA" value="Confirmed after seller approval" />
+        <Row label="Remarks" value={form.remarks.trim() ? form.remarks : "—"} />
+        <Row label="GST Number" value={form.gstNumber} />
+        <Row
+          label="Purchase Order ID"
+          value={
+            form.purchaseOrderReference.trim()
+              ? form.purchaseOrderReference
+              : "Auto-generated"
+          }
         />
       </Section>
 

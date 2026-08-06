@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Clock3, Flame, Heart, TrendingUp } from "lucide-react";
+import { Clock3, Flame, TrendingUp } from "lucide-react";
 import { formatInr } from "@/lib/format";
 import { getOfferById, getOfferDetailHref } from "@/mock/offers";
 import { useOffersStore } from "@/store/offersStore";
@@ -14,7 +14,6 @@ interface OffersRightSidebarProps {
 
 export function OffersRightSidebar({ className }: OffersRightSidebarProps) {
   const offers = useOffersStore((s) => s.offers);
-  const wishlistIds = useOffersStore((s) => s.wishlistIds);
   const recentlyViewedIds = useOffersStore((s) => s.recentlyViewedIds);
 
   const trending = offers.filter((o) => o.isTrending).slice(0, 4);
@@ -22,10 +21,6 @@ export function OffersRightSidebar({ className }: OffersRightSidebarProps) {
     .sort((a, b) => b.requestCount - a.requestCount)
     .slice(0, 4);
   const recentlyViewed = recentlyViewedIds
-    .map((id) => getOfferById(id))
-    .filter(Boolean)
-    .slice(0, 4);
-  const saved = wishlistIds
     .map((id) => getOfferById(id))
     .filter(Boolean)
     .slice(0, 4);
@@ -41,7 +36,7 @@ export function OffersRightSidebar({ className }: OffersRightSidebarProps) {
             key={offer.id}
             href={getOfferDetailHref(offer.id)}
             title={offer.productName}
-            meta={`${offer.discountPercent}% off · ${offer.brandShortName}`}
+            meta={`${offer.discountPercent}% off · Verified Partner`}
             price={offer.offerPrice}
           />
         ))}
@@ -73,7 +68,7 @@ export function OffersRightSidebar({ className }: OffersRightSidebarProps) {
                 key={offer.id}
                 href={getOfferDetailHref(offer.id)}
                 title={offer.productName}
-                meta={offer.warehouseLabel}
+                meta="Western India Region"
                 price={offer.offerPrice}
               />
             ) : null,
@@ -81,29 +76,6 @@ export function OffersRightSidebar({ className }: OffersRightSidebarProps) {
         ) : (
           <p className="px-1 py-2 text-xs text-slate-400">
             View an offer to populate this list.
-          </p>
-        )}
-      </SidebarCard>
-
-      <SidebarCard
-        title="Saved Offers"
-        icon={<Heart className="h-4 w-4 text-rose-500" />}
-      >
-        {saved.length ? (
-          saved.map((offer) =>
-            offer ? (
-              <SidebarOfferRow
-                key={offer.id}
-                href={getOfferDetailHref(offer.id)}
-                title={offer.productName}
-                meta={offer.badge}
-                price={offer.offerPrice}
-              />
-            ) : null,
-          )
-        ) : (
-          <p className="px-1 py-2 text-xs text-slate-400">
-            Wishlist offers to save them here.
           </p>
         )}
       </SidebarCard>
@@ -121,7 +93,7 @@ function SidebarCard({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-card">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-center gap-2">
         {icon}
         <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
@@ -145,13 +117,13 @@ function SidebarOfferRow({
   return (
     <Link
       href={href}
-      className="block rounded-xl border border-transparent px-2 py-2 transition hover:border-slate-200 hover:bg-slate-50"
+      className="block rounded-xl px-1 py-1.5 transition-colors hover:bg-slate-50"
     >
-      <p className="line-clamp-1 text-sm font-medium text-slate-800">{title}</p>
+      <p className="truncate text-sm font-medium text-slate-800">{title}</p>
       <div className="mt-0.5 flex items-center justify-between gap-2">
-        <p className="truncate text-[11px] text-slate-400">{meta}</p>
+        <p className="truncate text-xs text-slate-500">{meta}</p>
         <p className="shrink-0 text-xs font-semibold tabular-nums text-brand">
-          {formatInr(price, { compact: true })}
+          {formatInr(price)}
         </p>
       </div>
     </Link>

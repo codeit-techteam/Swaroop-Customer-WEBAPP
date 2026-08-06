@@ -917,7 +917,7 @@ export const creditOfferCardsMock: CreditOfferCard[] = [
     highlight: "Save on finance charges",
     financePartner: "Swaroop Trade Finance",
     ctaLabel: "Apply Now",
-    href: ROUTES.paymentsCredit15,
+    href: ROUTES.paymentsRequestCredit,
   },
   {
     id: "credit-15",
@@ -926,8 +926,8 @@ export const creditOfferCardsMock: CreditOfferCard[] = [
       "Settle within 15 days with preferential rates on polymer offers.",
     highlight: "1.5% interest",
     financePartner: "Swaroop Trade Finance",
-    ctaLabel: "Apply Now",
-    href: ROUTES.paymentsCredit15,
+    ctaLabel: "View Payments",
+    href: `${ROUTES.payments}?type=credit_15`,
   },
   {
     id: "credit-30",
@@ -936,8 +936,8 @@ export const creditOfferCardsMock: CreditOfferCard[] = [
       "Extended 30-day credit window for approved enterprise buyers.",
     highlight: "Premium Credit",
     financePartner: "Swaroop Trade Finance",
-    ctaLabel: "Apply Now",
-    href: ROUTES.paymentsCredit30,
+    ctaLabel: "View Payments",
+    href: `${ROUTES.payments}?type=credit_30`,
   },
   {
     id: "credit-limit",
@@ -946,7 +946,7 @@ export const creditOfferCardsMock: CreditOfferCard[] = [
     highlight: "Up to ₹50L",
     financePartner: "Swaroop Trade Finance",
     ctaLabel: "Apply Now",
-    href: ROUTES.paymentsCredit30,
+    href: ROUTES.paymentsRequestCredit,
   },
 ];
 

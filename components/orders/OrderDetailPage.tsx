@@ -8,7 +8,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ROUTES } from "@/constants";
+import { ROUTES, purchaseRequestsFiltered } from "@/constants";
 import { formatDateDdMmYyyy, formatInr } from "@/lib/format";
 import {
   getOrderPrimaryCtaLabel,
@@ -104,7 +104,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
             <Button
               variant="outline"
               className="h-11 rounded-xl"
-              onClick={() => router.push(ROUTES.purchaseRequestsApproved)}
+              onClick={() => router.push(purchaseRequestsFiltered("approved"))}
             >
               <ArrowLeft className="h-4 w-4" />
               Back

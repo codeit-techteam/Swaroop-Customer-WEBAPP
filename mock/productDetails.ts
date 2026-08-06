@@ -101,7 +101,7 @@ export function getProductDetailsById(
     trustHighlight: "Verified Supply Network",
     trustFeatures: DEFAULT_TRUST_FEATURES,
     paymentEligibility,
-    quantityIncrement: 25,
+    quantityIncrement: 1,
     relatedProductIds,
     eta,
   };

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { SupportOverviewPage } from "@/components/support";
+import { HelpCenterPage } from "@/components/support";
 
 export const metadata: Metadata = {
-  title: "Support Center",
+  title: "Help & Support",
 };
 
 export default function Page() {
-  return <SupportOverviewPage />;
+  return <HelpCenterPage />;
 }

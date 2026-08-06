@@ -57,7 +57,7 @@ export function buildOrderSummary(params: {
   return {
     baseSubtotal,
     freight,
-    freightLabel: `Freight (${address.cityShort})`,
+    freightLabel: "Estimated Freight",
     gst,
     platformFee: PR_PLATFORM_FEE,
     insuranceIncluded: true,

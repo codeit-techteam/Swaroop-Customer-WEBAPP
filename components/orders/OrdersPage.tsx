@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   Clock3,
@@ -40,12 +40,20 @@ import {
   kpiFocusTitle,
   requiresAttention,
 } from "@/lib/order-attention";
-import { ACTIVE_ORDER_STATUSES } from "@/mock/orders-catalog";
+import {
+  ACTIVE_ORDER_STATUSES,
+  ALL_ORDER_STATUSES,
+  ordersDisplayStatusLabel,
+} from "@/mock/orders-catalog";
 import {
   filterSortOrders,
   useOrdersCatalogStore,
+  type OrdersCatalogFilters,
 } from "@/store/ordersCatalogStore";
-import type { OrdersKpiFocus } from "@/types/orders-catalog";
+import type {
+  OrdersDisplayStatus,
+  OrdersKpiFocus,
+} from "@/types/orders-catalog";
 import { OrdersActiveFilterHeader } from "./OrdersActiveFilterHeader";
 import { OrderPaymentBadge } from "./OrderPaymentBadge";
 import { OrderProgressTrack } from "./OrderProgressTrack";
@@ -55,8 +63,34 @@ import { formatKpiValue, OrdersKpiCards } from "./OrdersKpiCards";
 import { OrdersPagination } from "./OrdersPagination";
 import { OrdersRequiringAttentionCard } from "./OrdersRequiringAttentionCard";
 
-export function ActiveOrdersPage() {
+const VALID_STATUSES = new Set<string>(ALL_ORDER_STATUSES);
+
+function parseStatus(value: string | null): OrdersCatalogFilters["status"] {
+  if (value && VALID_STATUSES.has(value)) {
+    return value as OrdersDisplayStatus;
+  }
+  return "all";
+}
+
+function tableTitle(
+  kpiFocus: OrdersKpiFocus,
+  status: OrdersCatalogFilters["status"],
+): string {
+  if (kpiFocus === "all") {
+    return "In Pipeline";
+  }
+  if (kpiFocus !== "none") {
+    return kpiFocusTitle(kpiFocus);
+  }
+  if (status !== "all") {
+    return `${ordersDisplayStatusLabel(status)} Orders`;
+  }
+  return "Orders";
+}
+
+export function OrdersPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const items = useOrdersCatalogStore((s) => s.items);
   const filters = useOrdersCatalogStore((s) => s.filters);
   const page = useOrdersCatalogStore((s) => s.page);
@@ -69,6 +103,10 @@ export function ActiveOrdersPage() {
   const [kpiFocus, setKpiFocus] = useState<OrdersKpiFocus>("none");
 
   useEffect(() => {
+    setFilters({ status: parseStatus(searchParams.get("status")) });
+  }, [searchParams, setFilters]);
+
+  useEffect(() => {
     const finish = () => useOrdersCatalogStore.getState().setHydrated(true);
     const unsub = useOrdersCatalogStore.persist.onFinishHydration(finish);
     if (useOrdersCatalogStore.persist.hasHydrated()) finish();
@@ -79,45 +117,49 @@ export function ActiveOrdersPage() {
     () => [...new Set(items.map((i) => i.warehouse))].sort(),
     [items],
   );
-  const sellers = useMemo(
-    () => [...new Set(items.map((i) => i.sellerName))].sort(),
-    [items],
-  );
+  const sellers = useMemo(() => [] as string[], []);
 
-  /** Base active pipeline — shared source for KPIs and table. */
-  const activeOrders = useMemo(
+  const pipelineOrders = useMemo(
     () => items.filter((i) => ACTIVE_ORDER_STATUSES.includes(i.displayStatus)),
     [items],
   );
 
   const processingOrders = useMemo(
-    () => activeOrders.filter(isProcessing),
-    [activeOrders],
+    () => pipelineOrders.filter(isProcessing),
+    [pipelineOrders],
   );
   const attentionOrders = useMemo(
-    () => activeOrders.filter(requiresAttention),
-    [activeOrders],
+    () => pipelineOrders.filter(requiresAttention),
+    [pipelineOrders],
   );
   const paymentPendingOrders = useMemo(
-    () => activeOrders.filter(isPaymentPending),
-    [activeOrders],
+    () => pipelineOrders.filter(isPaymentPending),
+    [pipelineOrders],
   );
   const delayedOrders = useMemo(
-    () => activeOrders.filter(isDelayed),
-    [activeOrders],
+    () => pipelineOrders.filter(isDelayed),
+    [pipelineOrders],
   );
   const readyDispatchOrders = useMemo(
-    () => activeOrders.filter(isReadyForDispatch),
-    [activeOrders],
+    () => pipelineOrders.filter(isReadyForDispatch),
+    [pipelineOrders],
   );
 
-  const totalActive = activeOrders.length;
-  const totalValue = activeOrders.reduce((sum, i) => sum + i.grandTotal, 0);
+  const pipelineCount = pipelineOrders.length;
+  const pipelineValue = pipelineOrders.reduce(
+    (sum, i) => sum + i.grandTotal,
+    0,
+  );
   const processingCount = processingOrders.length;
   const attentionCount = attentionOrders.length;
 
   const filtered = useMemo(() => {
-    const scoped = filterSortOrders(items, filters, ACTIVE_ORDER_STATUSES);
+    let scoped = filterSortOrders(items, filters);
+    if (kpiFocus === "all") {
+      scoped = scoped.filter((i) =>
+        ACTIVE_ORDER_STATUSES.includes(i.displayStatus),
+      );
+    }
     return applyKpiFocus(scoped, kpiFocus);
   }, [items, filters, kpiFocus]);
 
@@ -137,6 +179,25 @@ export function ActiveOrdersPage() {
     filters.sortBy !== "newest";
 
   const hasKpiFilter = kpiFocus !== "none" && kpiFocus !== "all";
+
+  const handleFilterChange = (patch: Partial<OrdersCatalogFilters>) => {
+    setFilters(patch);
+    setPage(1);
+
+    if ("status" in patch) {
+      const status = patch.status ?? "all";
+      const params = new URLSearchParams(searchParams.toString());
+      if (status === "all") {
+        params.delete("status");
+      } else {
+        params.set("status", status);
+      }
+      const query = params.toString();
+      router.replace(query ? `${ROUTES.orders}?${query}` : ROUTES.orders, {
+        scroll: false,
+      });
+    }
+  };
 
   const selectKpi = (focus: OrdersKpiFocus) => {
     setKpiFocus(focus);
@@ -159,43 +220,41 @@ export function ActiveOrdersPage() {
   const clearAll = () => {
     resetFilters();
     setKpiFocus("none");
+    router.replace(ROUTES.orders, { scroll: false });
   };
 
   return (
     <PageContainer>
       <PageHeader
-        title="Active Orders"
+        title="Orders"
         description="Orders generated after PetroTrade confirmation — track processing through delivery."
-        breadcrumbs={[
-          { label: "Orders", href: ROUTES.orders },
-          { label: "Active" },
-        ]}
+        breadcrumbs={[{ label: "Orders" }]}
       />
 
       <div className="space-y-4">
         <OrdersKpiCards
           items={[
             {
-              id: "total-active",
-              label: "Total Active Orders",
-              value: String(totalActive),
-              hint: "In pipeline",
+              id: "pipeline",
+              label: "In Pipeline",
+              value: String(pipelineCount),
+              hint: "Active book",
               icon: Package,
               active: kpiFocus === "all",
               onClick: () => selectKpi("all"),
             },
             {
               id: "total-value",
-              label: "Total Value",
-              value: formatKpiValue(totalValue),
-              hint: "Active book",
+              label: "Pipeline Value",
+              value: formatKpiValue(pipelineValue),
+              hint: "In pipeline",
               icon: IndianRupee,
               active: kpiFocus === "value",
               onClick: () => selectKpi("value"),
             },
             {
               id: "processing",
-              label: "Orders Processing",
+              label: "Processing",
               value: String(processingCount),
               hint: "Packing / staging",
               icon: Clock3,
@@ -227,16 +286,16 @@ export function ActiveOrdersPage() {
 
         <OrdersFiltersBar
           filters={filters}
-          onChange={setFilters}
+          onChange={handleFilterChange}
           warehouses={warehouses}
           sellers={sellers}
-          statusOptions={ACTIVE_ORDER_STATUSES}
+          statusOptions={ALL_ORDER_STATUSES}
         />
 
         {!isHydrated ? null : (
           <>
             <OrdersActiveFilterHeader
-              title={kpiFocusTitle(kpiFocus)}
+              title={tableTitle(kpiFocus, filters.status)}
               count={filtered.length}
               chipLabel={kpiFocusChipLabel(kpiFocus)}
               onClearKpiFilter={hasKpiFilter ? clearKpiFilter : undefined}
@@ -306,7 +365,7 @@ export function ActiveOrdersPage() {
                             </p>
                           </TableCell>
                           <TableCell className="text-sm">
-                            {row.sellerName}
+                            {"Verified Supply Partner"}
                           </TableCell>
                           <TableCell className="text-sm">
                             {row.warehouse}

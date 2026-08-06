@@ -83,7 +83,7 @@ export interface SupportTicket {
 
 export interface RaiseTicketInput {
   category: TicketCategory;
-  priority: TicketPriority;
+  priority?: TicketPriority;
   subject: string;
   description: string;
   attachmentName?: string;

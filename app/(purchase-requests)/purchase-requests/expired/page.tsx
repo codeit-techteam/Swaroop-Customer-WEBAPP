@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { ExpiredRequestsListPage } from "@/components/purchase-requests";
+import { redirect } from "next/navigation";
+import { purchaseRequestsFiltered } from "@/constants";
 
 export const metadata: Metadata = {
-  title: "Expired Requests",
+  title: "Purchase Requests",
 };
 
 export default function Page() {
-  return <ExpiredRequestsListPage />;
+  redirect(purchaseRequestsFiltered("expired"));
 }

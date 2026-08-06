@@ -99,7 +99,9 @@ export function ApprovedRequestsListPage() {
                   <TableCell className="text-sm">
                     {row.approvedAt ? formatDateDdMmYyyy(row.approvedAt) : "—"}
                   </TableCell>
-                  <TableCell className="text-sm">{row.sellerName}</TableCell>
+                  <TableCell className="text-sm">
+                    {"Verified Supply Partner"}
+                  </TableCell>
                   <TableCell className="text-sm">{row.warehouse}</TableCell>
                   <TableCell className="text-sm">
                     {row.paymentMethodTitle}

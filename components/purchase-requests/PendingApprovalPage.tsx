@@ -9,7 +9,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ROUTES } from "@/constants";
+import { ROUTES, purchaseRequestsFiltered } from "@/constants";
 import { formatInr, formatQuantityMt } from "@/lib/format";
 import { buildValidationTimelineSteps } from "@/mock/purchase-request";
 import { usePurchaseRequestStore } from "@/store/purchaseRequestStore";
@@ -63,7 +63,7 @@ export function PendingApprovalPage() {
   useEffect(() => {
     if (!isHydrated) return;
     if (!submittedRequest) {
-      router.replace(ROUTES.purchaseRequestsActive);
+      router.replace(purchaseRequestsFiltered("active"));
       return;
     }
     if (requestStatus === "submitted") {
@@ -103,7 +103,7 @@ export function PendingApprovalPage() {
     upsertFromSubmitted(latest);
     useOrdersCatalogStore.getState().upsertFromCustomerOrder(order);
     toast.success("Order confirmed — order generated");
-    router.replace(ROUTES.purchaseRequestsApproved);
+    router.replace(purchaseRequestsFiltered("approved"));
   }, [
     requestStatus,
     submittedRequest,
@@ -163,7 +163,7 @@ export function PendingApprovalPage() {
               onClick={() => {
                 withdrawRequest();
                 toast.success("Purchase request withdrawn");
-                router.push(ROUTES.purchaseRequestsActive);
+                router.push(purchaseRequestsFiltered("active"));
               }}
             >
               <Ban className="h-4 w-4" />
@@ -183,7 +183,7 @@ export function PendingApprovalPage() {
               );
               rejectRequest();
               toast.message("Request declined (demo)");
-              router.push(ROUTES.purchaseRequestsRejected);
+              router.push(purchaseRequestsFiltered("rejected"));
             }}
           >
             Simulate Decline

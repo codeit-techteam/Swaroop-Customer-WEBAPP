@@ -1,5 +1,17 @@
 import type { NavItem } from "@/types";
 
+/** Section roots whose detail routes live outside the parent nav href prefix. */
+const NAV_SECTION_PREFIX: Partial<Record<string, string>> = {
+  payments: "/payments",
+  documents: "/documents",
+};
+
+export function isSectionPath(pathname: string, item: NavItem): boolean {
+  const prefix = NAV_SECTION_PREFIX[item.id];
+  if (!prefix) return false;
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
 /** Exact match or nested detail route under this href. */
 export function isHrefMatchingPath(pathname: string, href?: string): boolean {
   if (!href) return false;
@@ -40,6 +52,7 @@ export function isNavItemActive(
 }
 
 export function isNavBranchActive(pathname: string, item: NavItem): boolean {
+  if (isSectionPath(pathname, item)) return true;
   if (
     item.href &&
     isHrefMatchingPath(pathname, item.href) &&
@@ -66,7 +79,9 @@ export function findActiveTopNavId(
     if (
       item.href &&
       item.children?.length &&
-      (pathname === item.href || pathname.startsWith(`${item.href}/`))
+      (pathname === item.href ||
+        pathname.startsWith(`${item.href}/`) ||
+        isSectionPath(pathname, item))
     ) {
       return item.id;
     }

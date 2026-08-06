@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
-import { SupportTicketsPage } from "@/components/support";
-
-export const metadata: Metadata = {
-  title: "My Tickets",
-};
+import { redirect } from "next/navigation";
+import { SUPPORT_ROUTES } from "@/constants/support";
 
 export default function Page() {
-  return <SupportTicketsPage />;
+  redirect(SUPPORT_ROUTES.root);
 }

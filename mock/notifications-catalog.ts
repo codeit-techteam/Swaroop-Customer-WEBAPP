@@ -1,4 +1,4 @@
-import { ROUTES } from "@/constants";
+import { ROUTES, purchaseRequestsFiltered } from "@/constants";
 import type {
   AppNotification,
   NotificationAttachment,
@@ -157,7 +157,7 @@ function defaultHref(
       return `${ROUTES.orders}/PT-ORD-88${pad(orderN, 3)}`;
     case "purchase_requests":
     case "seller_approval":
-      return ROUTES.purchaseRequestsActive;
+      return purchaseRequestsFiltered("active");
     case "payments":
       return `${ROUTES.payments}/PAY-2026-${pad(payN)}`;
     case "shipment":
@@ -1212,22 +1212,21 @@ function buildFromSeed(seed: Seed, index: number): AppNotification {
       seed.type === "lab_report_ready"
     )
       href = ROUTES.documentsCertificates;
-    else if (seed.type === "purchase_order_ready")
-      href = ROUTES.documentsPurchaseOrders;
+    else if (seed.type === "purchase_order_ready") href = ROUTES.documents;
     else href = ROUTES.documents;
   } else if (
     seed.category === "purchase_requests" ||
     seed.category === "seller_approval"
   ) {
     if (seed.type === "seller_approved_request")
-      href = ROUTES.purchaseRequestsApproved;
+      href = purchaseRequestsFiltered("approved");
     else if (seed.type === "seller_rejected_request")
-      href = ROUTES.purchaseRequestsRejected;
+      href = purchaseRequestsFiltered("rejected");
     else if (seed.type === "purchase_request_expired")
-      href = ROUTES.purchaseRequestsExpired;
+      href = purchaseRequestsFiltered("expired");
     else if (seed.type === "seller_reviewing_request")
-      href = ROUTES.purchaseRequestsPending;
-    else href = ROUTES.purchaseRequestsActive;
+      href = purchaseRequestsFiltered("pending");
+    else href = purchaseRequestsFiltered("active");
   } else if (
     seed.category === "promotions" ||
     seed.category === "offers" ||

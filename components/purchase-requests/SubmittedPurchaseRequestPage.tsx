@@ -8,7 +8,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ROUTES } from "@/constants";
+import { ROUTES, purchaseRequestsFiltered } from "@/constants";
 import { formatQuantityMt } from "@/lib/format";
 import { usePurchaseRequestStore } from "@/store/purchaseRequestStore";
 import { PurchaseRequestStepper } from "./PurchaseRequestStepper";
@@ -24,7 +24,7 @@ export function SubmittedPurchaseRequestPage() {
 
   useEffect(() => {
     if (isHydrated && !submittedRequest) {
-      router.replace(ROUTES.purchaseRequestsActive);
+      router.replace(purchaseRequestsFiltered("active"));
     }
   }, [isHydrated, submittedRequest, router]);
 
@@ -110,10 +110,10 @@ export function SubmittedPurchaseRequestPage() {
           <Button
             variant="outline"
             className="h-11 flex-1 rounded-xl"
-            onClick={() => router.push(ROUTES.purchaseRequestsActive)}
+            onClick={() => router.push(ROUTES.purchaseRequests)}
           >
             <LayoutDashboard className="h-4 w-4" />
-            Go Active Requests
+            Go Purchase Requests
           </Button>
           <Button
             variant="outline"
