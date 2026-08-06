@@ -36,7 +36,6 @@ const TYPE_OPTIONS: Array<DocumentType | "all"> = [
   "invoice",
   "proforma",
   "gst_invoice",
-  "certificate",
   "packing_list",
   "delivery_challan",
   "e_way_bill",

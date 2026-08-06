@@ -14,7 +14,6 @@ export function ProductDetailsPageSkeleton() {
               <Skeleton key={index} className="aspect-square rounded-xl" />
             ))}
           </div>
-          <Skeleton className="h-20 rounded-2xl" />
         </div>
         <div className="space-y-4">
           <Skeleton className="h-8 w-2/3" />
@@ -26,9 +25,10 @@ export function ProductDetailsPageSkeleton() {
           <Skeleton className="h-28 rounded-2xl" />
           <Skeleton className="h-36 rounded-2xl" />
           <Skeleton className="h-40 rounded-2xl" />
-          <Skeleton className="h-12 rounded-xl" />
+          <Skeleton className="h-48 rounded-xl" />
         </div>
       </div>
+      <Skeleton className="h-24 w-full rounded-2xl" />
     </div>
   );
 }

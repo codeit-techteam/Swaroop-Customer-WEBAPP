@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Award,
   Download,
   FileSpreadsheet,
   FileText,
@@ -51,12 +50,6 @@ export function DocumentSummaryCards({
       tone: "text-indigo-600",
     },
     {
-      label: "Certificates",
-      value: String(summary.certificates),
-      icon: Award,
-      tone: "text-emerald-600",
-    },
-    {
       label: "Downloads",
       value: String(summary.downloads),
       icon: Download,
@@ -65,7 +58,7 @@ export function DocumentSummaryCards({
   ];
 
   return (
-    <div className={cn("grid gap-3 sm:grid-cols-2 xl:grid-cols-5", className)}>
+    <div className={cn("grid gap-3 sm:grid-cols-2 xl:grid-cols-4", className)}>
       {items.map((item) => (
         <Card key={item.label} className="border-slate-200 shadow-card">
           <CardContent className="flex items-start gap-3 p-4">
@@ -129,14 +122,6 @@ export function DocumentQuickActions({
         >
           <FileText className="h-4 w-4" />
           View Invoices
-        </Button>
-        <Button
-          variant="outline"
-          className="rounded-xl"
-          onClick={() => router.push(ROUTES.documentsCertificates)}
-        >
-          <Award className="h-4 w-4" />
-          Certificates
         </Button>
       </CardContent>
     </Card>

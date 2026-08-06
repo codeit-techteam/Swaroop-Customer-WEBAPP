@@ -12,7 +12,7 @@ export type MonthlyPurchaseBand =
 
 export type CreditDocumentId =
   | "gst_registration"
-  | "pan_card"
+  | "gst_returns"
   | "bank_statement"
   | "itr_financials"
   | "cancelled_cheque"

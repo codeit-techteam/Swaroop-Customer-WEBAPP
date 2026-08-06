@@ -26,7 +26,7 @@ export function ForgotPasswordHero() {
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/15 pt-6 text-xs text-white/70">
-        <p>© 2024 PetroTrade Solutions.</p>
+        <p>© PetroTrade Solutions.</p>
         <div className="flex items-center gap-5">
           <span className="inline-flex items-center gap-1.5">
             <Globe className="h-3.5 w-3.5" aria-hidden />

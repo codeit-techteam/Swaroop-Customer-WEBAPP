@@ -1,10 +1,5 @@
 import { z } from "zod";
-import {
-  emailSchema,
-  panSchema,
-  phoneSchema,
-  requiredString,
-} from "@/utils/validators";
+import { emailSchema, phoneSchema, requiredString } from "@/utils/validators";
 
 function isValidIndianMobile(value: string) {
   const digits = value.replace(/\D/g, "");
@@ -62,12 +57,6 @@ export type LoginFormValues = z.infer<ReturnType<typeof createLoginSchema>>;
 export const registerSchema = z
   .object({
     businessName: requiredString("Business name is required"),
-    panNumber: z
-      .string()
-      .trim()
-      .toUpperCase()
-      .length(10, "PAN number must be 10 characters")
-      .pipe(panSchema),
     email: emailSchema,
     phone: z
       .string()

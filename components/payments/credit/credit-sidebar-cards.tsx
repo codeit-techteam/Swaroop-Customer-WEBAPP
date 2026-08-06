@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 const ELIGIBILITY = [
   "Minimum 6 Months Business",
   "Valid GST Registration",
-  "PAN Mandatory",
+  "GST Returns Required",
   "Bank Statements Required",
   "Financial Documents Required",
 ];

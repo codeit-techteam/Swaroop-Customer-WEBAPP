@@ -13,7 +13,7 @@ export const metadata: Metadata = {
  */
 export default function AuthGroupLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-background font-sans antialiased">
+    <div className="h-dvh overflow-hidden bg-background font-sans antialiased">
       {children}
     </div>
   );

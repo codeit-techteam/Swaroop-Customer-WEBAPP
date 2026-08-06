@@ -19,10 +19,11 @@ export const CREDIT_DOCUMENT_DEFINITIONS: CreditDocumentDefinition[] = [
     acceptLabel: "PDF",
   },
   {
-    id: "pan_card",
-    title: "PAN Card",
+    id: "gst_returns",
+    title: "GST Returns",
+    subtitle: "Last 6 Months (GSTR-3B)",
     required: true,
-    acceptLabel: "PDF / JPG",
+    acceptLabel: "PDF",
   },
   {
     id: "bank_statement",

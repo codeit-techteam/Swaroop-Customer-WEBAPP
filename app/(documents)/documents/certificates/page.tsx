@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
-import { CertificatesPage } from "@/components/documents";
-
-export const metadata: Metadata = {
-  title: "Certificates",
-};
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
 export default function Page() {
-  return <CertificatesPage />;
+  redirect(ROUTES.documents);
 }

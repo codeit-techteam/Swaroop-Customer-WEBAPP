@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, ArrowLeftRight, ShoppingCart } from "lucide-react";
+import { ArrowRight, ArrowLeftRight } from "lucide-react";
 import { ROUTES } from "@/constants";
 import { formatInr, formatQuantityMt } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -118,8 +118,7 @@ export function ProductCard({
               className="h-10 rounded-xl bg-brand px-4 text-sm font-semibold hover:bg-brand-700"
             >
               <Link href={cartHref}>
-                <ShoppingCart className="h-4 w-4" aria-hidden="true" />
-                Add to Cart
+                Buy Now
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -211,8 +210,7 @@ export function ProductCard({
             className="h-10 w-full rounded-xl bg-brand text-xs font-semibold hover:bg-brand-700"
           >
             <Link href={cartHref}>
-              <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />
-              Add to Cart
+              Buy Now
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </Button>

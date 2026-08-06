@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Link2, ShieldCheck } from "lucide-react";
+import { CheckCircle2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import {
   OnboardingLayout,
@@ -145,25 +145,11 @@ function GstVerificationForm() {
             ) : null}
 
             {gstInfo.isVerified && gstInfo.verification ? (
-              <div className="mt-4 space-y-3">
+              <div className="mt-4">
                 <SuccessCard
                   title={`Valid GSTIN — ${gstInfo.verification.companyName}`}
                   description={`Entity status: ${gstInfo.verification.entityStatus} | Registered on: ${gstInfo.verification.registeredOn}`}
                 />
-                <div className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      PAN Card (Extracted)
-                    </p>
-                    <p className="mt-0.5 font-mono text-lg font-bold text-slate-900">
-                      {gstInfo.verification.pan}
-                    </p>
-                  </div>
-                  <p className="flex items-center gap-1.5 text-sm font-medium text-emerald-600">
-                    <Link2 className="h-4 w-4" aria-hidden="true" />
-                    Linked to GSTIN
-                  </p>
-                </div>
               </div>
             ) : null}
           </SectionCard>

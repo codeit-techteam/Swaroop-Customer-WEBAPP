@@ -106,26 +106,6 @@ function ShippingAddressContent() {
         description="Manage your delivery locations. You can add multiple addresses for fuel and petrochemical distribution."
       />
 
-      <div className="relative mb-8 overflow-hidden rounded-xl">
-        <div
-          className="absolute inset-0 bg-slate-900"
-          style={{
-            backgroundImage:
-              "linear-gradient(90deg, rgba(15,23,42,0.92) 0%, rgba(15,23,42,0.55) 55%, rgba(15,23,42,0.25) 100%), linear-gradient(135deg, #1e293b, #334155)",
-          }}
-          aria-hidden="true"
-        />
-        <div className="relative px-6 py-8 sm:px-8 sm:py-10">
-          <h2 className="text-lg font-bold text-white sm:text-xl">
-            Efficient Logistics
-          </h2>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300">
-            Adding precise shipping addresses ensures faster turnaround times at
-            refinery gates and automated weighbridge clearance.
-          </p>
-        </div>
-      </div>
-
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-slate-900">
           Addresses ({addresses.length})

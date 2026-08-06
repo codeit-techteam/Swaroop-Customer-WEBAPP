@@ -47,15 +47,6 @@ export function getOnboardingCreditDocuments(
     );
   }
 
-  if (gstInfo.isVerified && gstInfo.verification?.pan) {
-    result.pan_card = onboardingDoc(
-      "pan_card",
-      `PAN_${gstInfo.verification.pan}_verified.pdf`,
-      creditDocuments.bankStatements?.uploadedAt ?? new Date().toISOString(),
-      512_000,
-    );
-  }
-
   if (creditDocuments.bankStatements?.fileName) {
     result.bank_statement = onboardingDoc(
       "bank_statement",

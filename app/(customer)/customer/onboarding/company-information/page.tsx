@@ -39,7 +39,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DatePicker } from "@/components/ui/date-picker";
 import type { ConstitutionType, IndustrySector } from "@/types/onboarding";
 
 export default function CompanyInformationPage() {
@@ -72,7 +71,6 @@ function CompanyInformationForm() {
       industrySector: (companyInfo.industrySector ||
         undefined) as CompanyInfoFormValues["industrySector"],
       registrationNumber: companyInfo.registrationNumber,
-      dateOfIncorporation: companyInfo.dateOfIncorporation,
     },
     mode: "onChange",
   });
@@ -83,7 +81,7 @@ function CompanyInformationForm() {
       constitutionType: values.constitutionType as ConstitutionType,
       industrySector: (values.industrySector || "") as IndustrySector | "",
       registrationNumber: values.registrationNumber ?? "",
-      dateOfIncorporation: values.dateOfIncorporation ?? "",
+      dateOfIncorporation: "",
     });
     router.push(ONBOARDING_ROUTES.gstVerification);
   }
@@ -170,45 +168,21 @@ function CompanyInformationForm() {
               />
             </div>
 
-            <div className="grid gap-5 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="registrationNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Registration Number (CIN/LLPIN) (Optional)
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="U00000XX0000XXX000000" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="dateOfIncorporation"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date of Incorporation (Optional)</FormLabel>
-                    <FormControl>
-                      <DatePicker
-                        value={field.value ? new Date(field.value) : undefined}
-                        onChange={(date) =>
-                          field.onChange(
-                            date ? date.toISOString().slice(0, 10) : "",
-                          )
-                        }
-                        placeholder="mm/dd/yyyy"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="registrationNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Registration Number (CIN/LLPIN) (Optional)
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="U00000XX0000XXX000000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <InfoCard>
               This name comes from registration and is used for GST

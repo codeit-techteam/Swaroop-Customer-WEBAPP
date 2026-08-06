@@ -3,8 +3,6 @@
 import Link from "next/link";
 
 export function SupportFooter() {
-  const year = new Date().getFullYear();
-
   return (
     <footer className="border-t border-slate-200 bg-slate-100/80 px-4 py-3.5 md:px-6">
       <div className="flex flex-col gap-3 text-xs text-slate-500 lg:flex-row lg:items-center lg:justify-between">
@@ -32,7 +30,7 @@ export function SupportFooter() {
           </Link>
         </nav>
         <p className="text-slate-400">
-          © {year} PetroTrade Support Center. All rights reserved.
+          © PetroTrade Support Center. All rights reserved.
         </p>
       </div>
     </footer>

@@ -32,7 +32,6 @@ export const companyInfoSchema = z.object({
     })
     .optional()
     .or(z.literal("")),
-  dateOfIncorporation: z.string().optional().or(z.literal("")),
 });
 
 export type CompanyInfoFormValues = z.infer<typeof companyInfoSchema>;

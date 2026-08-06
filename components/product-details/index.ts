@@ -4,7 +4,6 @@ export { QualityCard } from "./quality-card";
 export { ProductHeader } from "./product-header";
 export { ProductInfoCard } from "./product-info-card";
 export { TechnicalSpecificationAccordion } from "./technical-specification-accordion";
-export { ComplianceAccordion } from "./compliance-accordion";
 export { SpotPriceCard } from "./spot-price-card";
 export { BulkPricingCard } from "./bulk-pricing-card";
 export { PaymentOptionsCard } from "./payment-options-card";

@@ -89,7 +89,7 @@ export function DownloadsPage() {
       <DocumentsModuleChrome />
       <PageHeader
         title="Downloads"
-        description="All downloadable procurement files — POs, invoices, GST, certificates, packing lists, challans, e-way bills, and payment proofs."
+        description="All downloadable procurement files — POs, invoices, GST, packing lists, challans, e-way bills, and payment proofs."
         breadcrumbs={[
           { label: "Documents", href: ROUTES.documents },
           { label: "Downloads" },

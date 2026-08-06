@@ -284,11 +284,6 @@ export const CUSTOMER_NAV: NavItem[] = [
         href: ROUTES.documentsGstInvoices,
       },
       {
-        id: "docs-certs",
-        title: "Certificates",
-        href: ROUTES.documentsCertificates,
-      },
-      {
         id: "docs-downloads",
         title: "Downloads",
         href: ROUTES.documentsDownloads,

@@ -7,7 +7,6 @@ export {
 } from "./pricing";
 export { getRelatedProductCards } from "./relatedProducts";
 export { buildLogisticsEstimate } from "./warehouse";
-export { DEFAULT_COMPLIANCE_DOCUMENTS } from "./documents";
 export {
   PRODUCT_GALLERY_IMAGES,
   DEFAULT_QUALITY_ASSURANCE,

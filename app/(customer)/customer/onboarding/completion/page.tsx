@@ -24,9 +24,9 @@ function CompletionContent() {
   const router = useRouter();
   const completeOnboarding = useOnboardingStore((s) => s.completeOnboarding);
 
-  function handleGoToDashboard() {
+  function handleGoToMarketplace() {
     completeOnboarding();
-    router.push(ROUTES.dashboard);
+    router.push(ROUTES.marketplace);
   }
 
   function handleDownloadPdf() {
@@ -96,9 +96,9 @@ function CompletionContent() {
             <Button
               type="button"
               className="h-11 bg-slate-900 px-6 hover:bg-slate-800"
-              onClick={handleGoToDashboard}
+              onClick={handleGoToMarketplace}
             >
-              Go to Dashboard
+              Go to Marketplace
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Button>
             <Button
@@ -119,16 +119,16 @@ function CompletionContent() {
             </h2>
             <ul className="mt-4 space-y-4">
               <NextStepItem
-                icon={LayoutGrid}
-                iconClass="bg-sky-100 text-sky-600"
-                title="Dashboard access"
-                description="Explore portal features and track your activity."
-              />
-              <NextStepItem
                 icon={Package}
                 iconClass="bg-sky-100 text-sky-600"
                 title="Browse marketplace"
-                description="Create purchase requests for industrial grades."
+                description="Explore grades and create purchase requests."
+              />
+              <NextStepItem
+                icon={LayoutGrid}
+                iconClass="bg-sky-100 text-sky-600"
+                title="Track procurement"
+                description="Monitor requests, orders, and portal activity."
               />
               <NextStepItem
                 icon={Truck}

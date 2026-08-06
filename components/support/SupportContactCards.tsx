@@ -1,31 +1,12 @@
 "use client";
 
-import { Mail, MessageCircle, Phone, Ticket } from "lucide-react";
+import { MessageCircle, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { SUPPORT_CONTACT } from "@/constants/support";
 import { useSupportStore } from "@/store/supportStore";
 import { cn } from "@/lib/utils";
 
 const CARDS = [
-  {
-    id: "call",
-    icon: Phone,
-    title: "Call Support",
-    detail: SUPPORT_CONTACT.phone,
-    action: "Call Now",
-    href: SUPPORT_CONTACT.phoneHref,
-    external: true,
-  },
-  {
-    id: "email",
-    icon: Mail,
-    title: "Email Support",
-    detail: SUPPORT_CONTACT.email,
-    action: "Send Email",
-    href: SUPPORT_CONTACT.emailHref,
-    external: true,
-  },
   {
     id: "chat",
     icon: MessageCircle,
@@ -62,8 +43,6 @@ export function SupportContactCards() {
                 <div
                   className={cn(
                     "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl",
-                    card.id === "call" && "bg-sky-50 text-sky-600",
-                    card.id === "email" && "bg-violet-50 text-violet-600",
                     card.id === "chat" && "bg-emerald-50 text-emerald-600",
                     card.id === "ticket" && "bg-amber-50 text-amber-600",
                   )}
@@ -79,24 +58,15 @@ export function SupportContactCards() {
                   </p>
                 </div>
               </div>
-              {"href" in card && card.href ? (
-                <Button
-                  asChild
-                  className="w-full rounded-xl bg-brand hover:bg-brand/90"
-                >
-                  <a href={card.href}>{card.action}</a>
-                </Button>
-              ) : (
-                <Button
-                  className="w-full rounded-xl bg-brand hover:bg-brand/90"
-                  onClick={() => {
-                    if (card.modal === "chat") setChatModalOpen(true);
-                    if (card.modal === "ticket") setRaiseTicketOpen(true);
-                  }}
-                >
-                  {card.action}
-                </Button>
-              )}
+              <Button
+                className="w-full rounded-xl bg-brand hover:bg-brand/90"
+                onClick={() => {
+                  if (card.modal === "chat") setChatModalOpen(true);
+                  if (card.modal === "ticket") setRaiseTicketOpen(true);
+                }}
+              >
+                {card.action}
+              </Button>
             </CardContent>
           </Card>
         );

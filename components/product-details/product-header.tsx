@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { MapPin, Package, Warehouse, CircleDot } from "lucide-react";
+import { Warehouse, CircleDot } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { ProductDetailRecord } from "@/types/product-details";
 import { cn } from "@/lib/utils";
@@ -36,17 +36,9 @@ export function ProductHeader({ product, className }: ProductHeaderProps) {
         <h1 className="text-2xl font-bold tracking-tight text-brand md:text-3xl">
           {product.name}
         </h1>
-        <p className="mt-1 text-sm font-medium text-slate-500">
-          Fulfilled by PetroTrade Network
-        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <InfoChip
-          icon={<MapPin className="h-3.5 w-3.5" />}
-          label="Region"
-          value="Western India Region"
-        />
         <InfoChip
           icon={<Warehouse className="h-3.5 w-3.5" />}
           label="Supply Partner"
@@ -57,11 +49,6 @@ export function ProductHeader({ product, className }: ProductHeaderProps) {
           label="Stock Status"
           value={product.stockLabel}
           valueClassName="text-emerald-700"
-        />
-        <InfoChip
-          icon={<Package className="h-3.5 w-3.5" />}
-          label="MOQ"
-          value={product.moqLabel}
         />
       </div>
 

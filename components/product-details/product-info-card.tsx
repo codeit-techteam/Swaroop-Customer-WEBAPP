@@ -14,12 +14,9 @@ const INFO_ROWS: {
     | "origin"
     | "warehouseLabel"
     | "stockLabel"
-    | "moqLabel"
     | "eta"
     | "packaging"
-    | "hsnCode"
     | "application"
-    | "industry"
     | "grade"
     | "casNumber"
     | "materialType"
@@ -29,12 +26,9 @@ const INFO_ROWS: {
   { key: "origin", label: "Origin" },
   { key: "warehouseLabel", label: "Warehouse" },
   { key: "stockLabel", label: "Stock Status" },
-  { key: "moqLabel", label: "MOQ" },
   { key: "eta", label: "Delivery Lead Time" },
   { key: "packaging", label: "Packaging Type" },
-  { key: "hsnCode", label: "HSN Code" },
   { key: "application", label: "Application" },
-  { key: "industry", label: "Industry" },
   { key: "grade", label: "Grade" },
   { key: "casNumber", label: "CAS Number" },
   { key: "materialType", label: "Material Type" },

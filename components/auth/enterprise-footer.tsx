@@ -25,7 +25,7 @@ const DEFAULT_LINKS: FooterLink[] = [
 ];
 
 export function EnterpriseFooter({
-  copyright = "© 2024 PetroTrade Solutions. Institutional Security Guaranteed.",
+  copyright = "© PetroTrade Solutions. Institutional Security Guaranteed.",
   links = DEFAULT_LINKS,
   className,
   variant = "bar",

@@ -14,7 +14,6 @@ import {
 } from "@/constants/documents";
 import type {
   CertificateDocument,
-  CertificateKind,
   DocumentLineItem,
   DocumentNotification,
   DocumentPricing,
@@ -427,72 +426,14 @@ function buildGstInvoices(): GstInvoiceDocument[] {
   });
 }
 
-const CERT_KINDS: CertificateKind[] = [
-  "material_test",
-  "quality",
-  "inspection",
-  "origin",
-  "manufacturer",
-  "lab_test",
-];
-
-const CERT_NAMES: Record<CertificateKind, string> = {
-  material_test: "Material Test Certificate",
-  quality: "Quality Certificate",
-  inspection: "Inspection Certificate",
-  origin: "Certificate of Origin",
-  manufacturer: "Manufacturer Certificate",
-  lab_test: "Lab Test Report",
-};
-
-const ISSUERS = [
-  "PetroTrade Quality Assurance",
-  "PetroTrade QC",
-  "NABL Approved Laboratory",
-  "PetroTrade Quality Assurance",
-  "PetroTrade QC",
-  "NABL Approved Laboratory",
-];
-
 function buildCertificates(): CertificateDocument[] {
-  const list: CertificateDocument[] = [];
-  for (let i = 1; i <= 20; i++) {
-    const seed = SEEDS[(i - 1) % SEEDS.length];
-    const kind = CERT_KINDS[(i - 1) % CERT_KINDS.length];
-    const product = DOCUMENT_PRODUCTS[seed.productIdx];
-    const issueDate = addDaysIso(seed.poDate, 10 + (i % 4));
-    const statuses: DocumentStatus[] = [
-      "generated",
-      "downloaded",
-      "verified",
-      "approved",
-      "pending",
-    ];
-    list.push({
-      id: `cert-${i}`,
-      name: CERT_NAMES[kind],
-      certificateNumber: `CERT-${kind.slice(0, 3).toUpperCase()}-2026-${pad(i)}`,
-      kind,
-      product: product.name,
-      grade: product.grade,
-      orderNumber: seed.orderNumber,
-      issuedBy: ISSUERS[(i - 1) % ISSUERS.length],
-      issueDate,
-      expiryDate: addDaysIso(issueDate, 365),
-      status: statuses[(i - 1) % statuses.length],
-      seller: seed.seller,
-      warehouse: seed.warehouse,
-      remarks: "Valid for the referenced batch and grade only.",
-    });
-  }
-  return list;
+  return [];
 }
 
 function buildDownloads(
   pos: PurchaseOrderDocument[],
   invoices: InvoiceDocument[],
   gstInvoices: GstInvoiceDocument[],
-  certificates: CertificateDocument[],
 ): DownloadableDocument[] {
   const files: DownloadableDocument[] = [];
   let n = 1;
@@ -560,22 +501,7 @@ function buildDownloads(
     });
   });
 
-  // Certificates
-  certificates.slice(0, 5).forEach((c, i) => {
-    push({
-      fileName: `${c.certificateNumber}.pdf`,
-      category: "certificate",
-      sizeBytes: 320_000 + i * 4100,
-      date: c.issueDate,
-      orderNumber: c.orderNumber,
-      documentNumber: c.certificateNumber,
-      seller: c.seller,
-      warehouse: c.warehouse,
-      product: c.product,
-      status: c.status,
-      relatedId: c.id,
-    });
-  });
+  // Certificates removed from Documents module
 
   // Packing / challan / e-way / transport / receipts / payment proof
   const extras: Array<{
@@ -669,17 +595,6 @@ function buildNotifications(): DocumentNotification[] {
       href: "/documents/gst-invoices",
     },
     {
-      id: "dn-4",
-      type: "certificate_available",
-      title: "Certificate Available",
-      message:
-        "Material Test Certificate for PP Raffia H030SG is ready to download.",
-      createdAt: isoDaysAgo(3, 16),
-      read: true,
-      href: "/documents/certificates",
-      relatedId: "cert-1",
-    },
-    {
       id: "dn-5",
       type: "download_completed",
       title: "Download Completed",
@@ -712,7 +627,6 @@ export const downloadsMock = buildDownloads(
   purchaseOrdersMock,
   invoicesMock,
   gstInvoicesMock,
-  certificatesMock,
 );
 export const documentNotificationsMock = buildNotifications();
 

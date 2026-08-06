@@ -32,7 +32,6 @@ export function RegisterForm() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       businessName: "",
-      panNumber: "",
       email: "",
       phone: "",
       password: "",
@@ -49,7 +48,6 @@ export function RegisterForm() {
     onboarding.seedCompanyLegalName(values.businessName);
     await registerUser({
       businessName: values.businessName,
-      panNumber: values.panNumber,
       email: values.email,
       phone: values.phone,
       password: values.password,
@@ -71,21 +69,11 @@ export function RegisterForm() {
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
         <AuthInput
           label="Business Name (Full Legal Name)"
-          placeholder="Enter as per PAN"
+          placeholder="Enter your company's legal name"
           autoComplete="organization"
           error={errors.businessName?.message}
           disabled={loading}
           {...register("businessName")}
-        />
-
-        <AuthInput
-          label="PAN Number"
-          placeholder="ABCDE1234F"
-          autoComplete="off"
-          error={errors.panNumber?.message}
-          disabled={loading}
-          className="uppercase"
-          {...register("panNumber")}
         />
 
         <div className="grid gap-4 sm:grid-cols-2">

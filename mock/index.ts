@@ -55,7 +55,6 @@ export {
   getProductDetailById,
   getRelatedProductCards,
   DEFAULT_PRODUCT_SPECS,
-  DEFAULT_COMPLIANCE_DOCUMENTS,
 } from "./product-details";
 
 export {

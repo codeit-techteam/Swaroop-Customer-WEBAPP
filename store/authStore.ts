@@ -21,7 +21,6 @@ export interface AuthUser {
 
 export interface RegisterPayload {
   businessName: string;
-  panNumber: string;
   email: string;
   phone: string;
   password: string;

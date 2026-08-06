@@ -7,8 +7,6 @@ interface CustomerFooterProps {
 }
 
 export function CustomerFooter({ className }: CustomerFooterProps) {
-  const year = new Date().getFullYear();
-
   return (
     <footer
       className={cn(
@@ -22,7 +20,7 @@ export function CustomerFooter({ className }: CustomerFooterProps) {
             {APP_SHORT_NAME} Enterprise
           </p>
           <p className="mt-0.5 text-xs text-slate-400">
-            © {year} PetroTrade Industrial Markets · India · GST Ready
+            © PetroTrade Industrial Markets · India · GST Ready
           </p>
         </div>
         <nav

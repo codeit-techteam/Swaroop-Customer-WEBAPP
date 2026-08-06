@@ -1,6 +1,5 @@
 import { categoriesMock } from "@/mock/categories";
 import { getProductById, productsMock } from "@/mock/products";
-import { DEFAULT_COMPLIANCE_DOCUMENTS } from "./documents";
 import { buildGalleryFromProduct, DEFAULT_QUALITY_ASSURANCE } from "./gallery";
 import {
   buildBulkPricing,
@@ -109,7 +108,7 @@ export function getProductDetailById(id: string): ProductDetailRecord | null {
         "Issued Through PetroTrade Quality Assurance · Verified By PetroTrade QC · NABL Approved Laboratory",
     },
     specs: getSpecsForMaterial(product.materialType),
-    documents: DEFAULT_COMPLIANCE_DOCUMENTS,
+    documents: [],
     spotPrice: buildSpotPrice(product.price),
     bulkPricing: buildBulkPricing(product.price),
     paymentOptions: buildPaymentOptions(product.creditEligible),

@@ -105,8 +105,8 @@ export function LoginForm() {
 
   return (
     <div className="flex w-full max-w-[420px] flex-col items-center">
-      <AuthCard className="w-full">
-        <div className="mb-7 space-y-1.5">
+      <AuthCard className="w-full p-6 sm:p-8">
+        <div className="mb-5 space-y-1">
           <h1 className="text-2xl font-bold tracking-tight text-brand">
             Welcome Back
           </h1>
@@ -115,7 +115,7 @@ export function LoginForm() {
           </p>
         </div>
 
-        <form onSubmit={onLogin} className="space-y-5" noValidate>
+        <form onSubmit={onLogin} className="space-y-4" noValidate>
           <div className="space-y-1.5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
               Login with
@@ -212,7 +212,7 @@ export function LoginForm() {
           </PrimaryButton>
         </form>
 
-        <div className="mt-5 space-y-5">
+        <div className="mt-4 space-y-4">
           <AuthDivider />
 
           <SecondaryButton
@@ -238,7 +238,7 @@ export function LoginForm() {
         </div>
       </AuthCard>
 
-      <AuthFooter className="mt-8" />
+      <AuthFooter className="mt-5" />
     </div>
   );
 }

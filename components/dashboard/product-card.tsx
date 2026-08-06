@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ShoppingCart } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { RecommendedProduct } from "@/types/dashboard";
 import { ROUTES } from "@/constants";
 import { formatInrPerMt } from "@/lib/format";
@@ -95,8 +95,8 @@ export function DashboardProductCard({
             className="h-9 w-full rounded-xl bg-brand text-xs font-semibold hover:bg-brand-700"
           >
             <Link href={`${ROUTES.marketplaceProduct}/${product.id}`}>
-              <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />
-              Add to Cart
+              Buy Now
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </Button>
         </div>

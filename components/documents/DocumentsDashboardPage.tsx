@@ -123,7 +123,7 @@ export function DocumentsDashboardPage() {
       <DocumentsModuleChrome />
       <PageHeader
         title="Documents"
-        description="Enterprise document centre for purchase orders, tax invoices, GST, certificates, and downloads across your order lifecycle."
+        description="Enterprise document centre for purchase orders, tax invoices, GST, and downloads across your order lifecycle."
         breadcrumbs={[{ label: "Documents" }]}
       />
 
@@ -299,7 +299,6 @@ export function DocumentsDashboardPage() {
                       "4. Shipment Documents Ready (packing, challan, e-way)",
                       "5. GST Invoice Generated for tax compliance",
                       "6. Delivery Completed",
-                      "7. Certificate Issued for quality & origin",
                     ],
                   }),
                 });

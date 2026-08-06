@@ -84,9 +84,6 @@ export function generateOnboardingPdf(state: OnboardingState): void {
     ...(state.companyInfo.registrationNumber
       ? [`Registration Number: ${state.companyInfo.registrationNumber}`]
       : []),
-    ...(state.companyInfo.dateOfIncorporation
-      ? [`Date of Incorporation: ${state.companyInfo.dateOfIncorporation}`]
-      : []),
   ];
 
   y = addSection(doc, "1. Company Information", companyLines, y);
@@ -100,7 +97,6 @@ export function generateOnboardingPdf(state: OnboardingState): void {
       `Registered Entity: ${state.gstInfo.verification?.companyName || "—"}`,
       `Entity Status: ${state.gstInfo.verification?.entityStatus || "—"}`,
       `Registered On: ${state.gstInfo.verification?.registeredOn || "—"}`,
-      `PAN (Extracted): ${state.gstInfo.verification?.pan || "—"}`,
       `Certificate: ${state.gstInfo.certificateFileName || "—"}`,
     ],
     y,
