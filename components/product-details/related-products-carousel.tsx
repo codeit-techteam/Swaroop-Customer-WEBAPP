@@ -36,10 +36,10 @@ export function RelatedProductsCarousel({
       <div className="flex items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">
-            Recommended for Your Portfolio
+            Related Products
           </h2>
           <p className="mt-0.5 text-sm text-slate-500">
-            Based on similar grades in your catalog browsing history.
+            Frequently bought together and grades customers also purchased.
           </p>
         </div>
         <div className="flex gap-1.5">

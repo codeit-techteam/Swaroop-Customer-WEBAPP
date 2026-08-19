@@ -19,7 +19,6 @@ import type { OrdersCatalogFilters } from "@/store/ordersCatalogStore";
 interface OrdersFiltersBarProps {
   filters: OrdersCatalogFilters;
   onChange: (patch: Partial<OrdersCatalogFilters>) => void;
-  warehouses: string[];
   sellers: string[];
   statusOptions?: OrdersDisplayStatus[];
   onRefresh?: () => void;
@@ -28,7 +27,6 @@ interface OrdersFiltersBarProps {
 export function OrdersFiltersBar({
   filters,
   onChange,
-  warehouses,
   sellers,
   statusOptions = [
     "processing",
@@ -84,7 +82,7 @@ export function OrdersFiltersBar({
         </div>
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <Select
           value={filters.status}
           onValueChange={(v) =>
@@ -99,23 +97,6 @@ export function OrdersFiltersBar({
             {statusOptions.map((s) => (
               <SelectItem key={s} value={s}>
                 {ordersDisplayStatusLabel(s)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={filters.warehouse}
-          onValueChange={(v) => onChange({ warehouse: v })}
-        >
-          <SelectTrigger className="h-10 rounded-xl">
-            <SelectValue placeholder="Warehouse" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All warehouses</SelectItem>
-            {warehouses.map((w) => (
-              <SelectItem key={w} value={w}>
-                {w}
               </SelectItem>
             ))}
           </SelectContent>

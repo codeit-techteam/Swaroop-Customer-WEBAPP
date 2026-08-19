@@ -136,12 +136,10 @@ export function ShipmentDetailsPage({ shipmentId }: ShipmentDetailsPageProps) {
               <CardTitle className="text-base">Dispatch Information</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <Meta label="Warehouse" value={shipment.warehouse} />
               <Meta
                 label="Dispatch Date"
                 value={formatShipmentDate(shipment.dispatchDate)}
               />
-              <Meta label="Transporter" value={shipment.transportCompany} />
               <Meta
                 label="Vehicle Number"
                 value={shipment.vehicleNumber}
@@ -157,12 +155,8 @@ export function ShipmentDetailsPage({ shipmentId }: ShipmentDetailsPageProps) {
               <CardTitle className="text-base">Delivery Information</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <Meta
-                label="Delivery Address"
-                value={`${shipment.destination}, ${shipment.destinationState}`}
-              />
+              <Meta label="Delivery Address" value={shipment.destination} />
               <Meta label="City" value={shipment.destination} />
-              <Meta label="State" value={shipment.destinationState} />
               <Meta
                 label="Expected Delivery Date"
                 value={formatShipmentDate(

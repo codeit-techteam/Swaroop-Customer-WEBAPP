@@ -159,10 +159,9 @@ export function CreatePurchaseRequestPage() {
           fromOffer
             ? [
                 { label: "Marketplace", href: ROUTES.marketplace },
-                { label: "Offers", href: ROUTES.marketplaceOffers },
                 {
                   label: "Offer Details",
-                  href: `${ROUTES.marketplaceOffers}/${offerIdParam}`,
+                  href: `${ROUTES.marketplaceOfferDetail}/${offerIdParam}`,
                 },
                 { label: "Create Purchase Request" },
               ]

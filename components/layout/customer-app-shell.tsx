@@ -33,8 +33,10 @@ export function CustomerAppShell({
         sidebar={<CustomerSidebar />}
         navbar={<CustomerTopNav />}
       >
-        <div className="flex min-h-full flex-1 flex-col">
-          <div className="flex-1 px-4 py-5 md:px-6 md:py-6">{children}</div>
+        <div className="flex min-h-full min-w-0 flex-1 flex-col">
+          <div className="min-w-0 flex-1 px-4 py-5 md:px-6 md:py-6">
+            {children}
+          </div>
           <CustomerFooter />
         </div>
       </AppShell>

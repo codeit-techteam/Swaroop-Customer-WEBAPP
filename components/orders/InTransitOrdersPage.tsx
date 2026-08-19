@@ -42,10 +42,6 @@ export function InTransitOrdersPage() {
     return unsub;
   }, []);
 
-  const warehouses = useMemo(
-    () => [...new Set(items.map((i) => i.warehouse))].sort(),
-    [items],
-  );
   const sellers = useMemo(
     () => [...new Set(items.map((i) => i.sellerName))].sort(),
     [items],
@@ -74,7 +70,6 @@ export function InTransitOrdersPage() {
         <OrdersFiltersBar
           filters={filters}
           onChange={setFilters}
-          warehouses={warehouses}
           sellers={sellers}
           statusOptions={["in_transit"]}
         />

@@ -7,7 +7,6 @@ import {
   Clock3,
   Download,
   Eye,
-  Headset,
   IndianRupee,
   Package,
 } from "lucide-react";
@@ -24,10 +23,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ROUTES } from "@/constants";
-import {
-  ORDER_MVP_STAGES,
-  orderMvpStageIndex,
-} from "@/constants/order-progress";
 import { formatDateDdMmYyyy, formatInr, formatQuantityMt } from "@/lib/format";
 import {
   applyKpiFocus,
@@ -56,7 +51,6 @@ import type {
 } from "@/types/orders-catalog";
 import { OrdersActiveFilterHeader } from "./OrdersActiveFilterHeader";
 import { OrderPaymentBadge } from "./OrderPaymentBadge";
-import { OrderProgressTrack } from "./OrderProgressTrack";
 import { OrderStatusChip } from "./OrderStatusChip";
 import { OrdersFiltersBar } from "./OrdersFiltersBar";
 import { formatKpiValue, OrdersKpiCards } from "./OrdersKpiCards";
@@ -113,10 +107,6 @@ export function OrdersPage() {
     return unsub;
   }, []);
 
-  const warehouses = useMemo(
-    () => [...new Set(items.map((i) => i.warehouse))].sort(),
-    [items],
-  );
   const sellers = useMemo(() => [] as string[], []);
 
   const pipelineOrders = useMemo(
@@ -170,7 +160,6 @@ export function OrdersPage() {
   const hasDropdownFilters =
     filters.search.trim() !== "" ||
     filters.status !== "all" ||
-    filters.warehouse !== "all" ||
     filters.seller !== "all" ||
     filters.paymentType !== "all" ||
     filters.deliveryType !== "all" ||
@@ -287,7 +276,6 @@ export function OrdersPage() {
         <OrdersFiltersBar
           filters={filters}
           onChange={handleFilterChange}
-          warehouses={warehouses}
           sellers={sellers}
           statusOptions={ALL_ORDER_STATUSES}
         />
@@ -310,13 +298,11 @@ export function OrdersPage() {
                     <TableHead>Order / PO</TableHead>
                     <TableHead>Product</TableHead>
                     <TableHead>Supply Source</TableHead>
-                    <TableHead>Warehouse</TableHead>
                     <TableHead>Qty</TableHead>
                     <TableHead>Payment</TableHead>
                     <TableHead>Value</TableHead>
                     <TableHead>ETA</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="min-w-[220px]">Stage</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -324,7 +310,7 @@ export function OrdersPage() {
                   {rows.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={11}
+                        colSpan={9}
                         className="py-12 text-center text-sm text-slate-500"
                       >
                         No orders match the current filters.
@@ -368,9 +354,6 @@ export function OrdersPage() {
                             {"Verified Supply Partner"}
                           </TableCell>
                           <TableCell className="text-sm">
-                            {row.warehouse}
-                          </TableCell>
-                          <TableCell className="text-sm">
                             {formatQuantityMt(row.quantityMt)}
                           </TableCell>
                           <TableCell>
@@ -387,15 +370,6 @@ export function OrdersPage() {
                           </TableCell>
                           <TableCell>
                             <OrderStatusChip status={row.displayStatus} />
-                          </TableCell>
-                          <TableCell className="min-w-[220px] py-3">
-                            <OrderProgressTrack
-                              stages={ORDER_MVP_STAGES}
-                              currentIndex={orderMvpStageIndex(
-                                row.displayStatus,
-                              )}
-                              size="sm"
-                            />
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex flex-wrap justify-end gap-1">
@@ -420,14 +394,6 @@ export function OrdersPage() {
                                 }
                               >
                                 <Download className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-8 rounded-lg"
-                                onClick={() => router.push(ROUTES.support)}
-                              >
-                                <Headset className="h-3.5 w-3.5" />
                               </Button>
                             </div>
                           </TableCell>

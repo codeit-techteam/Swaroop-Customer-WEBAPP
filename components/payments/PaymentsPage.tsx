@@ -232,8 +232,10 @@ export function PaymentsPage() {
               <TableHead>Supply Source</TableHead>
               <TableHead>Due Date</TableHead>
               <TableHead className="text-right">Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="whitespace-nowrap">Status</TableHead>
+              <TableHead className="w-[1%] whitespace-nowrap text-right">
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -258,11 +260,11 @@ export function PaymentsPage() {
                 <TableCell className="text-right font-semibold">
                   {formatInr(p.totalAmount)}
                 </TableCell>
-                <TableCell>
+                <TableCell className="whitespace-nowrap">
                   <PaymentStatusChip status={p.status} />
                 </TableCell>
                 <TableCell
-                  className="text-right"
+                  className="w-[1%] whitespace-nowrap text-right"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex justify-end gap-1">

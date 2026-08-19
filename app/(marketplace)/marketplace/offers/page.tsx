@@ -1,12 +1,7 @@
-import type { Metadata } from "next";
-import { MarketplaceOffersPage } from "@/components/marketplace/offers";
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
-export const metadata: Metadata = {
-  title: "Marketplace Offers",
-  description:
-    "Explore exclusive deals, bulk discounts, seasonal campaigns and credit offers.",
-};
-
+/** Offers are integrated into the unified Marketplace page. */
 export default function MarketplaceOffersRoute() {
-  return <MarketplaceOffersPage />;
+  redirect(ROUTES.marketplace);
 }

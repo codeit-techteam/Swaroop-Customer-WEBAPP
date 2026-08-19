@@ -1,5 +1,10 @@
 import { categoriesMock } from "@/mock/categories";
 import { getProductById, productsMock } from "@/mock/products";
+import {
+  buildProductDocuments,
+  buildProductHighlights,
+  getFeaturesForMaterial,
+} from "./features";
 import { buildGalleryFromProduct, DEFAULT_QUALITY_ASSURANCE } from "./gallery";
 import {
   buildBulkPricing,
@@ -86,6 +91,9 @@ export function getProductDetailById(id: string): ProductDetailRecord | null {
     casNumber: product.casNumber,
     hsnCode: "3902.10.00",
     application: product.applications[0] ?? product.materialType,
+    applications: product.applications,
+    features: getFeaturesForMaterial(product.materialType),
+    highlights: buildProductHighlights(product.creditEligible),
     industry: "Petrochemicals & Packaging",
     packaging: "25 KG Bags",
     origin: product.origin,
@@ -108,7 +116,7 @@ export function getProductDetailById(id: string): ProductDetailRecord | null {
         "Issued Through PetroTrade Quality Assurance · Verified By PetroTrade QC · NABL Approved Laboratory",
     },
     specs: getSpecsForMaterial(product.materialType),
-    documents: [],
+    documents: buildProductDocuments(product.name),
     spotPrice: buildSpotPrice(product.price),
     bulkPricing: buildBulkPricing(product.price),
     paymentOptions: buildPaymentOptions(product.creditEligible),

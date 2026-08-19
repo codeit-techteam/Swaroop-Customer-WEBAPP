@@ -178,9 +178,6 @@ export interface ShipmentDashboardSummary {
 export interface ShipmentFiltersState {
   search: string;
   status: ShipmentStatus | "all";
-  warehouse: string | "all";
-  transportCompany: string | "all";
-  destinationState: string | "all";
 }
 
 export const MVP_SHIPMENT_TIMELINE: ReadonlyArray<{
@@ -248,9 +245,6 @@ export const SHIPMENT_DOC_LABELS: Record<ShipmentDocType, string> = {
 export const DEFAULT_SHIPMENT_FILTERS: ShipmentFiltersState = {
   search: "",
   status: "all",
-  warehouse: "all",
-  transportCompany: "all",
-  destinationState: "all",
 };
 
 /** Statuses counted as active (not yet completed). */

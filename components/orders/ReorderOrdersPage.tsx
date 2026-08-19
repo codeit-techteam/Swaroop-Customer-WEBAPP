@@ -29,10 +29,6 @@ export function ReorderOrdersPage() {
     return unsub;
   }, []);
 
-  const warehouses = useMemo(
-    () => [...new Set(items.map((i) => i.warehouse))].sort(),
-    [items],
-  );
   const sellers = useMemo(
     () => [...new Set(items.map((i) => i.sellerName))].sort(),
     [items],
@@ -61,7 +57,6 @@ export function ReorderOrdersPage() {
         <OrdersFiltersBar
           filters={filters}
           onChange={setFilters}
-          warehouses={warehouses}
           sellers={sellers}
           statusOptions={["delivered"]}
         />

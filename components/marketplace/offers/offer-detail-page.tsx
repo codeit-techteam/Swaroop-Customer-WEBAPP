@@ -73,16 +73,15 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
           description="This marketplace offer may have expired or been removed."
           breadcrumbs={[
             { label: "Marketplace", href: ROUTES.marketplace },
-            { label: "Offers", href: ROUTES.marketplaceOffers },
             { label: "Details" },
           ]}
         />
         <Button
           className="rounded-xl bg-brand hover:bg-brand-700"
-          onClick={() => router.push(ROUTES.marketplaceOffers)}
+          onClick={() => router.push(ROUTES.marketplace)}
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Offers
+          Back to Marketplace
         </Button>
       </PageContainer>
     );
@@ -120,14 +119,13 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
         description={offer.productName}
         breadcrumbs={[
           { label: "Marketplace", href: ROUTES.marketplace },
-          { label: "Offers", href: ROUTES.marketplaceOffers },
           { label: offer.badge },
         ]}
         actions={
           <Button asChild variant="outline" className="h-10 rounded-xl">
-            <Link href={ROUTES.marketplaceOffers}>
+            <Link href={ROUTES.marketplace}>
               <ArrowLeft className="h-4 w-4" />
-              All Offers
+              Marketplace
             </Link>
           </Button>
         }

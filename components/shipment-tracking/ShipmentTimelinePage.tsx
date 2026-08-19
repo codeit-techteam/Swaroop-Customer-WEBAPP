@@ -106,8 +106,7 @@ export function ShipmentTimelinePage() {
         <Card className="border-slate-200 shadow-card">
           <CardHeader className="border-b border-slate-100">
             <CardTitle className="text-base">
-              {shipment.orderNumber} · {shipment.warehouse} →{" "}
-              {shipment.destination}
+              {shipment.orderNumber} → {shipment.destination}
             </CardTitle>
             <p className="text-xs text-slate-500">
               Order Generated → Order Confirmed → Payment Verified → Packed →

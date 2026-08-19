@@ -11,6 +11,8 @@ import { useMarketplaceStore } from "@/store/marketplaceStore";
 import { FilterTopBar } from "./filter-top-bar";
 import { MarketplaceHeader } from "./marketplace-header";
 import { MarketplaceSearchBar } from "./search-bar";
+import { MarketplaceCategoryChips } from "./marketplace-category-chips";
+import { OfferBanner } from "./offer-banner";
 import { SortDropdown } from "./sort-dropdown";
 import { ViewToggle } from "./view-toggle";
 import { ProductGrid } from "./product-grid";
@@ -21,6 +23,7 @@ import { QuickViewDrawer } from "./quick-view-drawer";
 import { MarketplaceBrowseSkeleton } from "./marketplace-skeleton";
 import { MARKETPLACE_SEARCH_PLACEHOLDER } from "@/mock/filters";
 import type { GradeOriginFilter } from "@/types/marketplace";
+import type { MarketplaceOffer } from "@/types/offers";
 import { cn } from "@/lib/utils";
 
 const ORIGIN_FILTERS: Array<{ value: GradeOriginFilter; label: string }> = [
@@ -42,6 +45,7 @@ export function MarketplaceBrowse({
 }: MarketplaceBrowseProps) {
   const searchParams = useSearchParams();
   const [ready, setReady] = useState(false);
+  const [activeOfferId, setActiveOfferId] = useState<string | null>(null);
 
   const categories = useMarketplaceStore((s) => s.categories);
   const brands = useMarketplaceStore((s) => s.brands);
@@ -127,6 +131,24 @@ export function MarketplaceBrowse({
     toast.success("Filters applied");
   };
 
+  const handleSelectCategory = (
+    categoryId: Parameters<typeof applyCategoryFilter>[0],
+  ) => {
+    setActiveOfferId(null);
+    applyCategoryFilter(categoryId);
+  };
+
+  const handleReset = () => {
+    setActiveOfferId(null);
+    resetFilters();
+  };
+
+  const handleViewOfferProducts = (offer: MarketplaceOffer) => {
+    setActiveOfferId(offer.id);
+    applyCategoryFilter(offer.categoryId);
+    toast.success(`Showing products for ${offer.title}`);
+  };
+
   if (!ready) {
     return (
       <PageContainer>
@@ -150,23 +172,6 @@ export function MarketplaceBrowse({
         transition={{ duration: 0.35 }}
         className="space-y-4"
       >
-        <FilterTopBar
-          categories={categories}
-          brands={brands}
-          warehouses={warehouses}
-          draftFilters={draftFilters}
-          appliedFilters={filters}
-          activeCategoryId={activeCategoryId}
-          priceBounds={priceBounds}
-          onSelectCategory={applyCategoryFilter}
-          onToggleBrand={toggleDraftBrand}
-          onPriceChange={setDraftPriceRange}
-          onWarehouseChange={setDraftWarehouse}
-          onCreditChange={setDraftCreditEligible}
-          onApply={handleApply}
-          onReset={resetFilters}
-        />
-
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <MarketplaceSearchBar
             value={search}
@@ -175,6 +180,35 @@ export function MarketplaceBrowse({
           />
           <SortDropdown value={sortBy} onChange={setSortBy} />
         </div>
+
+        <MarketplaceCategoryChips
+          categories={categories}
+          activeCategoryId={activeCategoryId}
+          onSelect={handleSelectCategory}
+        />
+
+        <OfferBanner
+          activeOfferId={activeOfferId}
+          onViewProducts={handleViewOfferProducts}
+        />
+
+        <FilterTopBar
+          categories={categories}
+          brands={brands}
+          warehouses={warehouses}
+          draftFilters={draftFilters}
+          appliedFilters={filters}
+          activeCategoryId={activeCategoryId}
+          priceBounds={priceBounds}
+          showCategories={false}
+          onSelectCategory={handleSelectCategory}
+          onToggleBrand={toggleDraftBrand}
+          onPriceChange={setDraftPriceRange}
+          onWarehouseChange={setDraftWarehouse}
+          onCreditChange={setDraftCreditEligible}
+          onApply={handleApply}
+          onReset={handleReset}
+        />
 
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -204,7 +238,19 @@ export function MarketplaceBrowse({
         />
 
         {pagination.items.length === 0 ? (
-          <MarketplaceEmptyState onReset={resetFilters} />
+          <MarketplaceEmptyState
+            title={
+              activeOfferId
+                ? "No products available for this offer."
+                : undefined
+            }
+            description={
+              activeOfferId
+                ? "Try another offer or reset filters to browse all materials."
+                : undefined
+            }
+            onReset={handleReset}
+          />
         ) : viewMode === "grid" ? (
           <ProductGrid
             products={pagination.items}

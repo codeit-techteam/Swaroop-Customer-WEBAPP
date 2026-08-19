@@ -2,21 +2,27 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { AppBreadcrumb } from "@/components/navigation/app-breadcrumb";
 import { ROUTES } from "@/constants";
 import { useProductStore } from "@/store/productStore";
+import { useCartStore } from "@/store/cartStore";
 import { MarketplaceEmptyState } from "@/components/marketplace/empty-state";
 import type { BulkPricingTier } from "@/types/product-details";
 import { ProductGallery } from "./product-gallery";
 import { ProductHeader } from "./product-header";
+import { ProductHighlights } from "./product-highlights";
 import { ProductInfoCard } from "./product-info-card";
+import { ProductFeatures } from "./product-features";
+import { ProductApplications } from "./product-applications";
+import { DeliveryCard } from "./delivery-card";
 import { TechnicalSpecificationAccordion } from "./technical-specification-accordion";
-import { SpotPriceCard } from "./spot-price-card";
-import { BulkPricingCard } from "./bulk-pricing-card";
-import { PaymentOptionsCard } from "./payment-options-card";
-import { AddToCartPanel } from "./add-to-cart-panel";
-import { DownloadSpecButton } from "./download-spec-button";
+import { DocumentDownloads } from "./document-downloads";
+import {
+  MobileBuyBar,
+  StickyPurchasePanel,
+} from "./sticky-purchase-panel";
 import { RelatedProductsCarousel } from "./related-products-carousel";
 import { ProductDetailsPageSkeleton } from "./product-details-skeleton";
 
@@ -37,6 +43,7 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
   const galleryIndex = useProductStore((s) => s.galleryIndex);
   const setGalleryIndex = useProductStore((s) => s.setGalleryIndex);
   const relatedProducts = useProductStore((s) => s.relatedProducts);
+  const addItem = useCartStore((s) => s.addItem);
 
   useEffect(() => {
     setReady(false);
@@ -91,8 +98,17 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
     setQuantity(next);
   }
 
+  function handleMobileAdd() {
+    const result = addItem(detail.id, quantity, detail.packaging);
+    if (!result.ok) {
+      toast.error(result.message);
+      return;
+    }
+    toast.success(result.message);
+  }
+
   return (
-    <PageContainer className="space-y-8">
+    <PageContainer className="space-y-6 pb-24 lg:pb-8">
       <AppBreadcrumb
         items={[
           { label: "Marketplace", href: ROUTES.marketplace },
@@ -108,69 +124,72 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="grid items-start gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)_300px]"
+        className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,0.3fr)_minmax(0,0.45fr)_minmax(260px,0.25fr)]"
       >
-        <div className="space-y-3">
+        {/* Left — gallery + features (fills vertical space under image) */}
+        <div className="space-y-6 lg:col-start-1 lg:row-start-1 xl:col-start-1">
           <ProductGallery
             images={detail.gallery}
             activeIndex={galleryIndex}
             onSelect={setGalleryIndex}
           />
+          <div className="hidden space-y-6 xl:block">
+            <ProductFeatures features={detail.features} />
+            <ProductApplications
+              applications={detail.applications}
+              industry={detail.industry}
+            />
+          </div>
         </div>
 
-        <div className="space-y-4">
+        {/* Middle — product information hierarchy */}
+        <div className="space-y-6 lg:col-start-1 lg:row-start-2 xl:col-start-2 xl:row-start-1">
           <ProductHeader product={detail} />
+          <ProductHighlights highlights={detail.highlights} />
           <ProductInfoCard product={detail} />
+          <DeliveryCard
+            origin={detail.origin}
+            eta={detail.eta}
+            logistics={detail.logistics}
+          />
+          <div className="space-y-6 xl:hidden">
+            <ProductFeatures features={detail.features} />
+            <ProductApplications
+              applications={detail.applications}
+              industry={detail.industry}
+            />
+          </div>
           <TechnicalSpecificationAccordion specs={detail.specs} />
+          <DocumentDownloads documents={detail.documents} />
         </div>
 
-        <aside className="space-y-3 xl:sticky xl:top-24">
-          <SpotPriceCard spotPrice={displaySpotPrice} />
-          <BulkPricingCard
-            tiers={detail.bulkPricing}
+        {/* Right — sticky purchase panel (tablet+desktop) */}
+        <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1 xl:col-start-3 xl:row-span-1">
+          <StickyPurchasePanel
+            productId={detail.id}
+            spotPrice={displaySpotPrice}
+            bulkPricing={detail.bulkPricing}
+            paymentOptions={detail.paymentOptions}
+            moq={detail.moq}
+            maxStock={detail.stock}
+            packaging={detail.packaging}
+            availabilityLabel={detail.availabilityLabel}
+            eta={detail.eta}
+            freightPerMt={detail.logistics.freightPerMt}
             quantity={quantity}
+            onQuantityChange={setQuantity}
             onSelectTier={handleSelectTier}
           />
-          <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-card">
-            <AddToCartPanel
-              productId={detail.id}
-              moq={detail.moq}
-              maxStock={detail.stock}
-              packaging={detail.packaging}
-              quantity={quantity}
-              onQuantityChange={setQuantity}
-            />
-            <DownloadSpecButton productName={detail.name} />
-            <p className="px-1 text-[11px] leading-relaxed text-slate-400">
-              {detail.spotPrice.note}
-            </p>
-          </div>
-          <PaymentOptionsCard options={detail.paymentOptions} />
-        </aside>
+        </div>
       </motion.div>
 
       <RelatedProductsCarousel products={relatedProducts} />
 
-      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-card">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-          Fulfilled by
-        </p>
-        <p className="mt-1 text-sm font-semibold text-slate-900">
-          PetroTrade Network
-        </p>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {["Verified Supply Partner", "Quality Assured", "GST Compliant"].map(
-            (badge) => (
-              <span
-                key={badge}
-                className="rounded-md bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand shadow-sm"
-              >
-                {badge}
-              </span>
-            ),
-          )}
-        </div>
-      </div>
+      <MobileBuyBar
+        pricePerMt={displaySpotPrice.pricePerMt}
+        quantity={quantity}
+        onAddToCart={handleMobileAdd}
+      />
     </PageContainer>
   );
 }

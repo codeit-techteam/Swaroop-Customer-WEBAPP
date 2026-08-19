@@ -47,7 +47,7 @@ export function GlobalGradeSearch({ className }: GlobalGradeSearchProps) {
                 setOpen(true);
               }
             }}
-            placeholder="Search grades, warehouses…"
+            placeholder="Search grades…"
             className="h-10 rounded-full border-slate-200 bg-slate-50/80 pl-9 text-sm shadow-sm"
             aria-label="Search products by grade"
           />

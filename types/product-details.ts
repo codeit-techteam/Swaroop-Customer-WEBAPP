@@ -49,6 +49,10 @@ export interface PaymentOption {
   title: string;
   description: string;
   surchargeLabel?: string;
+  /** Shown when selected — e.g. "5% Discount Eligible" / "Approval Required" */
+  benefitLabel?: string;
+  /** Fractional discount applied to material subtotal when selected (e.g. 0.05) */
+  discountRate?: number;
   eligible: boolean;
 }
 
@@ -104,6 +108,9 @@ export interface ProductDetailRecord {
   casNumber: string;
   hsnCode: string;
   application: string;
+  applications: string[];
+  features: string[];
+  highlights: string[];
   industry: string;
   packaging: string;
   origin: string;

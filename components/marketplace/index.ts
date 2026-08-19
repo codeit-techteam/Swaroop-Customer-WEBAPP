@@ -2,6 +2,7 @@ export { MarketplaceBrowse } from "./marketplace-browse";
 export { FilterTopBar } from "./filter-top-bar";
 export { MarketplaceCategoryChips } from "./marketplace-category-chips";
 export { MarketplaceHeader } from "./marketplace-header";
+export { OfferBanner, MarketplaceOfferCard } from "./offer-banner";
 export { FilterSidebar } from "./filter-sidebar";
 export { CategoryFilter } from "./category-filter";
 export { BrandFilter } from "./brand-filter";

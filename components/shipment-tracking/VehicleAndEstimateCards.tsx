@@ -28,9 +28,7 @@ export function VehicleDetailsCard({
         <Field label="Vehicle Number" value={shipment.vehicleNumber} mono />
         <Field label="Truck Type" value={shipment.vehicleType} />
         <Field label="Capacity" value={`${shipment.truckCapacityMt} MT`} />
-        <Field label="Transport Company" value="PetroTrade Logistics" />
         <Field label="Driver" value={shipment.driverName} />
-        <Field label="Logistics" value="PetroTrade Logistics" />
         <Field
           label="License"
           value={shipment.driverLicense}
@@ -71,7 +69,7 @@ export function DeliveryEstimateCard({
           Display date from shipment record — not calculated live
         </p>
         <p className="mt-3 text-sm text-slate-600">
-          Destination: {shipment.destination}, {shipment.destinationState}
+          Destination: {shipment.destination}
         </p>
       </CardContent>
     </Card>

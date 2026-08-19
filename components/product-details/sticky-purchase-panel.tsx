@@ -1,0 +1,265 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Minus, Plus, ShoppingBag, ShoppingCart, Store } from "lucide-react";
+import { toast } from "sonner";
+import { ROUTES } from "@/constants";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { formatInr } from "@/lib/format";
+import { useCartStore } from "@/store/cartStore";
+import type {
+  BulkPricingTier,
+  PaymentMethodId,
+  PaymentOption,
+  SpotPriceInfo,
+} from "@/types/product-details";
+import { cn } from "@/lib/utils";
+import { BulkPricingCard } from "./bulk-pricing-card";
+import { BuyingSummary } from "./buying-summary";
+import { PaymentOptionsCard } from "./payment-options-card";
+import { SpotPriceCard } from "./spot-price-card";
+import { TrustBadges } from "./trust-badges";
+
+interface StickyPurchasePanelProps {
+  productId: string;
+  spotPrice: SpotPriceInfo;
+  bulkPricing: BulkPricingTier[];
+  paymentOptions: PaymentOption[];
+  moq: number;
+  maxStock: number;
+  packaging: string;
+  availabilityLabel: string;
+  eta: string;
+  freightPerMt: number;
+  quantity: number;
+  onQuantityChange: (quantity: number) => void;
+  onSelectTier: (tier: BulkPricingTier) => void;
+  className?: string;
+}
+
+export function StickyPurchasePanel({
+  productId,
+  spotPrice,
+  bulkPricing,
+  paymentOptions,
+  moq,
+  maxStock,
+  packaging,
+  availabilityLabel,
+  eta,
+  freightPerMt,
+  quantity,
+  onQuantityChange,
+  onSelectTier,
+  className,
+}: StickyPurchasePanelProps) {
+  const router = useRouter();
+  const addItem = useCartStore((s) => s.addItem);
+  const [error, setError] = useState<string | null>(null);
+  const eligible = paymentOptions.filter((option) => option.eligible);
+  const [paymentId, setPaymentId] = useState<PaymentMethodId>(
+    eligible[0]?.id ?? "advance",
+  );
+  const selectedPayment =
+    paymentOptions.find((option) => option.id === paymentId) ?? eligible[0];
+
+  function clamp(next: number) {
+    return Math.max(moq, Math.min(maxStock, Math.round(next)));
+  }
+
+  function changeQty(next: number) {
+    if (next < moq) {
+      setError(`Minimum order is ${moq} MT`);
+      onQuantityChange(moq);
+      return;
+    }
+    setError(null);
+    onQuantityChange(clamp(next));
+  }
+
+  function handleAdd(redirect: "cart" | "checkout" | null) {
+    const result = addItem(productId, quantity, packaging);
+    if (!result.ok) {
+      setError(result.message);
+      toast.error(result.message);
+      return;
+    }
+    toast.success(result.message);
+    if (redirect === "cart") {
+      router.push(ROUTES.cart);
+    } else if (redirect === "checkout") {
+      router.push(ROUTES.checkout);
+    }
+  }
+
+  return (
+    <aside
+      className={cn(
+        "space-y-3 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pb-2",
+        className,
+      )}
+    >
+      <SpotPriceCard spotPrice={spotPrice} />
+      <BulkPricingCard
+        tiers={bulkPricing}
+        quantity={quantity}
+        onSelectTier={onSelectTier}
+      />
+
+      <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-card">
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Quantity (MT)
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-11 w-11 min-h-11 min-w-11 shrink-0 rounded-xl"
+              disabled={quantity <= moq}
+              onClick={() => changeQty(quantity - 1)}
+              aria-label="Decrease quantity"
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <Input
+              type="number"
+              min={moq}
+              max={maxStock}
+              step={1}
+              value={quantity}
+              onChange={(e) => {
+                const parsed = Number(e.target.value);
+                if (Number.isFinite(parsed)) changeQty(parsed);
+              }}
+              className="h-11 rounded-xl text-center text-base font-semibold"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-11 w-11 min-h-11 min-w-11 shrink-0 rounded-xl"
+              disabled={quantity >= maxStock}
+              onClick={() => changeQty(quantity + 1)}
+              aria-label="Increase quantity"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="mt-1.5 text-xs text-slate-500">
+            MOQ {moq} MT · Available {maxStock} MT
+          </p>
+          {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : null}
+        </div>
+
+        <PaymentOptionsCard
+          options={paymentOptions}
+          selectedId={paymentId}
+          onSelect={setPaymentId}
+          compact
+        />
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+              Availability
+            </p>
+            <p className="mt-0.5 text-xs font-semibold text-emerald-700">
+              {availabilityLabel}
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+              Delivery ETA
+            </p>
+            <p className="mt-0.5 text-xs font-semibold text-slate-800">{eta}</p>
+          </div>
+        </div>
+
+        <BuyingSummary
+          pricePerMt={spotPrice.pricePerMt}
+          quantity={quantity}
+          freightPerMt={freightPerMt}
+          discountRate={selectedPayment?.discountRate ?? 0}
+        />
+
+        <div className="space-y-2">
+          <Button
+            type="button"
+            className="h-12 w-full rounded-xl bg-brand text-sm font-semibold hover:bg-brand-700"
+            onClick={() => handleAdd("cart")}
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Add To Cart
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 w-full rounded-xl text-sm font-semibold"
+            onClick={() => handleAdd("checkout")}
+          >
+            <ShoppingBag className="h-4 w-4" />
+            Buy Now
+          </Button>
+          <Button
+            asChild
+            type="button"
+            variant="ghost"
+            className="h-10 w-full rounded-xl text-xs font-medium text-slate-500"
+          >
+            <Link href={ROUTES.marketplace}>
+              <Store className="h-3.5 w-3.5" />
+              Continue Shopping
+            </Link>
+          </Button>
+        </div>
+
+        <p className="text-[11px] leading-relaxed text-slate-400">
+          {spotPrice.note} Estimated freight{" "}
+          {formatInr(freightPerMt, { compact: true })} / MT.
+        </p>
+      </div>
+
+      <TrustBadges />
+    </aside>
+  );
+}
+
+interface MobileBuyBarProps {
+  pricePerMt: number;
+  quantity: number;
+  onAddToCart: () => void;
+}
+
+export function MobileBuyBar({
+  pricePerMt,
+  quantity,
+  onAddToCart,
+}: MobileBuyBarProps) {
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
+      <div className="mx-auto flex max-w-lg items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            Est. total · {quantity} MT
+          </p>
+          <p className="truncate text-base font-bold tabular-nums text-brand">
+            {formatInr(pricePerMt * quantity, { compact: true })}
+          </p>
+        </div>
+        <Button
+          type="button"
+          className="h-11 shrink-0 rounded-xl bg-brand px-5 text-sm font-semibold hover:bg-brand-700"
+          onClick={onAddToCart}
+        >
+          <ShoppingCart className="h-4 w-4" />
+          Add To Cart
+        </Button>
+      </div>
+    </div>
+  );
+}

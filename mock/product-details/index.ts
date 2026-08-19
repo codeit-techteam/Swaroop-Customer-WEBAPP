@@ -12,3 +12,9 @@ export {
   DEFAULT_QUALITY_ASSURANCE,
   buildGalleryFromProduct,
 } from "./gallery";
+export {
+  getFeaturesForMaterial,
+  buildProductHighlights,
+  buildProductDocuments,
+  DEFAULT_PRODUCT_HIGHLIGHTS,
+} from "./features";

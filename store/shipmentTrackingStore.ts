@@ -22,7 +22,7 @@ import type {
   TransportDocument,
 } from "@/types/shipment-tracking";
 
-const STORAGE_KEY = "petrotrade.shipment-tracking.v2";
+const STORAGE_KEY = "petrotrade.shipment-tracking.v3";
 
 type ShipmentTrackingState = {
   shipments: ShipmentRecord[];
@@ -70,10 +70,7 @@ export function filterShipments(
         s.poNumber,
         s.product,
         s.vehicleNumber,
-        s.transportCompany,
-        s.warehouse,
         s.destination,
-        s.destinationState,
         s.grade,
         s.seller,
         s.invoiceNumber,
@@ -87,15 +84,6 @@ export function filterShipments(
 
   if (filters.status !== "all") {
     list = list.filter((s) => s.currentStatus === filters.status);
-  }
-  if (filters.warehouse !== "all") {
-    list = list.filter((s) => s.warehouse === filters.warehouse);
-  }
-  if (filters.transportCompany !== "all") {
-    list = list.filter((s) => s.transportCompany === filters.transportCompany);
-  }
-  if (filters.destinationState !== "all") {
-    list = list.filter((s) => s.destinationState === filters.destinationState);
   }
 
   return list.sort(
@@ -223,9 +211,29 @@ export const useShipmentTrackingStore = create<ShipmentTrackingStore>()(
       partialize: (state) => ({
         shipments: state.shipments,
         notifications: state.notifications,
-        filters: state.filters,
+        filters: {
+          search: state.filters.search,
+          status: state.filters.status,
+        },
         selectedId: state.selectedId,
       }),
+      merge: (persisted, current) => {
+        const p = persisted as Partial<ShipmentTrackingState> | undefined;
+        const filters = {
+          ...DEFAULT_SHIPMENT_FILTERS,
+          ...(p?.filters
+            ? {
+                search: p.filters.search ?? "",
+                status: p.filters.status ?? "all",
+              }
+            : {}),
+        };
+        return {
+          ...current,
+          ...p,
+          filters,
+        };
+      },
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true);
       },

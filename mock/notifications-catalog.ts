@@ -167,7 +167,7 @@ function defaultHref(
     case "promotions":
     case "offers":
     case "marketplace":
-      return ROUTES.marketplaceOffers;
+      return ROUTES.marketplace;
     case "system":
       return ROUTES.profile;
     default:
@@ -1232,7 +1232,7 @@ function buildFromSeed(seed: Seed, index: number): AppNotification {
     seed.category === "offers" ||
     seed.category === "marketplace"
   ) {
-    href = ROUTES.marketplaceOffers;
+    href = ROUTES.marketplace;
   } else if (seed.category === "system") {
     if (seed.type === "profile_updated" || seed.type === "gst_verified")
       href = ROUTES.profileCompany;

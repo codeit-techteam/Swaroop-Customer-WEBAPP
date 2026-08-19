@@ -30,7 +30,6 @@ import { formatDateDdMmYyyy, formatInr, formatQuantityMt } from "@/lib/format";
 import { orderPath } from "@/lib/order-journey-navigation";
 import {
   ACTIVE_STATUSES,
-  formatCountdown,
   matchesPurchaseRequestCategory,
   PURCHASE_REQUEST_STATUS_CATEGORIES,
   purchaseRequestStatusCategoryLabel,
@@ -62,17 +61,19 @@ function isActiveStatus(item: PurchaseRequestTrackingItem): boolean {
   return ACTIVE_STATUSES.includes(item.status);
 }
 
+function isWithdrawStatus(status: PurchaseRequestTrackingItem["status"]) {
+  return (
+    status === "pending_approval" ||
+    status === "seller_reviewing" ||
+    status === "review_pending"
+  );
+}
+
 export function PurchaseRequestsListPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const items = usePurchaseRequestTrackingStore((s) => s.items);
   const cancelRequest = usePurchaseRequestTrackingStore((s) => s.cancelRequest);
-  const withdrawRequest = usePurchaseRequestTrackingStore(
-    (s) => s.withdrawRequest,
-  );
-  const refreshPendingTimers = usePurchaseRequestTrackingStore(
-    (s) => s.refreshPendingTimers,
-  );
   const isHydrated = usePurchaseRequestTrackingStore((s) => s.isHydrated);
   const liveRequest = usePurchaseRequestStore((s) => s.submittedRequest);
   const liveStatus = usePurchaseRequestStore((s) => s.requestStatus);
@@ -86,7 +87,6 @@ export function PurchaseRequestsListPage() {
   const [warehouse, setWarehouse] = useState("all");
   const [paymentType, setPaymentType] = useState("all");
   const [page, setPage] = useState(1);
-  const [, setTick] = useState(0);
 
   useEffect(() => {
     setStatusCategory(parseStatusCategory(searchParams.get("status")));
@@ -100,14 +100,6 @@ export function PurchaseRequestsListPage() {
     if (usePurchaseRequestTrackingStore.persist.hasHydrated()) finish();
     return unsub;
   }, []);
-
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      refreshPendingTimers();
-      setTick((t) => t + 1);
-    }, 1000);
-    return () => window.clearInterval(id);
-  }, [refreshPendingTimers]);
 
   const statusFilterOptions = useMemo(
     () =>
@@ -250,11 +242,7 @@ export function PurchaseRequestsListPage() {
             variant="outline"
             className="h-8 rounded-lg"
             onClick={() => {
-              if (
-                row.status === "pending_approval" ||
-                row.status === "seller_reviewing" ||
-                row.status === "review_pending"
-              ) {
+              if (isWithdrawStatus(row.status)) {
                 router.push(ROUTES.purchaseRequestsPendingLive);
                 return;
               }
@@ -266,31 +254,18 @@ export function PurchaseRequestsListPage() {
             <Eye className="h-3.5 w-3.5" />
             View
           </Button>
-          {row.canCancel ? (
+          {row.canCancel && !isWithdrawStatus(row.status) ? (
             <Button
               size="sm"
               variant="ghost"
               className="h-8 rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700"
               onClick={() => {
-                if (
-                  row.status === "pending_approval" ||
-                  row.status === "seller_reviewing" ||
-                  row.status === "review_pending"
-                ) {
-                  withdrawRequest(row.id);
-                  toast.success("Request withdrawn");
-                  return;
-                }
                 cancelRequest(row.id);
                 toast.success("Request cancelled");
               }}
             >
               <Ban className="h-3.5 w-3.5" />
-              {row.status === "pending_approval" ||
-              row.status === "seller_reviewing" ||
-              row.status === "review_pending"
-                ? "Withdraw"
-                : "Cancel"}
+              Cancel
             </Button>
           ) : null}
         </div>
@@ -379,7 +354,6 @@ export function PurchaseRequestsListPage() {
                     <TableHead>Payment</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Expiry</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -410,13 +384,6 @@ export function PurchaseRequestsListPage() {
                       </TableCell>
                       <TableCell>
                         <TrackingStatusBadge status={row.status} />
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">
-                        {row.secondsRemaining != null
-                          ? formatCountdown(row.secondsRemaining)
-                          : row.expectedExpiryAt
-                            ? formatDateDdMmYyyy(row.expectedExpiryAt)
-                            : "—"}
                       </TableCell>
                       <TableCell className="text-right">
                         {renderActions(row)}

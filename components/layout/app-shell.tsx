@@ -15,11 +15,18 @@ export function AppShell({
   className,
 }: AppShellProps) {
   return (
-    <div className={cn("flex min-h-screen bg-background", className)}>
+    <div
+      className={cn(
+        "flex min-h-dvh w-full max-w-[100vw] overflow-x-hidden bg-background",
+        className,
+      )}
+    >
       {sidebar}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
         {navbar}
-        <main className="flex flex-1 flex-col">{children}</main>
+        <main className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
+          {children}
+        </main>
       </div>
     </div>
   );

@@ -8,30 +8,28 @@ interface ProductInfoCardProps {
   className?: string;
 }
 
-const INFO_ROWS: {
+const INFO_CELLS: {
   key: keyof Pick<
     ProductDetailRecord,
     | "origin"
     | "warehouseLabel"
     | "stockLabel"
-    | "eta"
+    | "moqLabel"
     | "packaging"
-    | "application"
-    | "grade"
-    | "casNumber"
+    | "eta"
     | "materialType"
+    | "casNumber"
   >;
   label: string;
 }[] = [
   { key: "origin", label: "Origin" },
   { key: "warehouseLabel", label: "Warehouse" },
-  { key: "stockLabel", label: "Stock Status" },
-  { key: "eta", label: "Delivery Lead Time" },
-  { key: "packaging", label: "Packaging Type" },
-  { key: "application", label: "Application" },
-  { key: "grade", label: "Grade" },
+  { key: "stockLabel", label: "Stock" },
+  { key: "moqLabel", label: "MOQ" },
+  { key: "packaging", label: "Packaging" },
+  { key: "eta", label: "Delivery Time" },
+  { key: "materialType", label: "Material" },
   { key: "casNumber", label: "CAS Number" },
-  { key: "materialType", label: "Material Type" },
 ];
 
 export function ProductInfoCard({ product, className }: ProductInfoCardProps) {
@@ -45,15 +43,17 @@ export function ProductInfoCard({ product, className }: ProductInfoCardProps) {
       <h2 className="text-sm font-semibold text-slate-900">
         Product Information
       </h2>
-      <dl className="mt-3 grid grid-cols-1 gap-x-4 gap-y-2.5 sm:grid-cols-2">
-        {INFO_ROWS.map((row) => (
+      <dl className="mt-3 grid grid-cols-2 gap-2.5">
+        {INFO_CELLS.map((cell) => (
           <div
-            key={row.key}
-            className="flex items-baseline justify-between gap-3 border-b border-slate-50 py-1.5 last:border-0 sm:last:border-b"
+            key={cell.key}
+            className="rounded-xl border border-slate-100 bg-slate-50/70 px-3 py-2.5"
           >
-            <dt className="text-xs font-medium text-slate-400">{row.label}</dt>
-            <dd className="text-right text-sm font-semibold text-slate-800">
-              {product[row.key]}
+            <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+              {cell.label}
+            </dt>
+            <dd className="mt-0.5 text-sm font-semibold text-slate-800">
+              {product[cell.key]}
             </dd>
           </div>
         ))}

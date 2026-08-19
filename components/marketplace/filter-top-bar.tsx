@@ -46,6 +46,8 @@ interface FilterTopBarProps {
   onCreditChange: (enabled: boolean) => void;
   onApply: () => void;
   onReset: () => void;
+  /** When false, category chips are rendered elsewhere on the page. */
+  showCategories?: boolean;
   className?: string;
 }
 
@@ -64,6 +66,7 @@ export function FilterTopBar({
   onCreditChange,
   onApply,
   onReset,
+  showCategories = true,
   className,
 }: FilterTopBarProps) {
   const [brandOpen, setBrandOpen] = useState(false);
@@ -143,13 +146,20 @@ export function FilterTopBar({
         className,
       )}
     >
-      <MarketplaceCategoryChips
-        categories={categories}
-        activeCategoryId={activeCategoryId}
-        onSelect={onSelectCategory}
-      />
+      {showCategories ? (
+        <MarketplaceCategoryChips
+          categories={categories}
+          activeCategoryId={activeCategoryId}
+          onSelect={onSelectCategory}
+        />
+      ) : null}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+      <div
+        className={cn(
+          "flex flex-wrap items-center gap-2",
+          showCategories && "mt-3 border-t border-slate-100 pt-3",
+        )}
+      >
         <div className="hidden flex-wrap items-center gap-2 md:flex">
           <FilterPill
             label="Brand"

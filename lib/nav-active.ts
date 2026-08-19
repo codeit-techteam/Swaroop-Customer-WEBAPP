@@ -21,7 +21,7 @@ export function isHrefMatchingPath(pathname: string, href?: string): boolean {
 
 /**
  * Among siblings, pick the most specific (longest) href that matches the path.
- * Prevents `/marketplace` (Browse) from staying active on `/marketplace/offers`.
+ * Prevents a shorter parent path from staying active on a nested sibling route.
  */
 export function getBestMatchingHref(
   pathname: string,

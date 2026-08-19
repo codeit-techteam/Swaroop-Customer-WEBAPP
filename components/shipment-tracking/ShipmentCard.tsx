@@ -39,19 +39,17 @@ export function ShipmentCard({ shipment }: ShipmentCardProps) {
       </CardHeader>
 
       <CardContent className="space-y-5 p-5">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Meta label="Order Number" value={shipment.orderNumber} mono />
           <Meta label="PO Number" value={shipment.poNumber} mono />
           <Meta
             label="Quantity"
             value={formatQuantityMt(shipment.quantityMt)}
           />
-          <Meta label="Warehouse" value={shipment.warehouse} />
           <Meta
             label="Destination"
-            value={`${shipment.destination}, ${shipment.destinationState}`}
+            value={shipment.destination}
           />
-          <Meta label="Transporter" value={shipment.transportCompany} />
           <Meta label="Vehicle Number" value={shipment.vehicleNumber} mono />
           <Meta
             label="Dispatch Date"

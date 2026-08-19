@@ -109,12 +109,6 @@ export interface HeroBannerContent {
   heading: string;
   subtitle: string;
   imageUrl: string;
-  primaryCta: { label: string; href: string };
-  secondaryCta: {
-    label: string;
-    href?: string;
-    action?: "download-market-report";
-  };
 }
 
 export interface DashboardData {

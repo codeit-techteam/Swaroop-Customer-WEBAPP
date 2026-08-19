@@ -90,19 +90,6 @@ export function TrackShipmentPage() {
     return applyShipmentKpiFocus(filtered, kpiFocus);
   }, [shipments, filters, kpiFocus]);
 
-  const warehouses = useMemo(
-    () => [...new Set(shipments.map((s) => s.warehouse))].sort(),
-    [shipments],
-  );
-  const transporters = useMemo(
-    () => [...new Set(shipments.map((s) => s.transportCompany))].sort(),
-    [shipments],
-  );
-  const destinationStates = useMemo(
-    () => [...new Set(shipments.map((s) => s.destinationState))].sort(),
-    [shipments],
-  );
-
   const unread = notifications.filter((n) => !n.read).length;
   const recentAlerts = useMemo(
     () =>
@@ -226,9 +213,6 @@ export function TrackShipmentPage() {
           resetFilters();
           setKpiFocus("none");
         }}
-        warehouses={warehouses}
-        transporters={transporters}
-        destinationStates={destinationStates}
       />
 
       <div className="space-y-4">

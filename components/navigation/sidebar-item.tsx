@@ -63,7 +63,12 @@ export function SidebarItem({
     const node = itemRef.current;
     if (!node) return;
     const frame = window.requestAnimationFrame(() => {
-      node.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      // inline: "nearest" prevents horizontal page jump when focusing active nav
+      node.scrollIntoView({
+        block: "nearest",
+        inline: "nearest",
+        behavior: "smooth",
+      });
     });
     return () => window.cancelAnimationFrame(frame);
   }, [showActive, collapsed, pathname]);

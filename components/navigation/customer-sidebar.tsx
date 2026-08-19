@@ -7,7 +7,6 @@ import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { CUSTOMER_NAV, ROUTES, APP_SHORT_NAME } from "@/constants";
 import { Sidebar } from "@/components/layout/sidebar";
 import { SidebarItem } from "@/components/navigation/sidebar-item";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useUiStore } from "@/store/uiStore";
 import { useAuthStore } from "@/store/authStore";
 import { useOnboardingStore } from "@/store/onboardingStore";
@@ -136,7 +135,7 @@ export function CustomerSidebar({
         </div>
       ) : null}
 
-      <ScrollArea className="min-h-0 flex-1 px-2 py-3">
+      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-2 py-3">
         <nav aria-label="Customer navigation" className="space-y-0.5">
           {primaryNav.map((item) => (
             <SidebarItem
@@ -149,9 +148,9 @@ export function CustomerSidebar({
             />
           ))}
         </nav>
-      </ScrollArea>
+      </div>
 
-      <div className="shrink-0 border-t border-slate-200 px-2 py-3">
+      <div className="shrink-0 border-t border-slate-200 px-2 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <nav aria-label="Account" className="space-y-0.5">
           {footerNav.map((item) => (
             <SidebarItem
@@ -176,7 +175,12 @@ export function CustomerSidebar({
 
   if (forceExpanded) {
     return (
-      <aside className={cn("flex h-full w-full flex-col bg-white", className)}>
+      <aside
+        className={cn(
+          "flex h-full max-h-dvh w-full flex-col overflow-hidden bg-white",
+          className,
+        )}
+      >
         {content}
       </aside>
     );

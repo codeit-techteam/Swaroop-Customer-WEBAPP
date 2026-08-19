@@ -20,7 +20,6 @@ export function OrderSummarySidebar({
     { label: "Invoice", value: shipment.invoiceNumber, mono: true },
     { label: "Product", value: `${shipment.product} (${shipment.grade})` },
     { label: "Quantity", value: formatQuantityMt(shipment.quantityMt) },
-    { label: "Warehouse", value: shipment.warehouse },
     { label: "Payment Type", value: shipment.paymentType },
     {
       label: "Grand Total",

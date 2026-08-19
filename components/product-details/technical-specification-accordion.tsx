@@ -22,7 +22,6 @@ export function TechnicalSpecificationAccordion({
     <Accordion
       type="single"
       collapsible
-      defaultValue="specs"
       className={cn(
         "rounded-2xl border border-slate-200 bg-white px-4 shadow-card",
         className,

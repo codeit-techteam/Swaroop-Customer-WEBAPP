@@ -47,12 +47,11 @@ export function MyOffersPage() {
         description="Track offers you've saved, applied, used or that have expired."
         breadcrumbs={[
           { label: "Marketplace", href: ROUTES.marketplace },
-          { label: "Offers", href: ROUTES.marketplaceOffers },
           { label: "My Offers" },
         ]}
         actions={
           <Button asChild variant="outline" className="rounded-xl">
-            <Link href={ROUTES.marketplaceOffers}>Back to Offers</Link>
+            <Link href={ROUTES.marketplace}>Back to Marketplace</Link>
           </Button>
         }
       />
@@ -81,7 +80,7 @@ export function MyOffersPage() {
                   asChild
                   className="mt-4 rounded-xl bg-brand hover:bg-brand-700"
                 >
-                  <Link href={ROUTES.marketplaceOffers}>Browse Offers</Link>
+                  <Link href={ROUTES.marketplace}>Browse Marketplace</Link>
                 </Button>
               </div>
             ) : (

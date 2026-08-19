@@ -17,14 +17,6 @@ export const heroBannerMock: HeroBannerContent = {
     "Enterprise-grade procurement and real-time market insights for global trading partners.",
   imageUrl:
     "https://images.unsplash.com/photo-1513828583688-c52646db42da?auto=format&fit=crop&w=1920&q=80",
-  primaryCta: {
-    label: "Explore Grade Catalogue",
-    href: ROUTES.marketplace,
-  },
-  secondaryCta: {
-    label: "Download Market Report",
-    action: "download-market-report",
-  },
 };
 
 export const categoriesMock: CategoryCardItem[] = [

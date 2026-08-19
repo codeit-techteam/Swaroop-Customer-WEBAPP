@@ -164,20 +164,6 @@ export const CUSTOMER_NAV: NavItem[] = [
     title: "Marketplace",
     href: ROUTES.marketplace,
     icon: "Store",
-    children: [
-      {
-        id: "marketplace-browse",
-        title: "Browse Products",
-        href: ROUTES.marketplace,
-      },
-      {
-        id: "marketplace-offers",
-        title: "Offers",
-        href: ROUTES.marketplaceOffers,
-        badge: 3,
-        badgeVariant: "pending",
-      },
-    ],
   },
   {
     id: "purchase-requests",

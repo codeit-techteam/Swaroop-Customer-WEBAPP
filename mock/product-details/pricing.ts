@@ -47,20 +47,24 @@ export function buildPaymentOptions(creditEligible: boolean): PaymentOption[] {
   return [
     {
       id: "advance",
-      title: "Advance Payment",
+      title: "Advance",
       description: "Pay before dispatch for preferred pricing.",
+      benefitLabel: "5% Discount Eligible",
+      discountRate: 0.05,
       eligible: true,
     },
     {
       id: "on_loading",
       title: "On Loading",
       description: "Pay after material loading confirmation.",
+      benefitLabel: "Standard Terms",
       eligible: true,
     },
     {
       id: "on_delivery",
       title: "On Delivery",
       description: "Pay after delivery confirmation.",
+      benefitLabel: "Standard Terms",
       eligible: true,
     },
     {
@@ -68,6 +72,7 @@ export function buildPaymentOptions(creditEligible: boolean): PaymentOption[] {
       title: "Credit 15 Days",
       description: "Net 15 days working capital.",
       surchargeLabel: "+1.5%",
+      benefitLabel: "Approval Required",
       eligible: creditEligible,
     },
     {
@@ -75,6 +80,7 @@ export function buildPaymentOptions(creditEligible: boolean): PaymentOption[] {
       title: "Credit 30 Days",
       description: "Net 30 days extended terms.",
       surchargeLabel: "+2.5%",
+      benefitLabel: "Approval Required",
       eligible: creditEligible,
     },
   ];

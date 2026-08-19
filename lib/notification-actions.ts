@@ -112,7 +112,7 @@ export function getNotificationHref(n: AppNotification): string {
     case "downloadInvoice":
       return ROUTES.documentsGstInvoices;
     case "viewOffer":
-      return ROUTES.marketplaceOffers;
+      return ROUTES.marketplace;
     case "viewDocument":
       return ROUTES.documents;
     case "openSupportTicket":
