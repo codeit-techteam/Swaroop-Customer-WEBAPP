@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { ProductDetailsPage } from "@/components/product-details";
 import { getProductById, productsMock } from "@/mock/products";
 
@@ -18,19 +17,19 @@ export async function generateMetadata({
   const product = getProductById(id);
   return {
     title: product ? `${product.name} | Marketplace` : "Product | Marketplace",
-    description: product?.description,
+    description:
+      product?.description ??
+      "Marketplace product details from PetroTrade catalog.",
   };
 }
 
+/**
+ * Allow admin-published CX catalog IDs (e.g. prod-pp-h110ma) through.
+ * Client product store resolves published feed first, then local mocks.
+ */
 export default async function MarketplaceProductPage({
   params,
 }: ProductPageProps) {
   const { id } = await params;
-  const product = getProductById(id);
-
-  if (!product) {
-    notFound();
-  }
-
   return <ProductDetailsPage productId={id} />;
 }

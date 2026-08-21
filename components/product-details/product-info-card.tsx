@@ -19,6 +19,8 @@ const INFO_CELLS: {
     | "eta"
     | "materialType"
     | "casNumber"
+    | "hsnCode"
+    | "application"
   >;
   label: string;
 }[] = [
@@ -29,10 +31,17 @@ const INFO_CELLS: {
   { key: "packaging", label: "Packaging" },
   { key: "eta", label: "Delivery Time" },
   { key: "materialType", label: "Material" },
+  { key: "application", label: "Application" },
   { key: "casNumber", label: "CAS Number" },
+  { key: "hsnCode", label: "HSN Code" },
 ];
 
 export function ProductInfoCard({ product, className }: ProductInfoCardProps) {
+  const cells = INFO_CELLS.filter((cell) => {
+    const value = product[cell.key];
+    return typeof value === "string" ? value.trim().length > 0 : Boolean(value);
+  });
+
   return (
     <div
       className={cn(
@@ -44,7 +53,7 @@ export function ProductInfoCard({ product, className }: ProductInfoCardProps) {
         Product Information
       </h2>
       <dl className="mt-3 grid grid-cols-2 gap-2.5">
-        {INFO_CELLS.map((cell) => (
+        {cells.map((cell) => (
           <div
             key={cell.key}
             className="rounded-xl border border-slate-100 bg-slate-50/70 px-3 py-2.5"

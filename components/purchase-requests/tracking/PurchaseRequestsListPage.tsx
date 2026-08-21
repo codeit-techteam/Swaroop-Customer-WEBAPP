@@ -4,8 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Ban,
-  ChevronLeft,
-  ChevronRight,
   Copy,
   Eye,
   Package,
@@ -408,8 +406,7 @@ export function PurchaseRequestsListPage() {
                   disabled={pageSafe <= 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                 >
-                  <ChevronLeft className="h-4 w-4" />
-                  Prev
+                  Previous
                 </Button>
                 <span className="text-xs font-medium text-slate-600">
                   {pageSafe} / {totalPages}
@@ -422,7 +419,6 @@ export function PurchaseRequestsListPage() {
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 >
                   Next
-                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>

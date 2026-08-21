@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { AppBreadcrumb } from "@/components/navigation/app-breadcrumb";
 import { ROUTES } from "@/constants";
+import { hydrateCustomerExperienceFeed } from "@/lib/cx-feed";
 import { useProductStore } from "@/store/productStore";
 import { useCartStore } from "@/store/cartStore";
 import { MarketplaceEmptyState } from "@/components/marketplace/empty-state";
@@ -46,10 +47,20 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
   const addItem = useCartStore((s) => s.addItem);
 
   useEffect(() => {
+    let cancelled = false;
     setReady(false);
-    loadProduct(productId);
-    const timer = window.setTimeout(() => setReady(true), 320);
-    return () => window.clearTimeout(timer);
+
+    async function boot() {
+      await hydrateCustomerExperienceFeed();
+      if (cancelled) return;
+      loadProduct(productId);
+      setReady(true);
+    }
+
+    void boot();
+    return () => {
+      cancelled = true;
+    };
   }, [loadProduct, productId]);
 
   const product = selectedProduct?.id === productId ? selectedProduct : null;
@@ -126,7 +137,6 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
         transition={{ duration: 0.35 }}
         className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,0.3fr)_minmax(0,0.45fr)_minmax(260px,0.25fr)]"
       >
-        {/* Left — gallery + features (fills vertical space under image) */}
         <div className="space-y-6 lg:col-start-1 lg:row-start-1 xl:col-start-1">
           <ProductGallery
             images={detail.gallery}
@@ -142,7 +152,6 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
           </div>
         </div>
 
-        {/* Middle — product information hierarchy */}
         <div className="space-y-6 lg:col-start-1 lg:row-start-2 xl:col-start-2 xl:row-start-1">
           <ProductHeader product={detail} />
           <ProductHighlights highlights={detail.highlights} />
@@ -163,7 +172,6 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
           <DocumentDownloads documents={detail.documents} />
         </div>
 
-        {/* Right — sticky purchase panel (tablet+desktop) */}
         <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1 xl:col-start-3 xl:row-span-1">
           <StickyPurchasePanel
             productId={detail.id}

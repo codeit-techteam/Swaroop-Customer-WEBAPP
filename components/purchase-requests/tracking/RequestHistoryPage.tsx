@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -179,8 +178,7 @@ export function RequestHistoryPage() {
                   disabled={pageSafe <= 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                 >
-                  <ChevronLeft className="h-4 w-4" />
-                  Prev
+                  Previous
                 </Button>
                 <span className="text-xs font-medium text-slate-600">
                   {pageSafe} / {totalPages}
@@ -193,7 +191,6 @@ export function RequestHistoryPage() {
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 >
                   Next
-                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>

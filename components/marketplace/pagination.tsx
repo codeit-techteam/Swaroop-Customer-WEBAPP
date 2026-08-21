@@ -1,6 +1,5 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +44,8 @@ export function MarketplacePagination({
   if (total === 0) return null;
 
   const pages = buildPageNumbers(page, totalPages);
+  const canGoPrev = page > 1;
+  const canGoNext = page < totalPages;
 
   return (
     <div
@@ -61,17 +62,16 @@ export function MarketplacePagination({
         of <span className="font-medium text-slate-700">{total}</span> results
       </p>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         <Button
           type="button"
           variant="outline"
-          size="icon"
-          className="h-9 w-9 rounded-lg"
-          disabled={page <= 1}
+          size="sm"
+          className="h-9 rounded-lg"
+          disabled={!canGoPrev}
           onClick={() => onPageChange(page - 1)}
-          aria-label="Previous page"
         >
-          <ChevronLeft className="h-4 w-4" />
+          Previous
         </Button>
 
         {pages.map((pageNumber) => (
@@ -94,14 +94,16 @@ export function MarketplacePagination({
 
         <Button
           type="button"
-          variant="outline"
-          size="icon"
-          className="h-9 w-9 rounded-lg"
-          disabled={page >= totalPages}
+          variant={canGoNext ? "default" : "outline"}
+          size="sm"
+          className={cn(
+            "h-9 rounded-lg",
+            canGoNext && "bg-brand text-white hover:bg-brand-700",
+          )}
+          disabled={!canGoNext}
           onClick={() => onPageChange(page + 1)}
-          aria-label="Next page"
         >
-          <ChevronRight className="h-4 w-4" />
+          Next
         </Button>
       </div>
     </div>

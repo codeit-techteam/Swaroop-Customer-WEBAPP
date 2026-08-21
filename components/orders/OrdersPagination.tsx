@@ -1,7 +1,7 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface OrdersPaginationProps {
   page: number;
@@ -20,6 +20,8 @@ export function OrdersPagination({
 }: OrdersPaginationProps) {
   const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
+  const canGoPrev = page > 1;
+  const canGoNext = page < totalPages && total > 0;
 
   return (
     <div className="flex items-center justify-between gap-3">
@@ -31,24 +33,25 @@ export function OrdersPagination({
           variant="outline"
           size="sm"
           className="h-8 rounded-lg"
-          disabled={page <= 1}
+          disabled={!canGoPrev}
           onClick={() => onPageChange(page - 1)}
         >
-          <ChevronLeft className="h-4 w-4" />
-          Prev
+          Previous
         </Button>
         <span className="text-xs font-medium text-slate-600">
           {page} / {totalPages}
         </span>
         <Button
-          variant="outline"
+          variant={canGoNext ? "default" : "outline"}
           size="sm"
-          className="h-8 rounded-lg"
-          disabled={page >= totalPages}
+          className={cn(
+            "h-8 rounded-lg",
+            canGoNext && "bg-brand text-white hover:bg-brand-700",
+          )}
+          disabled={!canGoNext}
           onClick={() => onPageChange(page + 1)}
         >
           Next
-          <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
     </div>
