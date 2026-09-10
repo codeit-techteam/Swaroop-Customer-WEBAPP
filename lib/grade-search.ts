@@ -32,7 +32,7 @@ export interface GradeSearchSuggestions {
 export type GradeSearchSuggestionItem =
   | { type: "material"; id: string; material: MaterialTaxonomyItem }
   | { type: "product"; id: string; product: MarketplaceProduct }
-  | { type: "view-all"; id: "view-all" };
+  | { type: "view-all"; id: string };
 
 export function getProductSupplyOrigin(
   product: MarketplaceProduct,
