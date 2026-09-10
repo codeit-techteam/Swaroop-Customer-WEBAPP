@@ -18,7 +18,7 @@ export function RecommendedProducts({
   return (
     <section className={cn("space-y-4", className)}>
       <SectionTitle
-        title="Recommended for Your Portfolio"
+        title="Recommended Grades"
         actionLabel="Browse Marketplace"
         actionHref={ROUTES.marketplace}
       />

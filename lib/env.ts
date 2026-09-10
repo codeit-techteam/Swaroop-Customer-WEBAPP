@@ -12,6 +12,7 @@ export const env = {
   enableWebSockets: process.env.NEXT_PUBLIC_ENABLE_WEBSOCKETS === "true",
   enablePayments: process.env.NEXT_PUBLIC_ENABLE_PAYMENTS === "true",
   cxApiUrl: process.env.NEXT_PUBLIC_CX_API_URL ?? "http://localhost:3000",
+  adminApiUrl: process.env.NEXT_PUBLIC_ADMIN_API_URL ?? "http://localhost:3002",
   isDevelopment: process.env.NODE_ENV === "development",
   isProduction: process.env.NODE_ENV === "production",
 } as const;

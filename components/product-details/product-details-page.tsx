@@ -10,8 +10,8 @@ import { hydrateCustomerExperienceFeed } from "@/lib/cx-feed";
 import { useProductStore } from "@/store/productStore";
 import { useCartStore } from "@/store/cartStore";
 import { MarketplaceEmptyState } from "@/components/marketplace/empty-state";
+import { BlindSellerBadge } from "@/components/marketplace/blind-seller-badge";
 import type { BulkPricingTier } from "@/types/product-details";
-import { ProductGallery } from "./product-gallery";
 import { ProductHeader } from "./product-header";
 import { ProductHighlights } from "./product-highlights";
 import { ProductInfoCard } from "./product-info-card";
@@ -41,8 +41,6 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
   const [quantity, setQuantity] = useState(25);
   const loadProduct = useProductStore((s) => s.loadProduct);
   const selectedProduct = useProductStore((s) => s.selectedProduct);
-  const galleryIndex = useProductStore((s) => s.galleryIndex);
-  const setGalleryIndex = useProductStore((s) => s.setGalleryIndex);
   const relatedProducts = useProductStore((s) => s.relatedProducts);
   const addItem = useCartStore((s) => s.addItem);
 
@@ -84,12 +82,12 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
         <AppBreadcrumb
           items={[
             { label: "Marketplace", href: ROUTES.marketplace },
-            { label: "Product" },
+            { label: "Grade" },
           ]}
         />
         <div className="mt-6">
           <MarketplaceEmptyState
-            title="Product not found"
+            title="Grade not found"
             description="This grade is unavailable or the link is invalid."
           />
         </div>
@@ -135,24 +133,25 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,0.3fr)_minmax(0,0.45fr)_minmax(260px,0.25fr)]"
+        className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]"
       >
-        <div className="space-y-6 lg:col-start-1 lg:row-start-1 xl:col-start-1">
-          <ProductGallery
-            images={detail.gallery}
-            activeIndex={galleryIndex}
-            onSelect={setGalleryIndex}
-          />
-          <div className="hidden space-y-6 xl:block">
-            <ProductFeatures features={detail.features} />
-            <ProductApplications
-              applications={detail.applications}
-              industry={detail.industry}
-            />
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-card">
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-base font-bold text-brand">
+              {detail.grade.slice(0, 4).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Blind Marketplace Offer
+              </p>
+              <p className="mt-0.5 text-sm text-slate-600">
+                Commercial and technical data only — no product photography and
+                no seller identity during discovery.
+              </p>
+            </div>
+            <BlindSellerBadge />
           </div>
-        </div>
 
-        <div className="space-y-6 lg:col-start-1 lg:row-start-2 xl:col-start-2 xl:row-start-1">
           <ProductHeader product={detail} />
           <ProductHighlights highlights={detail.highlights} />
           <ProductInfoCard product={detail} />
@@ -161,18 +160,16 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
             eta={detail.eta}
             logistics={detail.logistics}
           />
-          <div className="space-y-6 xl:hidden">
-            <ProductFeatures features={detail.features} />
-            <ProductApplications
-              applications={detail.applications}
-              industry={detail.industry}
-            />
-          </div>
+          <ProductFeatures features={detail.features} />
+          <ProductApplications
+            applications={detail.applications}
+            industry={detail.industry}
+          />
           <TechnicalSpecificationAccordion specs={detail.specs} />
           <DocumentDownloads documents={detail.documents} />
         </div>
 
-        <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1 xl:col-start-3 xl:row-span-1">
+        <div>
           <StickyPurchasePanel
             productId={detail.id}
             spotPrice={displaySpotPrice}

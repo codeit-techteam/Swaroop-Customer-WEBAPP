@@ -51,6 +51,7 @@ export interface NotificationsCatalogStoreState {
   deleteNotification: (id: string) => void;
   deleteSelected: () => void;
   archiveNotification: (id: string) => void;
+  ingestAdminPushes: (items: AppNotification[]) => number;
   setPreferences: (patch: Partial<NotificationPreferences>) => void;
   resetPreferences: () => void;
 }
@@ -346,6 +347,16 @@ export const useNotificationsCatalogStore =
               n.id === id ? { ...n, status: "archived" as const } : n,
             ),
           })),
+
+        ingestAdminPushes: (items) => {
+          const existing = new Set(get().notifications.map((n) => n.id));
+          const incoming = items.filter((item) => !existing.has(item.id));
+          if (incoming.length === 0) return 0;
+          set((s) => ({
+            notifications: [...incoming, ...s.notifications],
+          }));
+          return incoming.length;
+        },
 
         setPreferences: (patch) =>
           set((s) => ({ preferences: { ...s.preferences, ...patch } })),

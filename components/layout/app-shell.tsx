@@ -6,6 +6,7 @@ interface AppShellProps {
   sidebar?: ReactNode;
   navbar?: ReactNode;
   className?: string;
+  contentClassName?: string;
 }
 
 export function AppShell({
@@ -13,20 +14,19 @@ export function AppShell({
   sidebar,
   navbar,
   className,
+  contentClassName,
 }: AppShellProps) {
   return (
-    <div
-      className={cn(
-        "flex min-h-dvh w-full max-w-[100vw] overflow-x-hidden bg-background",
-        className,
-      )}
-    >
+    <div className={cn("min-h-dvh w-full bg-background", className)}>
       {sidebar}
-      <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
+      <div
+        className={cn(
+          "flex min-h-dvh min-w-0 flex-col",
+          contentClassName,
+        )}
+      >
         {navbar}
-        <main className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
-          {children}
-        </main>
+        <main className="flex min-w-0 flex-1 flex-col">{children}</main>
       </div>
     </div>
   );

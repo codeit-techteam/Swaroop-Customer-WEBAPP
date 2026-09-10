@@ -619,7 +619,7 @@ export const useDocumentsStore = create<DocumentsStoreState>()(
               message: `${fileName} attached to ${orderNumber}.`,
               createdAt: nowIso(),
               read: false,
-              href: "/documents/downloads",
+              href: "/documents",
               relatedId: id,
             },
             ...s.notifications,

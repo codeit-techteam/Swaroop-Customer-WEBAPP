@@ -12,6 +12,7 @@ export { CategoryCard } from "./category-card";
 export { CategoriesGrid } from "./categories-grid";
 export { DashboardProductCard } from "./product-card";
 export { RecommendedProducts } from "./recommended-products";
+export { PopularMaterials } from "./popular-materials";
 export { PromotionCard } from "./promotion-card";
 export { RequestQuoteDialog } from "./request-quote-dialog";
 export { DashboardSkeleton } from "./dashboard-skeleton";

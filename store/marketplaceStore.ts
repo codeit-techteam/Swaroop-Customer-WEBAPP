@@ -80,19 +80,25 @@ function matchesSearch(product: MarketplaceProduct, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
 
+  const specs = product.technicalSpecs
+    ? Object.values(product.technicalSpecs).filter(Boolean).join(" ")
+    : "";
+
   const haystack = [
     product.name,
     product.grade,
+    product.gradeCode,
     product.categoryId,
     product.materialType,
-    product.brandName,
-    product.brandShortName,
+    product.subCategory,
     product.description,
     product.warehouseLabel,
     product.origin,
     product.casNumber,
     product.applications.join(" "),
     product.badge,
+    specs,
+    product.technicalSpecs?.mfi ? `${product.technicalSpecs.mfi} mfi` : "",
   ]
     .join(" ")
     .toLowerCase();
@@ -195,7 +201,7 @@ export const useMarketplaceStore = create<MarketplaceStoreState>(
     search: "",
     originFilter: "all",
     sortBy: "recommended",
-    viewMode: "grid",
+    viewMode: "list",
     selectedWarehouse: null,
     creditEligible: false,
     page: 1,

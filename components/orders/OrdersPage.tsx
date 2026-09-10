@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
+  BadgeCheck,
   Clock3,
   Download,
   Eye,
@@ -22,8 +23,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ROUTES } from "@/constants";
-import { formatDateDdMmYyyy, formatInr, formatQuantityMt } from "@/lib/format";
+import { formatEtaDisplay, formatInr, formatQuantityMt } from "@/lib/format";
 import {
   applyKpiFocus,
   getAttentionReasons,
@@ -292,117 +299,124 @@ export function OrdersPage() {
             />
 
             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order / PO</TableHead>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Supply Source</TableHead>
-                    <TableHead>Qty</TableHead>
-                    <TableHead>Payment</TableHead>
-                    <TableHead>Value</TableHead>
-                    <TableHead>ETA</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rows.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={9}
-                        className="py-12 text-center text-sm text-slate-500"
-                      >
-                        No orders match the current filters.
-                      </TableCell>
+              <TooltipProvider delayDuration={200}>
+                <Table className="[&_td]:px-3 [&_td]:py-3.5 [&_th]:px-3">
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="whitespace-nowrap">
+                        Order / PO
+                      </TableHead>
+                      <TableHead>Product</TableHead>
+                      <TableHead className="whitespace-nowrap">
+                        Supply Source
+                      </TableHead>
+                      <TableHead className="whitespace-nowrap">Qty</TableHead>
+                      <TableHead>Payment</TableHead>
+                      <TableHead className="whitespace-nowrap">Value</TableHead>
+                      <TableHead className="whitespace-nowrap">ETA</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="w-[1%] text-right whitespace-nowrap">
+                        Actions
+                      </TableHead>
                     </TableRow>
-                  ) : (
-                    rows.map((row) => {
-                      const reasons = getAttentionReasons(row);
-                      return (
-                        <TableRow key={row.id}>
-                          <TableCell>
-                            <p className="font-mono text-xs font-semibold">
-                              {row.id}
-                            </p>
-                            <p className="font-mono text-[11px] text-slate-500">
-                              {row.poNumber}
-                            </p>
-                            {reasons.length > 0 ? (
-                              <div className="mt-1.5 space-y-0.5">
-                                {reasons.map((reason) => (
-                                  <p
-                                    key={reason}
-                                    className="flex items-center gap-1 text-[11px] font-medium text-amber-700"
-                                  >
-                                    <AlertTriangle className="h-3 w-3 shrink-0" />
-                                    {reason}
-                                  </p>
-                                ))}
-                              </div>
-                            ) : null}
-                          </TableCell>
-                          <TableCell>
-                            <p className="max-w-[160px] truncate text-sm font-medium">
-                              {row.productName}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              {row.grade}
-                            </p>
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {"Verified Supply Partner"}
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {formatQuantityMt(row.quantityMt)}
-                          </TableCell>
-                          <TableCell>
-                            <OrderPaymentBadge
-                              methodId={row.paymentMethodId}
-                              title={row.paymentMethodTitle}
-                            />
-                          </TableCell>
-                          <TableCell className="text-sm font-semibold">
-                            {formatInr(row.grandTotal, { compact: true })}
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {formatDateDdMmYyyy(row.expectedDelivery)}
-                          </TableCell>
-                          <TableCell>
-                            <OrderStatusChip status={row.displayStatus} />
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex flex-wrap justify-end gap-1">
-                              <Button
-                                size="sm"
-                                className="h-8 rounded-lg bg-brand hover:bg-brand-700"
-                                onClick={() =>
+                  </TableHeader>
+                  <TableBody>
+                    {rows.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={9}
+                          className="py-12 text-center text-sm text-slate-500"
+                        >
+                          No orders match the current filters.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      rows.map((row) => {
+                        const reasons = getAttentionReasons(row);
+                        return (
+                          <TableRow key={row.id}>
+                            <TableCell className="align-middle">
+                              <p className="font-mono text-xs font-semibold text-slate-900">
+                                {row.id}
+                              </p>
+                              <p className="font-mono text-[11px] text-slate-500">
+                                {row.poNumber}
+                              </p>
+                              {reasons.length > 0 ? (
+                                <div className="mt-1.5 flex flex-wrap gap-1">
+                                  {reasons.map((reason) => (
+                                    <span
+                                      key={reason}
+                                      className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800"
+                                    >
+                                      <AlertTriangle className="h-3 w-3 shrink-0" />
+                                      {reason}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </TableCell>
+                            <TableCell className="align-middle">
+                              <p
+                                className="max-w-[180px] truncate text-sm font-medium text-slate-900"
+                                title={row.productName}
+                              >
+                                {row.productName}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {row.grade}
+                              </p>
+                            </TableCell>
+                            <TableCell className="align-middle">
+                              <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm text-slate-700">
+                                <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                                Verified partner
+                              </span>
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap text-sm tabular-nums text-slate-700">
+                              {formatQuantityMt(row.quantityMt)}
+                            </TableCell>
+                            <TableCell className="align-middle">
+                              <OrderPaymentBadge
+                                methodId={row.paymentMethodId}
+                                title={row.paymentMethodTitle}
+                              />
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap text-sm font-semibold tabular-nums text-slate-900">
+                              {formatInr(row.grandTotal, { compact: true })}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap text-sm tabular-nums text-slate-700">
+                              {formatEtaDisplay(
+                                row.expectedDelivery,
+                                row.etaLabel,
+                              )}
+                            </TableCell>
+                            <TableCell className="align-middle">
+                              <OrderStatusChip
+                                status={row.displayStatus}
+                                className="whitespace-nowrap"
+                              />
+                            </TableCell>
+                            <TableCell className="w-[1%] whitespace-nowrap text-right">
+                              <OrderRowActions
+                                orderId={row.id}
+                                onDetails={() =>
                                   router.push(`${ROUTES.orderDetail}/${row.id}`)
                                 }
-                              >
-                                <Eye className="h-3.5 w-3.5" />
-                                Details
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-8 rounded-lg"
-                                onClick={() =>
+                                onDownload={() =>
                                   toast.success(
                                     "Invoice download queued (mock)",
                                   )
                                 }
-                              >
-                                <Download className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
+                              />
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </TooltipProvider>
             </div>
             <OrdersPagination
               page={pageSafe}
@@ -415,5 +429,42 @@ export function OrdersPage() {
         )}
       </div>
     </PageContainer>
+  );
+}
+
+function OrderRowActions({
+  orderId,
+  onDetails,
+  onDownload,
+}: {
+  orderId: string;
+  onDetails: () => void;
+  onDownload: () => void;
+}) {
+  return (
+    <div className="inline-flex h-8 shrink-0 items-stretch overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <Button
+        size="sm"
+        className="h-8 rounded-none border-0 bg-brand px-2.5 text-xs shadow-none hover:bg-brand-700"
+        onClick={onDetails}
+      >
+        <Eye className="h-3.5 w-3.5" />
+        Details
+      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 rounded-none border-l border-slate-200 p-0 text-slate-600 hover:bg-slate-50 hover:text-brand"
+            onClick={onDownload}
+            aria-label={`Download invoice for ${orderId}`}
+          >
+            <Download className="h-3.5 w-3.5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top">Download invoice</TooltipContent>
+      </Tooltip>
+    </div>
   );
 }

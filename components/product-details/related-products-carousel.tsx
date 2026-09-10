@@ -1,10 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
-import Image from "next/image";
+import { useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lock } from "lucide-react";
 import { formatInr } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import type { RelatedProductCard } from "@/types/product-details";
@@ -20,7 +19,6 @@ export function RelatedProductsCarousel({
   className,
 }: RelatedProductsCarouselProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
   if (products.length === 0) return null;
 
@@ -36,10 +34,10 @@ export function RelatedProductsCarousel({
       <div className="flex items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">
-            Related Products
+            Recommended Grades
           </h2>
           <p className="mt-0.5 text-sm text-slate-500">
-            Frequently bought together and grades customers also purchased.
+            Similar materials by specification and commercial terms.
           </p>
         </div>
         <div className="flex gap-1.5">
@@ -49,7 +47,7 @@ export function RelatedProductsCarousel({
             size="icon"
             className="h-9 w-9 rounded-lg"
             onClick={() => scrollBy(-1)}
-            aria-label="Scroll related products left"
+            aria-label="Scroll related grades left"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -59,7 +57,7 @@ export function RelatedProductsCarousel({
             size="icon"
             className="h-9 w-9 rounded-lg"
             onClick={() => scrollBy(1)}
-            aria-label="Scroll related products right"
+            aria-label="Scroll related grades right"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -77,55 +75,39 @@ export function RelatedProductsCarousel({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.04 * index, duration: 0.3 }}
             whileHover={{ y: -3 }}
-            className="w-[260px] shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card"
+            className="w-[260px] shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-card"
           >
-            <div className="relative aspect-[16/10] bg-slate-100">
-              {!failedImages[product.id] ? (
-                <Image
-                  src={product.imageUrl}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                  sizes="260px"
-                  onError={() =>
-                    setFailedImages((prev) => ({
-                      ...prev,
-                      [product.id]: true,
-                    }))
-                  }
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-sm font-bold text-brand/30">
-                  {product.categoryLabel.slice(0, 4)}
-                </div>
-              )}
-              <span className="absolute left-2 top-2 rounded-md bg-white/95 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-600 shadow-sm">
-                {product.categoryLabel}
-              </span>
-            </div>
-            <div className="space-y-2 p-3.5">
-              <p className="text-base font-bold tabular-nums text-brand">
-                {formatInr(product.pricePerMt, { compact: true })} / MT
-              </p>
-              <div>
-                <h3 className="line-clamp-1 text-sm font-semibold text-slate-900">
-                  {product.name}
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Verified Supply Partner
-                </p>
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-xs font-bold text-brand">
+                {product.name.slice(0, 3).toUpperCase()}
               </div>
-              <p className="text-xs text-slate-500">
-                {product.warehouseLabel} · {product.stockLabel}
-              </p>
-              <Button
-                asChild
-                variant="outline"
-                className="h-9 w-full rounded-xl text-xs font-semibold"
-              >
-                <Link href={product.href}>View Grade</Link>
-              </Button>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-slate-900">
+                  {product.name}
+                </p>
+                <p className="text-xs text-slate-500">{product.categoryLabel}</p>
+              </div>
             </div>
+            <p className="mt-3 text-lg font-bold tabular-nums text-brand">
+              {formatInr(product.pricePerMt)}
+              <span className="ml-1 text-xs font-medium text-slate-400">
+                / MT
+              </span>
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              {product.stockLabel} · {product.warehouseLabel}
+            </p>
+            <p className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
+              <Lock className="h-3 w-3" aria-hidden />
+              Seller protected
+            </p>
+            <Button
+              asChild
+              size="sm"
+              className="mt-3 h-9 w-full rounded-xl bg-brand text-xs hover:bg-brand-700"
+            >
+              <Link href={product.href}>View Details</Link>
+            </Button>
           </motion.article>
         ))}
       </div>

@@ -61,6 +61,9 @@ export const MONTHLY_PURCHASE_OPTIONS = [
   { value: "above_50l", label: "Above ₹50L" },
 ] as const;
 
+export const CREDIT_APPLICATION_STORAGE_KEY =
+  "petrotrade.credit-application.v1";
+
 export function generateCreditApplicationId(): string {
   const seq = Math.floor(Math.random() * 900) + 100;
   return `CRD-2026-${String(seq).padStart(5, "0")}`;

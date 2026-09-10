@@ -13,6 +13,9 @@ const STEPS: Array<{ id: CreditApplicationStep; label: string }> = [
 
 interface CreditProcessStepperProps {
   activeStep: CreditApplicationStep;
+  /** Highest step the user may jump to (inclusive). */
+  reachableStep?: CreditApplicationStep;
+  onStepSelect?: (step: CreditApplicationStep) => void;
   className?: string;
 }
 
@@ -22,9 +25,12 @@ function stepIndex(step: CreditApplicationStep): number {
 
 export function CreditProcessStepper({
   activeStep,
+  reachableStep,
+  onStepSelect,
   className,
 }: CreditProcessStepperProps) {
   const activeIdx = stepIndex(activeStep);
+  const reachableIdx = stepIndex(reachableStep ?? activeStep);
 
   return (
     <nav aria-label="Credit application progress" className={cn(className)}>
@@ -33,18 +39,29 @@ export function CreditProcessStepper({
           const isComplete = idx < activeIdx;
           const isCurrent = idx === activeIdx;
           const isUpcoming = idx > activeIdx;
+          const canSelect =
+            Boolean(onStepSelect) && idx <= reachableIdx && !isCurrent;
 
           return (
             <li key={step.id} className="flex flex-1 items-center">
               <div className="flex min-w-0 flex-col items-center gap-2 text-center">
-                <div
+                <button
+                  type="button"
+                  disabled={!canSelect && !isCurrent}
+                  onClick={() => {
+                    if (canSelect) onStepSelect?.(step.id);
+                  }}
+                  aria-current={isCurrent ? "step" : undefined}
+                  aria-label={step.label}
                   className={cn(
-                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold",
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors",
                     isComplete &&
                       "border-emerald-500 bg-emerald-500 text-white",
                     isCurrent &&
                       "border-brand bg-brand text-white shadow-md shadow-brand/20",
                     isUpcoming && "border-slate-200 bg-white text-slate-400",
+                    canSelect && "cursor-pointer hover:brightness-95",
+                    !canSelect && "cursor-default",
                   )}
                 >
                   {isComplete ? (
@@ -52,7 +69,7 @@ export function CreditProcessStepper({
                   ) : (
                     idx + 1
                   )}
-                </div>
+                </button>
                 <span
                   className={cn(
                     "hidden max-w-[7rem] text-xs font-medium leading-tight sm:block",

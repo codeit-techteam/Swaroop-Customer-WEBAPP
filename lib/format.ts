@@ -43,9 +43,23 @@ export function formatPercentChange(value: number): string {
 }
 
 export function formatDateDdMmYyyy(isoDate: string): string {
+  if (!isoDate) return "—";
   const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return "—";
   const day = String(date.getDate()).padStart(2, "0");
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
+}
+
+/** Prefer a calendar date; fall back to a relative label such as "2–3 Business Days". */
+export function formatEtaDisplay(
+  value: string,
+  fallbackLabel?: string | null,
+): string {
+  const formatted = formatDateDdMmYyyy(value);
+  if (formatted !== "—") return formatted;
+  const label = fallbackLabel?.trim() || value.trim();
+  if (label && Number.isNaN(Date.parse(label))) return label;
+  return "—";
 }

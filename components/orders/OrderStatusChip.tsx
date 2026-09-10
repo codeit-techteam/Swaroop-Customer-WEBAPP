@@ -23,7 +23,7 @@ export function OrderStatusChip({ status, className }: OrderStatusChipProps) {
   return (
     <span
       className={cn(
-        "inline-flex rounded-lg border px-2.5 py-0.5 text-xs font-semibold",
+        "inline-flex whitespace-nowrap rounded-lg border px-2.5 py-0.5 text-xs font-semibold",
         STATUS_CLASS[status],
         className,
       )}

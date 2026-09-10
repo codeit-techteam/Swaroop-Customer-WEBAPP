@@ -8,15 +8,14 @@ import type {
 import { creditSummaryMock, outstandingPaymentMock } from "./credit";
 import { marketPricesMock, MARKET_PRICES_UPDATED_AT } from "./marketPrices";
 import { recentActivityMock } from "./notifications";
-import { recommendedProductsMock } from "./products";
+import { recommendedProductsMock } from "./recommendations";
 import { purchaseRequestsMock } from "./purchaseRequests";
 
 export const heroBannerMock: HeroBannerContent = {
-  heading: "Global Petrochemical Hub",
+  heading: "Source Petrochemicals with Confidence",
   subtitle:
-    "Enterprise-grade procurement and real-time market insights for global trading partners.",
-  imageUrl:
-    "https://images.unsplash.com/photo-1513828583688-c52646db42da?auto=format&fit=crop&w=1920&q=80",
+    "Discover verified grades, compare market prices and procure directly through a secure blind marketplace.",
+  imageUrl: "",
 };
 
 export const categoriesMock: CategoryCardItem[] = [

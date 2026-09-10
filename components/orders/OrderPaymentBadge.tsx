@@ -27,7 +27,7 @@ export function OrderPaymentBadge({
   return (
     <span
       className={cn(
-        "inline-flex rounded-lg border px-2 py-0.5 text-[11px] font-semibold",
+        "inline-flex whitespace-nowrap rounded-lg border px-2 py-0.5 text-[11px] font-semibold",
         TONE_CLASS[tone],
         className,
       )}

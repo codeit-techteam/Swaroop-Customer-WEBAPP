@@ -14,6 +14,7 @@ import {
   ProcurementTable,
   PromotionCard,
   RecommendedProducts,
+  PopularMaterials,
 } from "@/components/dashboard";
 
 export function CustomerDashboard() {
@@ -65,6 +66,7 @@ export function CustomerDashboard() {
           <div className="grid items-start gap-5 lg:gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
             <div className="min-w-0 space-y-5 lg:space-y-6">
               <MarketPricesSection prices={marketPrices} />
+              <PopularMaterials />
               <ProcurementTable rows={purchaseRequests} />
               <RecommendedProducts products={recommendedProducts} />
             </div>

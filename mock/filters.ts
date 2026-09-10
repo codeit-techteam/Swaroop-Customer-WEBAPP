@@ -30,7 +30,7 @@ export const MARKETPLACE_SORT_OPTIONS: SortOption[] = [
 export const MARKETPLACE_PAGE_SIZE = 12;
 
 export const MARKETPLACE_SEARCH_PLACEHOLDER =
-  "Search Grade, CAS No., or Application...";
+  "Search materials, grades, product codes, MFI...";
 
 export const FILTER_PANEL_TITLE = "Catalog Filters";
 export const FILTER_PANEL_SUBTITLE = "REFINE SELECTION";

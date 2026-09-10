@@ -5,6 +5,8 @@ export type CreditAccountStatus =
 
 export type CreditApplicationStep = "apply" | "upload" | "review" | "decision";
 
+export type CreditWizardStep = "apply" | "upload";
+
 export type CreditTermOption = "net_15" | "net_30";
 
 export type MonthlyPurchaseBand =
@@ -17,6 +19,9 @@ export type CreditDocumentId =
   | "itr_financials"
   | "cancelled_cheque"
   | "business_registration";
+
+export type CreditApplicationDecisionStatus =
+  "pending_review" | "approved" | "rejected";
 
 export interface CreditDocumentDefinition {
   id: CreditDocumentId;
@@ -52,10 +57,21 @@ export interface CreditApplicationDraft {
   declarationAccepted: boolean;
 }
 
+export interface SubmittedCreditDocumentSnapshot {
+  id: CreditDocumentId;
+  title: string;
+  fileName: string;
+  source: UploadedCreditDocument["source"];
+}
+
 export interface SubmittedCreditApplication {
   applicationId: string;
   requestedLimit: number;
   creditTerm: CreditTermOption;
+  monthlyPurchase: MonthlyPurchaseBand;
+  purpose: string;
   submittedAt: string;
-  status: "pending_review";
+  estimatedDecisionBy: string;
+  status: CreditApplicationDecisionStatus;
+  documents: SubmittedCreditDocumentSnapshot[];
 }

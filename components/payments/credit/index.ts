@@ -5,3 +5,5 @@ export { CreditDocumentPreviewModal } from "./credit-document-preview-modal";
 export { CreditApplicationSuccessModal } from "./credit-application-success-modal";
 export { CreditApplicationSubmittedView } from "./credit-application-submitted-view";
 export { CreditSidebarCards } from "./credit-sidebar-cards";
+export { CreditApplyStep } from "./credit-apply-step";
+export { CreditUploadStep } from "./credit-upload-step";

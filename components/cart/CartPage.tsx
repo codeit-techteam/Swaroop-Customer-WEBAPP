@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -144,16 +143,8 @@ export function CartPage() {
           {items.map((item) => (
             <Card key={item.productId} className="border-slate-200 shadow-card">
               <CardContent className="flex flex-col gap-4 p-4 sm:flex-row">
-                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                  {item.imageUrl ? (
-                    <Image
-                      src={item.imageUrl}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                      sizes="80px"
-                    />
-                  ) : null}
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-brand">
+                  {item.grade.slice(0, 4).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1 space-y-2">
                   <div className="flex flex-wrap items-start justify-between gap-2">

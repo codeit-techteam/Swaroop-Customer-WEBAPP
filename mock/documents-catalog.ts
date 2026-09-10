@@ -602,7 +602,7 @@ function buildNotifications(): DocumentNotification[] {
         "Bundle download of packing list and e-way bill completed successfully.",
       createdAt: isoDaysAgo(4, 10),
       read: true,
-      href: "/documents/downloads",
+      href: "/documents",
     },
     {
       id: "dn-6",

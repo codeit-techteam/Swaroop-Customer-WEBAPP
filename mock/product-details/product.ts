@@ -35,18 +35,15 @@ function availabilityFromStock(
 }
 
 function buildSku(product: {
-  brandShortName: string;
+  gradeCode?: string;
   grade: string;
   id: string;
-  warehouseLabel: string;
 }): string {
-  const brand = product.brandShortName.slice(0, 3).toUpperCase();
+  if (product.gradeCode) return product.gradeCode;
   const grade = product.grade.replace(/\s+/g, "").toUpperCase();
-  const loc =
-    product.warehouseLabel.split(",")[0]?.slice(0, 3).toUpperCase() ?? "IND";
   const suffix =
     product.id.split("-").pop()?.slice(0, 4).toUpperCase() ?? "001";
-  return `${brand}-${grade}-${suffix}-${loc}`;
+  return `${grade}-${suffix}`;
 }
 
 /**
@@ -60,7 +57,7 @@ export function getProductDetailById(id: string): ProductDetailRecord | null {
   const category =
     categoriesMock.find((item) => item.id === product.categoryId) ??
     categoriesMock[0]!;
-  const moq = Math.max(product.moq, 25);
+  const moq = product.moq;
   const availability = availabilityFromStock(
     product.stock,
     product.stockStatus,
@@ -70,18 +67,35 @@ export function getProductDetailById(id: string): ProductDetailRecord | null {
       (item) =>
         item.id !== product.id &&
         (item.categoryId === product.categoryId ||
-          item.materialType === product.materialType),
+          item.materialType === product.materialType ||
+          item.grade === product.grade),
     )
     .slice(0, 8)
     .map((item) => item.id);
+
+  const techSpecs = product.technicalSpecs
+    ? Object.entries(product.technicalSpecs)
+        .filter(([, value]) => Boolean(value))
+        .map(([key, value], index) => ({
+          id: `tech-${key}-${index}`,
+          label:
+            key === "mfi"
+              ? "MFI"
+              : key === "iv"
+                ? "IV"
+                : key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+          value: value!,
+          standard: "Grade Specification",
+        }))
+    : getSpecsForMaterial(product.materialType);
 
   return {
     id: product.id,
     sku: buildSku(product),
     name: product.name,
-    brandName: product.brandName,
-    brandShortName: product.brandShortName,
-    manufacturer: product.brandName,
+    brandName: "Verified Supply",
+    brandShortName: "PETROTRADE",
+    manufacturer: "PetroTrade Network",
     categoryId: product.categoryId,
     categoryName: category.name,
     categorySlug: category.slug,
@@ -105,7 +119,7 @@ export function getProductDetailById(id: string): ProductDetailRecord | null {
         ? `${product.stock}+ MT Available`
         : `${product.stock.toLocaleString("en-IN")} MT Available`,
     moq,
-    moqLabel: `${moq} MT (1 Truckload)`,
+    moqLabel: `${moq} MT`,
     eta: product.eta,
     availability: availability.level,
     availabilityLabel: availability.label,
@@ -115,7 +129,7 @@ export function getProductDetailById(id: string): ProductDetailRecord | null {
       subtitle:
         "Issued Through PetroTrade Quality Assurance · Verified By PetroTrade QC · NABL Approved Laboratory",
     },
-    specs: getSpecsForMaterial(product.materialType),
+    specs: techSpecs,
     documents: buildProductDocuments(product.name),
     spotPrice: buildSpotPrice(product.price),
     bulkPricing: buildBulkPricing(product.price),

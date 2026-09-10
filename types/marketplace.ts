@@ -109,14 +109,28 @@ export interface PaymentEligibilityOption {
   description: string;
 }
 
+export interface ProductTechnicalSpecs {
+  mfi?: string;
+  density?: string;
+  form?: string;
+  iv?: string;
+  viscosity?: string;
+  purity?: string;
+  [key: string]: string | undefined;
+}
+
 export interface MarketplaceProduct {
   id: string;
   name: string;
   grade: string;
+  /** Material / grade code e.g. PP-RF-284 */
+  gradeCode?: string;
   /** Parent browse category (Polymers / Chemicals / …) */
   categoryId: MarketplaceParentCategoryId;
-  /** Material grade family from Customer App (Polypropylene, HDPE, …) */
-  materialType: MaterialGradeCategory;
+  /** Material family label e.g. Polypropylene, Acetone */
+  materialType: string;
+  /** Application sub-grade e.g. Raffia, Film, Pipe */
+  subCategory?: string;
   brandId: string;
   brandName: string;
   brandShortName: string;
@@ -140,6 +154,12 @@ export interface MarketplaceProduct {
   popularityScore: number;
   /** Supply chain origin — domestic (India) or imported */
   supplyOrigin?: ProductSupplyOrigin;
+  technicalSpecs?: ProductTechnicalSpecs;
+  verified?: boolean;
+  availableQuantity?: number;
+  sellerId?: string;
+  /** When false, seller identity is hidden (blind marketplace) */
+  sellerVisible?: boolean;
 }
 
 export interface MarketplaceProductDetails extends MarketplaceProduct {

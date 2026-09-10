@@ -53,6 +53,19 @@ const defaultFilters: OrdersCatalogFilters = {
   dateTo: "",
 };
 
+function resolveDeliveryDate(eta: string, createdAt: string): string {
+  if (/^\d{4}-\d{2}-\d{2}/.test(eta) && !Number.isNaN(Date.parse(eta))) {
+    return eta.slice(0, 10);
+  }
+  const range = eta.match(/(\d+)\s*[–-]\s*(\d+)/);
+  const single = eta.match(/(\d+)/);
+  const days = range ? Number(range[2]) : single ? Number(single[1]) : 5;
+  const base = new Date(createdAt);
+  const start = Number.isNaN(base.getTime()) ? new Date() : new Date(base);
+  start.setDate(start.getDate() + days);
+  return start.toISOString().slice(0, 10);
+}
+
 function mapCustomerToCatalog(order: CustomerOrder): OrdersCatalogItem {
   const statusMap: Record<string, OrdersDisplayStatus> = {
     order_created: "processing",
@@ -97,7 +110,7 @@ function mapCustomerToCatalog(order: CustomerOrder): OrdersCatalogItem {
           : displayStatus === "ready"
             ? 70
             : 40,
-    expectedDelivery: order.eta,
+    expectedDelivery: resolveDeliveryDate(order.eta, order.createdAt),
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
     destination: order.destination,

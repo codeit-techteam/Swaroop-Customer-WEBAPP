@@ -10,7 +10,7 @@ export function CustomerFooter({ className }: CustomerFooterProps) {
   return (
     <footer
       className={cn(
-        "mt-8 border-t border-slate-200 bg-white px-4 py-6 md:px-6",
+        "mt-auto border-t border-slate-200 bg-white px-4 py-6 md:px-6",
         className,
       )}
     >

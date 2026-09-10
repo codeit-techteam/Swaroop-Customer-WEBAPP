@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Lock } from "lucide-react";
 import type { RecommendedProduct } from "@/types/dashboard";
 import { ROUTES } from "@/constants";
 import { formatInrPerMt } from "@/lib/format";
@@ -23,8 +21,6 @@ export function DashboardProductCard({
   index = 0,
   className,
 }: ProductCardProps) {
-  const [imageFailed, setImageFailed] = useState(false);
-
   const stockLabel =
     product.stockStatus === "in_stock"
       ? "IN STOCK"
@@ -39,31 +35,28 @@ export function DashboardProductCard({
       transition={{ delay: 0.06 * index, duration: 0.35 }}
       whileHover={{ y: -3, transition: { duration: 0.2 } }}
       className={cn(
-        "group flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-card transition-shadow hover:shadow-elevated",
+        "group flex flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-4 shadow-card transition-shadow hover:shadow-elevated",
         className,
       )}
     >
-      <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
-        {!imageFailed ? (
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, 280px"
-            onError={() => setImageFailed(true)}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-100 to-brand-200">
-            <span className="text-2xl font-bold text-brand/40">
-              {product.grade.slice(0, 3)}
-            </span>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-brand">
+            {product.grade.slice(0, 4).toUpperCase()}
           </div>
-        )}
+          <div className="min-w-0">
+            <h3 className="line-clamp-1 text-sm font-semibold text-slate-900">
+              {product.name}
+            </h3>
+            <p className="mt-0.5 text-xs font-medium text-slate-400">
+              {product.grade}
+            </p>
+          </div>
+        </div>
         <Badge
           variant="success"
           className={cn(
-            "absolute left-3 top-3 rounded-md border-0 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-sm",
+            "rounded-md border-0 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
             product.stockStatus === "limited" && "bg-amber-50 text-amber-700",
             product.stockStatus === "out_of_stock" && "bg-red-50 text-red-600",
           )}
@@ -72,34 +65,28 @@ export function DashboardProductCard({
         </Badge>
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <div>
-          <h3 className="line-clamp-1 text-sm font-semibold text-slate-900">
-            {product.name}
-          </h3>
-          <p className="mt-0.5 text-xs font-medium text-slate-400">
-            Grade {product.grade}
-          </p>
-          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-500">
-            {product.description}
-          </p>
-        </div>
+      <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-slate-500">
+        {product.description}
+      </p>
 
-        <div className="mt-auto space-y-3 border-t border-slate-100 pt-3">
-          <p className="text-lg font-bold tabular-nums text-brand">
-            {formatInrPerMt(product.priceInr)}
-          </p>
-          <Button
-            asChild
-            size="sm"
-            className="h-9 w-full rounded-xl bg-brand text-xs font-semibold hover:bg-brand-700"
-          >
-            <Link href={`${ROUTES.marketplaceProduct}/${product.id}`}>
-              Buy Now
-              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </Link>
-          </Button>
-        </div>
+      <div className="mt-auto space-y-3 border-t border-slate-100 pt-3">
+        <p className="text-lg font-bold tabular-nums text-brand">
+          {formatInrPerMt(product.priceInr)}
+        </p>
+        <p className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
+          <Lock className="h-3 w-3" aria-hidden />
+          Seller Identity Protected
+        </p>
+        <Button
+          asChild
+          size="sm"
+          className="h-9 w-full rounded-xl bg-brand text-xs font-semibold hover:bg-brand-700"
+        >
+          <Link href={`${ROUTES.marketplaceProduct}/${product.id}`}>
+            View Grade
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+          </Link>
+        </Button>
       </div>
     </motion.article>
   );

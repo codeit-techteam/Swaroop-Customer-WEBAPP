@@ -6,7 +6,6 @@ export { InvoiceDetailPage } from "./InvoiceDetailPage";
 export { ProformaInvoicesPage } from "./ProformaInvoicesPage";
 export { GstInvoicesPage } from "./GstInvoicesPage";
 export { CertificatesPage } from "./CertificatesPage";
-export { DownloadsPage } from "./DownloadsPage";
 export { DocumentPreviewModal } from "./DocumentPreviewModal";
 export { DocumentStatusBadge } from "./DocumentStatusBadge";
 export { DocumentFiltersBar } from "./DocumentFiltersBar";

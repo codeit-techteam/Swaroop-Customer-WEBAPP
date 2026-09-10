@@ -8,7 +8,6 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ROUTES } from "@/constants";
 import { DOCUMENT_TYPE_LABELS } from "@/constants/documents";
 import { formatDateDdMmYyyy } from "@/lib/format";
 import {
@@ -182,14 +181,6 @@ export function DocumentsDashboardPage() {
         <Card className="border-slate-200 shadow-card xl:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">Recently Generated</CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-xl"
-              onClick={() => router.push(ROUTES.documentsDownloads)}
-            >
-              View Downloads
-            </Button>
           </CardHeader>
           <CardContent className="space-y-2">
             {recent.map((item) => (

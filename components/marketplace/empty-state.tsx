@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { PackageSearch } from "lucide-react";
 import { ROUTES } from "@/constants";
@@ -10,13 +11,15 @@ interface MarketplaceEmptyStateProps {
   title?: string;
   description?: string;
   onReset?: () => void;
+  action?: ReactNode;
   className?: string;
 }
 
 export function MarketplaceEmptyState({
-  title = "No materials found",
-  description = "Try adjusting your search or filters to find matching grades.",
+  title = "No grades found",
+  description = "No grades match your current filters. Try adjusting search or clearing filters.",
   onReset,
+  action,
   className,
 }: MarketplaceEmptyStateProps) {
   return (
@@ -32,6 +35,7 @@ export function MarketplaceEmptyState({
       <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
       <p className="mt-1 max-w-sm text-sm text-slate-500">{description}</p>
       <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+        {action}
         {onReset ? (
           <Button
             type="button"
@@ -39,12 +43,14 @@ export function MarketplaceEmptyState({
             className="rounded-xl"
             onClick={onReset}
           >
-            Reset Filters
+            Clear Filters
           </Button>
         ) : null}
-        <Button asChild className="rounded-xl bg-brand hover:bg-brand-700">
-          <Link href={ROUTES.marketplace}>Browse Marketplace</Link>
-        </Button>
+        {!action ? (
+          <Button asChild className="rounded-xl bg-brand hover:bg-brand-700">
+            <Link href={ROUTES.marketplace}>Browse Marketplace</Link>
+          </Button>
+        ) : null}
       </div>
     </div>
   );

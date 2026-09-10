@@ -2,12 +2,11 @@ import type { RecommendedProduct } from "@/types/dashboard";
 import { productsMock } from "./products";
 
 /**
- * Dashboard recommended strip — derived from marketplace catalog
- * (Customer App trending materials → Purchase Request CTA).
+ * Dashboard recommended strip — data-first grades (no product images).
  */
 export const recommendedProductsMock: RecommendedProduct[] = productsMock
   .filter((product) => product.categoryId === "polymers")
-  .slice(0, 3)
+  .slice(0, 6)
   .map((product) => ({
     id: product.id,
     name: product.name,
@@ -15,8 +14,14 @@ export const recommendedProductsMock: RecommendedProduct[] = productsMock
     description: product.description,
     priceInr: product.price,
     unit: "MT" as const,
-    imageUrl: product.image,
+    imageUrl: "",
     stockStatus: product.stockStatus,
     category:
-      product.categoryId === "base-oils" ? "liquids" : product.categoryId,
+      product.categoryId === "base-oils"
+        ? ("liquids" as const)
+        : product.categoryId === "additives"
+          ? ("additives" as const)
+          : product.categoryId === "chemicals"
+            ? ("chemicals" as const)
+            : ("polymers" as const),
   }));

@@ -1,10 +1,7 @@
-import type { Metadata } from "next";
-import { DownloadsPage } from "@/components/documents";
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
-export const metadata: Metadata = {
-  title: "Downloads",
-};
-
+/** Legacy route — Downloads screen removed. */
 export default function Page() {
-  return <DownloadsPage />;
+  redirect(ROUTES.documents);
 }

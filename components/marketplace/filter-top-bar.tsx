@@ -97,11 +97,13 @@ export function FilterTopBar({
 
   const filterPanel = (
     <div className="space-y-5">
-      <BrandFilter
-        brands={brands}
-        selected={draftFilters.brands}
-        onToggle={onToggleBrand}
-      />
+      {brands.length > 0 ? (
+        <BrandFilter
+          brands={brands}
+          selected={draftFilters.brands}
+          onToggle={onToggleBrand}
+        />
+      ) : null}
       <PriceSlider
         min={priceBounds.min}
         max={priceBounds.max}
@@ -161,20 +163,22 @@ export function FilterTopBar({
         )}
       >
         <div className="hidden flex-wrap items-center gap-2 md:flex">
-          <FilterPill
-            label="Brand"
-            active={brandActive}
-            count={appliedFilters.brands.length || undefined}
-            open={brandOpen}
-            onOpenChange={setBrandOpen}
-          >
-            <BrandFilter
-              brands={brands}
-              selected={draftFilters.brands}
-              onToggle={onToggleBrand}
-            />
-            <PopoverActions onApply={handleApply} onReset={onReset} />
-          </FilterPill>
+          {brands.length > 0 ? (
+            <FilterPill
+              label="Brand"
+              active={brandActive}
+              count={appliedFilters.brands.length || undefined}
+              open={brandOpen}
+              onOpenChange={setBrandOpen}
+            >
+              <BrandFilter
+                brands={brands}
+                selected={draftFilters.brands}
+                onToggle={onToggleBrand}
+              />
+              <PopoverActions onApply={handleApply} onReset={onReset} />
+            </FilterPill>
+          ) : null}
 
           <FilterPill
             label="Price"

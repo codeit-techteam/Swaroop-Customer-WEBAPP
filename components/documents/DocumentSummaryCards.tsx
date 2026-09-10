@@ -50,9 +50,9 @@ export function DocumentSummaryCards({
       tone: "text-indigo-600",
     },
     {
-      label: "Downloads",
-      value: String(summary.downloads),
-      icon: Download,
+      label: "Certificates",
+      value: String(summary.certificates),
+      icon: FileText,
       tone: "text-amber-600",
     },
   ];

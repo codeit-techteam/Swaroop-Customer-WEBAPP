@@ -12,6 +12,7 @@ interface CreditStatusCardProps {
   availableCredit: number;
   creditUsed: number;
   paymentTerms: string;
+  compact?: boolean;
   className?: string;
 }
 
@@ -31,9 +32,48 @@ export function CreditStatusCard({
   availableCredit,
   creditUsed,
   paymentTerms,
+  compact = false,
   className,
 }: CreditStatusCardProps) {
   const statusMeta = STATUS_CONFIG[status];
+
+  if (compact) {
+    return (
+      <div
+        className={cn(
+          "flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-card sm:flex-row sm:items-center sm:justify-between",
+          className,
+        )}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant={statusMeta.variant} className="rounded-full px-2.5">
+            Active facility
+          </Badge>
+          <p className="text-sm text-slate-600">
+            Current limit stays live while you apply for additional credit.
+          </p>
+        </div>
+        <dl className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
+          <div className="flex gap-1.5">
+            <dt className="text-slate-400">Limit</dt>
+            <dd className="font-semibold tabular-nums text-slate-900">
+              {formatInr(approvedLimit)}
+            </dd>
+          </div>
+          <div className="flex gap-1.5">
+            <dt className="text-slate-400">Available</dt>
+            <dd className="font-semibold tabular-nums text-emerald-600">
+              {formatInr(availableCredit)}
+            </dd>
+          </div>
+          <div className="flex gap-1.5">
+            <dt className="text-slate-400">Terms</dt>
+            <dd className="font-semibold text-slate-900">{paymentTerms}</dd>
+          </div>
+        </dl>
+      </div>
+    );
+  }
 
   return (
     <Card className={cn("border-slate-200 shadow-card", className)}>

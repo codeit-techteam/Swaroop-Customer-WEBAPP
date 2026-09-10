@@ -23,6 +23,9 @@ export const ROUTES = {
   marketplaceOffers: "/marketplace/offers",
   marketplaceMyOffers: "/marketplace/offers/my-offers",
   marketplaceOfferDetail: "/marketplace/offers",
+  marketplaceCompare: "/marketplace/compare",
+  /** Browse marketplace while picking grades for comparison */
+  marketplaceCompareBrowse: "/marketplace?compare=1",
   product: "/product",
   cart: "/cart",
   checkout: "/checkout",
@@ -71,8 +74,6 @@ export const ROUTES = {
   shipmentDetail: "/shipment",
 
   shipmentTracking: "/shipment-tracking",
-  shipmentTimeline: "/shipment-tracking/timeline",
-  shipmentDeliveryUpdates: "/shipment-tracking/delivery-updates",
   shipmentTransportDocuments: "/shipment-tracking/transport-documents",
   /** Per-shipment details under Track Shipment */
   shipmentTrackingDetail: "/shipment-tracking",
@@ -83,7 +84,6 @@ export const ROUTES = {
   documentsProforma: "/documents/proforma-invoice",
   documentsGstInvoices: "/documents/gst-invoices",
   documentsCertificates: "/documents/certificates",
-  documentsDownloads: "/documents/downloads",
 
   profile: "/profile",
   /** @deprecated MVP uses /profile only — kept for legacy deep links */
@@ -164,6 +164,18 @@ export const CUSTOMER_NAV: NavItem[] = [
     title: "Marketplace",
     href: ROUTES.marketplace,
     icon: "Store",
+    children: [
+      {
+        id: "marketplace-browse",
+        title: "Browse Grades",
+        href: ROUTES.marketplace,
+      },
+      {
+        id: "marketplace-compare",
+        title: "Compare Grades",
+        href: ROUTES.marketplaceCompare,
+      },
+    ],
   },
   {
     id: "purchase-requests",
@@ -227,16 +239,6 @@ export const CUSTOMER_NAV: NavItem[] = [
         href: ROUTES.shipmentTracking,
       },
       {
-        id: "ship-timeline",
-        title: "Shipment Timeline",
-        href: ROUTES.shipmentTimeline,
-      },
-      {
-        id: "ship-updates",
-        title: "Delivery Updates",
-        href: ROUTES.shipmentDeliveryUpdates,
-      },
-      {
         id: "ship-docs",
         title: "Transport Documents",
         href: ROUTES.shipmentTransportDocuments,
@@ -268,11 +270,6 @@ export const CUSTOMER_NAV: NavItem[] = [
         id: "docs-gst",
         title: "GST Invoices",
         href: ROUTES.documentsGstInvoices,
-      },
-      {
-        id: "docs-downloads",
-        title: "Downloads",
-        href: ROUTES.documentsDownloads,
       },
     ],
   },

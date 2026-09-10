@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { BlindSellerBadge } from "@/components/marketplace/blind-seller-badge";
 import type { ProductDetailRecord } from "@/types/product-details";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,9 @@ export function ProductHeader({ product, className }: ProductHeaderProps) {
         >
           {product.availabilityLabel}
         </Badge>
+        <Badge className="rounded-md border-0 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700 hover:bg-emerald-50">
+          Verified Supply
+        </Badge>
         <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-600">
           {product.grade}
         </span>
@@ -48,9 +52,11 @@ export function ProductHeader({ product, className }: ProductHeaderProps) {
           {product.name}
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          {product.materialType} · {product.brandName}
+          {product.materialType} · Category: {product.categoryName}
         </p>
       </div>
+
+      <BlindSellerBadge />
 
       <div>
         <p className="text-sm leading-relaxed text-slate-600">{description}</p>

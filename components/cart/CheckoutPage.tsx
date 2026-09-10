@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -468,16 +467,8 @@ export function CheckoutPage() {
                     key={item.productId}
                     className="flex flex-col gap-3 rounded-xl border border-slate-200 p-3 sm:flex-row sm:items-center"
                   >
-                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
-                      {item.imageUrl ? (
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.name}
-                          fill
-                          className="object-cover"
-                          sizes="64px"
-                        />
-                      ) : null}
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-xs font-bold text-brand">
+                      {item.grade.slice(0, 4).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">
                       <Link

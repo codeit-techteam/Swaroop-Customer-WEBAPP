@@ -207,17 +207,6 @@ export function ShipmentDetailsPage({ shipmentId }: ShipmentDetailsPageProps) {
                 className="w-full justify-start rounded-xl"
                 onClick={() =>
                   router.push(
-                    `${ROUTES.shipmentTimeline}?id=${encodeURIComponent(shipment.id)}`,
-                  )
-                }
-              >
-                Open Timeline View
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start rounded-xl"
-                onClick={() =>
-                  router.push(
                     `${ROUTES.shipmentTransportDocuments}?id=${encodeURIComponent(shipment.id)}`,
                   )
                 }

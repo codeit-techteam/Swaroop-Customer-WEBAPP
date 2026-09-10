@@ -13,12 +13,12 @@ export function getRelatedProductCards(
     .map((product) => ({
       id: product.id,
       name: product.name,
-      brandName: product.brandName,
+      brandName: "Verified Supply",
       categoryLabel: `${product.materialType}`.toUpperCase(),
       pricePerMt: product.price,
-      warehouseLabel: product.warehouseLabel,
+      warehouseLabel: product.origin || product.warehouseLabel,
       stockLabel: `${product.stock.toLocaleString("en-IN")} MT`,
-      imageUrl: product.image,
+      imageUrl: "",
       href: `${ROUTES.marketplaceProduct}/${product.id}`,
     }));
 }

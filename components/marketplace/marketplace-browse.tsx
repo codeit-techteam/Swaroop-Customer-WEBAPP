@@ -12,6 +12,7 @@ import { FilterTopBar } from "./filter-top-bar";
 import { MarketplaceHeader } from "./marketplace-header";
 import { MarketplaceSearchBar } from "./search-bar";
 import { MarketplaceCategoryChips } from "./marketplace-category-chips";
+import { MaterialChips } from "./material-chips";
 import { OfferBanner } from "./offer-banner";
 import { SortDropdown } from "./sort-dropdown";
 import { ViewToggle } from "./view-toggle";
@@ -25,6 +26,12 @@ import { MARKETPLACE_SEARCH_PLACEHOLDER } from "@/mock/filters";
 import type { GradeOriginFilter } from "@/types/marketplace";
 import type { MarketplaceOffer } from "@/types/offers";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { BlindSellerBadge } from "./blind-seller-badge";
+import { CompareTray } from "./compare-tray";
+import { ArrowLeft, GitCompareArrows } from "lucide-react";
+import { useCompareStore } from "@/store/compareStore";
+import { Button } from "@/components/ui/button";
 
 const ORIGIN_FILTERS: Array<{ value: GradeOriginFilter; label: string }> = [
   { value: "all", label: "All Origins" },
@@ -46,9 +53,9 @@ export function MarketplaceBrowse({
   const searchParams = useSearchParams();
   const [ready, setReady] = useState(false);
   const [activeOfferId, setActiveOfferId] = useState<string | null>(null);
+  const [activeMaterial, setActiveMaterial] = useState<string | null>(null);
 
   const categories = useMarketplaceStore((s) => s.categories);
-  const brands = useMarketplaceStore((s) => s.brands);
   const warehouses = useMarketplaceStore((s) => s.warehouses);
   const draftFilters = useMarketplaceStore((s) => s.draftFilters);
   const filters = useMarketplaceStore((s) => s.filters);
@@ -101,6 +108,8 @@ export function MarketplaceBrowse({
   }, [searchParams, setSearch, setOriginFilter]);
 
   const pagination = getPaginatedProducts();
+  const compareMode = searchParams.get("compare") === "1";
+  const compareCount = useCompareStore((s) => s.ids.length);
 
   const activeCategoryId = useMemo(() => {
     if (selectedCategoryId) return selectedCategoryId;
@@ -159,11 +168,23 @@ export function MarketplaceBrowse({
   }
 
   return (
-    <PageContainer className="space-y-5">
+    <PageContainer className={cn("space-y-5", compareMode && "pb-28")}>
       <PageHeader
-        title={pageTitle}
-        description="Browse verified industrial grades and create purchase requests for PetroTrade confirmation."
-        breadcrumbs={crumbItems}
+        title={compareMode ? "Add Grades to Compare" : pageTitle}
+        description={
+          compareMode
+            ? "Select grades below to add them to your comparison. Seller identity stays protected."
+            : "Blind B2B procurement — browse grades by material, specification, price and availability. Seller identity stays protected."
+        }
+        breadcrumbs={
+          compareMode
+            ? [
+                { label: "Marketplace", href: ROUTES.marketplace },
+                { label: "Compare", href: ROUTES.marketplaceCompare },
+                { label: "Add Grades" },
+              ]
+            : crumbItems
+        }
       />
 
       <motion.div
@@ -172,6 +193,55 @@ export function MarketplaceBrowse({
         transition={{ duration: 0.35 }}
         className="space-y-4"
       >
+        {compareMode ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand/20 bg-brand/[0.04] px-4 py-3">
+            <div className="space-y-0.5">
+              <p className="inline-flex items-center gap-2 text-sm font-semibold text-brand">
+                <GitCompareArrows className="h-4 w-4" />
+                Comparison mode · {compareCount}/4 selected
+              </p>
+              <p className="text-xs text-slate-600">
+                Use <span className="font-semibold">Add to Compare</span> on any
+                grade. Return when you have at least 2 grades.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline" className="h-9 rounded-xl">
+                <Link href={ROUTES.marketplaceCompare}>
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Compare
+                </Link>
+              </Button>
+              <Button
+                asChild
+                className="h-9 rounded-xl bg-brand hover:bg-brand-700"
+                disabled={compareCount < 2}
+              >
+                <Link
+                  href={ROUTES.marketplaceCompare}
+                  className={compareCount < 2 ? "pointer-events-none opacity-60" : undefined}
+                >
+                  View Comparison
+                </Link>
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-card">
+            <BlindSellerBadge />
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <Link
+                href={ROUTES.marketplaceCompare}
+                className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-medium text-slate-600 hover:bg-slate-50 hover:text-brand"
+              >
+                <GitCompareArrows className="h-4 w-4" />
+                Compare
+                <CompareCount />
+              </Link>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <MarketplaceSearchBar
             value={search}
@@ -179,6 +249,19 @@ export function MarketplaceBrowse({
             placeholder={MARKETPLACE_SEARCH_PLACEHOLDER}
           />
           <SortDropdown value={sortBy} onChange={setSortBy} />
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            Material
+          </p>
+          <MaterialChips
+            activeCode={activeMaterial}
+            onSelect={(code) => {
+              setActiveMaterial(code);
+              setSearch(code ?? "");
+            }}
+          />
         </div>
 
         <MarketplaceCategoryChips
@@ -194,7 +277,7 @@ export function MarketplaceBrowse({
 
         <FilterTopBar
           categories={categories}
-          brands={brands}
+          brands={[]}
           warehouses={warehouses}
           draftFilters={draftFilters}
           appliedFilters={filters}
@@ -255,11 +338,13 @@ export function MarketplaceBrowse({
           <ProductGrid
             products={pagination.items}
             onQuickView={openQuickView}
+            compareMode={compareMode}
           />
         ) : (
           <ProductList
             products={pagination.items}
             onQuickView={openQuickView}
+            compareMode={compareMode}
           />
         )}
 
@@ -280,6 +365,18 @@ export function MarketplaceBrowse({
           if (!open) closeQuickView();
         }}
       />
+
+      <CompareTray forceVisible={compareMode} />
     </PageContainer>
+  );
+}
+
+function CompareCount() {
+  const count = useCompareStore((s) => s.ids.length);
+  if (!count) return null;
+  return (
+    <span className="rounded-full bg-brand/10 px-1.5 py-0.5 text-[10px] font-bold text-brand">
+      {count}
+    </span>
   );
 }

@@ -1,22 +1,7 @@
-import type { Metadata } from "next";
-import { Suspense } from "react";
-import { ShipmentTimelinePage } from "@/components/shipment-tracking";
-import { PageContainer } from "@/components/layout/page-container";
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
-export const metadata: Metadata = {
-  title: "Shipment Timeline",
-};
-
+/** Legacy route — Shipment Timeline screen removed. */
 export default function Page() {
-  return (
-    <Suspense
-      fallback={
-        <PageContainer>
-          <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />
-        </PageContainer>
-      }
-    >
-      <ShipmentTimelinePage />
-    </Suspense>
-  );
+  redirect(ROUTES.shipmentTracking);
 }

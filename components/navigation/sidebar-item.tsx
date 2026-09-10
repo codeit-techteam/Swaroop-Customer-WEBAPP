@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -8,6 +8,11 @@ import { ChevronDown } from "lucide-react";
 import type { NavItem } from "@/types";
 import { getNavIcon } from "@/components/navigation/nav-icons";
 import { NavBadge } from "@/components/navigation/nav-badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useUiStore } from "@/store/uiStore";
 import {
   isNavItemActive,
@@ -43,6 +48,7 @@ export function SidebarItem({
   const hasChildren = Boolean(item.children?.length);
   const isExpanded = expandedIds.includes(item.id);
   const Icon = getNavIcon(item.icon);
+  const isLogout = item.action === "logout";
 
   const isLeafActive = isNavItemActive(pathname, item, siblings);
   const isChildActive = hasChildren && isNavBranchActive(pathname, item);
@@ -63,7 +69,6 @@ export function SidebarItem({
     const node = itemRef.current;
     if (!node) return;
     const frame = window.requestAnimationFrame(() => {
-      // inline: "nearest" prevents horizontal page jump when focusing active nav
       node.scrollIntoView({
         block: "nearest",
         inline: "nearest",
@@ -74,41 +79,61 @@ export function SidebarItem({
   }, [showActive, collapsed, pathname]);
 
   const baseClass = cn(
-    "group flex w-full items-center gap-3 rounded-xl text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1",
-    collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2.5",
-    depth > 0 && !collapsed && "py-2 pl-10 text-[13px] font-normal",
+    "group relative flex w-full select-none items-center rounded-xl text-sm font-medium transition-all duration-200 ease-out",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue/80 focus-visible:ring-offset-2 focus-visible:ring-offset-brand",
+    collapsed ? "justify-center px-0 py-1.5" : "gap-2.5 px-2 py-1.5",
+    depth > 0 && !collapsed && "py-1.5 pl-2 text-[13px] font-normal",
   );
 
   const toneClass = cn(
-    showActive && depth === 0 && "bg-brand text-white shadow-sm",
-    showActive && depth > 0 && "bg-brand/10 font-semibold text-brand",
-    !showActive && item.action === "logout" && "text-red-600 hover:bg-red-50",
+    showActive &&
+      depth === 0 &&
+      "bg-white/12 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]",
+    showActive && depth > 0 && "bg-accent-blue/15 font-semibold text-white",
     !showActive &&
-      item.action !== "logout" &&
-      "text-slate-700 hover:bg-slate-100",
+      isLogout &&
+      "text-red-300 hover:bg-red-500/15 hover:text-red-200",
+    !showActive &&
+      !isLogout &&
+      "text-white/70 hover:bg-white/[0.08] hover:text-white",
     item.disabled && "pointer-events-none opacity-50",
   );
 
-  const iconClass = cn(
-    "h-[18px] w-[18px] shrink-0",
-    showActive && depth === 0
-      ? "text-white"
-      : showActive
-        ? "text-brand"
-        : item.action === "logout"
-          ? "text-red-500"
-          : "text-slate-500",
+  const iconTileClass = cn(
+    "relative flex shrink-0 items-center justify-center rounded-lg transition-all duration-200",
+    depth === 0 ? "h-8 w-8" : "h-5 w-5",
+    showActive && depth === 0 && !isLogout
+      ? "bg-accent-blue text-white shadow-sm shadow-accent-blue/40"
+      : isLogout
+        ? "bg-red-500/15 text-red-300 group-hover:bg-red-500/25"
+        : depth === 0
+          ? "bg-white/[0.06] text-white/70 group-hover:bg-white/10 group-hover:text-white"
+          : "bg-transparent",
   );
 
   const labelContent = (
     <>
+      {showActive && depth === 0 && !collapsed ? (
+        <span
+          className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-accent-blue"
+          aria-hidden
+        />
+      ) : null}
+
       {Icon ? (
-        <Icon className={iconClass} aria-hidden="true" />
+        <span className={iconTileClass}>
+          <Icon className="h-4 w-4" aria-hidden="true" />
+          {collapsed && typeof item.badge === "number" && item.badge > 0 ? (
+            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-accent-blue ring-2 ring-brand" />
+          ) : null}
+        </span>
       ) : depth > 0 ? (
         <span
           className={cn(
-            "ml-1 h-1.5 w-1.5 shrink-0 rounded-full",
-            showActive ? "bg-brand" : "bg-slate-300",
+            "ml-1 h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-200",
+            showActive
+              ? "scale-125 bg-accent-blue"
+              : "bg-white/30 group-hover:bg-white/60",
           )}
           aria-hidden="true"
         />
@@ -124,7 +149,10 @@ export function SidebarItem({
               count={item.badge}
               variant={item.badgeVariant}
               className={cn(
-                showActive && depth === 0 && "bg-white/20 text-white",
+                "h-5 min-w-5 text-[10px]",
+                showActive &&
+                  depth === 0 &&
+                  "border border-white/20 bg-white/15 text-white",
               )}
             />
           ) : null}
@@ -133,8 +161,27 @@ export function SidebarItem({
     </>
   );
 
-  if (item.action) {
+  function wrapTooltip(node: ReactNode) {
+    if (!collapsed) return node;
     return (
+      <Tooltip delayDuration={80}>
+        <TooltipTrigger asChild>{node}</TooltipTrigger>
+        <TooltipContent
+          side="right"
+          sideOffset={12}
+          className="border-0 bg-brand-800 px-2.5 py-1.5 text-xs font-medium text-white shadow-panel"
+        >
+          {item.title}
+          {typeof item.badge === "number" && item.badge > 0
+            ? ` · ${item.badge}`
+            : ""}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  if (item.action) {
+    return wrapTooltip(
       <button
         ref={itemRef as React.RefObject<HTMLButtonElement>}
         type="button"
@@ -144,7 +191,7 @@ export function SidebarItem({
         aria-label={item.title}
       >
         {labelContent}
-      </button>
+      </button>,
     );
   }
 
@@ -154,12 +201,12 @@ export function SidebarItem({
         ref={itemRef as React.RefObject<HTMLDivElement>}
         className="space-y-0.5"
       >
-        <div className={cn(baseClass, toneClass, "gap-1 pr-1.5")}>
+        <div className={cn(baseClass, toneClass, "pr-1")}>
           {item.href ? (
             <Link
               href={item.href}
               onClick={onNavigate}
-              className="flex min-w-0 flex-1 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg focus-visible:outline-none"
               aria-current={pathname === item.href ? "page" : undefined}
             >
               {labelContent}
@@ -168,7 +215,7 @@ export function SidebarItem({
             <button
               type="button"
               onClick={() => toggleNavExpanded(item.id)}
-              className="flex min-w-0 flex-1 items-center gap-3"
+              className="flex min-w-0 flex-1 items-center gap-2.5"
             >
               {labelContent}
             </button>
@@ -177,17 +224,17 @@ export function SidebarItem({
             type="button"
             onClick={() => toggleNavExpanded(item.id)}
             className={cn(
-              "rounded-lg p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
-              showActive && depth === 0
+              "rounded-lg p-1.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue",
+              showActive
                 ? "text-white/80 hover:bg-white/10"
-                : "text-slate-400 hover:bg-slate-200/60 hover:text-slate-600",
+                : "text-white/40 hover:bg-white/10 hover:text-white/80",
             )}
             aria-expanded={isExpanded}
             aria-label={`${isExpanded ? "Collapse" : "Expand"} ${item.title}`}
           >
             <ChevronDown
               className={cn(
-                "h-4 w-4 transition-transform duration-200",
+                "h-3.5 w-3.5 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
                 isExpanded && "rotate-180",
               )}
             />
@@ -201,10 +248,13 @@ export function SidebarItem({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               className="overflow-hidden"
             >
-              <ul className="space-y-0.5 pb-1" role="list">
+              <ul
+                className="ml-[22px] space-y-0.5 border-l border-white/10 pb-1 pl-2.5"
+                role="list"
+              >
                 {item.children!.map((child) => (
                   <li key={child.id}>
                     <SidebarItem
@@ -227,7 +277,7 @@ export function SidebarItem({
 
   if (!item.href) return null;
 
-  return (
+  return wrapTooltip(
     <Link
       ref={itemRef as React.RefObject<HTMLAnchorElement>}
       href={item.href}
@@ -237,6 +287,6 @@ export function SidebarItem({
       title={collapsed ? item.title : undefined}
     >
       {labelContent}
-    </Link>
+    </Link>,
   );
 }
