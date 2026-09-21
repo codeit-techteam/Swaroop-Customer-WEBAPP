@@ -14,6 +14,7 @@ import { ROUTES } from "@/constants";
 import { formatMemberSince, resolveMvpProfile } from "@/lib/profile-display";
 import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
+import { ProfilePageSkeleton } from "@/components/profile/profile-page-skeleton";
 
 export function ProfilePage() {
   const user = useAuthStore((s) => s.user);
@@ -42,11 +43,7 @@ export function ProfilePage() {
   if (!isHydrated) {
     return (
       <PageContainer>
-        <div className="space-y-4">
-          <div className="h-10 w-48 animate-pulse rounded-xl bg-slate-100" />
-          <div className="h-56 animate-pulse rounded-2xl bg-slate-100" />
-          <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />
-        </div>
+        <ProfilePageSkeleton />
       </PageContainer>
     );
   }

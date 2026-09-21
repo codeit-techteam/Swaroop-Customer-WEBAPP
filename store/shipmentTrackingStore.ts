@@ -2,12 +2,8 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { buildMvpTimeline } from "@/mock/shipment-tracking";
-import {
-  DEFAULT_SHIPMENT_FILTERS,
-  shipmentNotificationsMock,
-  shipmentsCatalogMock,
-} from "@/mock/shipment-tracking";
+import { buildMvpTimeline, DEFAULT_SHIPMENT_FILTERS } from "@/mock/shipment-tracking";
+import { fetchCustomerShipments } from "@/services/logistics";
 import {
   computeShipmentSummary,
   shipmentProgressPercent,
@@ -22,7 +18,7 @@ import type {
   TransportDocument,
 } from "@/types/shipment-tracking";
 
-const STORAGE_KEY = "petrotrade.shipment-tracking.v3";
+const STORAGE_KEY = "petrotrade.shipment-tracking.v4";
 
 type ShipmentTrackingState = {
   shipments: ShipmentRecord[];
@@ -30,9 +26,12 @@ type ShipmentTrackingState = {
   filters: ShipmentFiltersState;
   selectedId: string | null;
   isHydrated: boolean;
+  isLoading: boolean;
+  loadError: string | null;
 };
 
 type ShipmentTrackingActions = {
+  fetchFromApi: () => Promise<void>;
   setFilters: (partial: Partial<ShipmentFiltersState>) => void;
   resetFilters: () => void;
   setSelectedId: (id: string | null) => void;
@@ -152,11 +151,35 @@ function bumpTimeline(shipment: ShipmentRecord): ShipmentRecord {
 export const useShipmentTrackingStore = create<ShipmentTrackingStore>()(
   persist(
     (set, get) => ({
-      shipments: shipmentsCatalogMock,
-      notifications: shipmentNotificationsMock,
+      shipments: [],
+      notifications: [],
       filters: { ...DEFAULT_SHIPMENT_FILTERS },
       selectedId: null,
       isHydrated: false,
+      isLoading: false,
+      loadError: null,
+
+      fetchFromApi: async () => {
+        set({ isLoading: true, loadError: null });
+        try {
+          const shipments = await fetchCustomerShipments();
+          set({
+            shipments,
+            notifications: [],
+            isLoading: false,
+            isHydrated: true,
+            loadError: null,
+          });
+        } catch (error) {
+          set({
+            shipments: [],
+            notifications: [],
+            isLoading: false,
+            isHydrated: true,
+            loadError: error instanceof Error ? error.message : "Unable to load shipments.",
+          });
+        }
+      },
 
       setFilters: (partial) =>
         set((state) => ({ filters: { ...state.filters, ...partial } })),
@@ -209,14 +232,14 @@ export const useShipmentTrackingStore = create<ShipmentTrackingStore>()(
     {
       name: STORAGE_KEY,
       partialize: (state) => ({
-        shipments: state.shipments,
-        notifications: state.notifications,
         filters: {
           search: state.filters.search,
           status: state.filters.status,
         },
-        selectedId: state.selectedId,
       }),
+      onRehydrateStorage: () => (state) => {
+        void state?.fetchFromApi();
+      },
       merge: (persisted, current) => {
         const p = persisted as Partial<ShipmentTrackingState> | undefined;
         const filters = {
@@ -233,9 +256,6 @@ export const useShipmentTrackingStore = create<ShipmentTrackingStore>()(
           ...p,
           filters,
         };
-      },
-      onRehydrateStorage: () => (state) => {
-        state?.setHydrated(true);
       },
     },
   ),

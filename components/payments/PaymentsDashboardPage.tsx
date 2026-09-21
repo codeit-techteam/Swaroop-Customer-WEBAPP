@@ -24,6 +24,7 @@ import {
   PaymentQuickActions,
   PaymentSummaryCards,
 } from "./PaymentSummaryCards";
+import { PaymentsPageSkeleton } from "./payments-page-skeleton";
 
 function buildSummary(
   payments: ReturnType<typeof usePaymentsCatalogStore.getState>["payments"],
@@ -102,7 +103,7 @@ export function PaymentsDashboardPage() {
   if (!isHydrated) {
     return (
       <PageContainer>
-        <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />
+        <PaymentsPageSkeleton />
       </PageContainer>
     );
   }

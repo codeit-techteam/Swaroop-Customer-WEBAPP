@@ -2,35 +2,59 @@
 
 import { formatInr } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import type { CheckoutQuote } from "@/services/checkout";
 
 interface BuyingSummaryProps {
-  pricePerMt: number;
-  quantity: number;
-  freightPerMt: number;
-  gstRate?: number;
-  discountRate?: number;
+  quote?: CheckoutQuote | null;
+  loading?: boolean;
+  error?: string | null;
   className?: string;
 }
 
 export function BuyingSummary({
-  pricePerMt,
-  quantity,
-  freightPerMt,
-  gstRate = 0.18,
-  discountRate = 0,
+  quote,
+  loading = false,
+  error = null,
   className,
 }: BuyingSummaryProps) {
-  const materialSubtotal = pricePerMt * quantity;
-  const discount = Math.round(materialSubtotal * discountRate);
-  const taxable = materialSubtotal - discount;
-  const freight = freightPerMt * quantity;
-  const gst = Math.round(taxable * gstRate);
-  const grandTotal = taxable + freight + gst;
+  if (error) {
+    return (
+      <div className={cn("rounded-xl border border-red-100 bg-red-50/70 p-3", className)}>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-red-500">
+          Buying Summary
+        </p>
+        <p className="mt-2 text-xs text-red-700">{error}</p>
+      </div>
+    );
+  }
 
+  if (loading && !quote) {
+    return (
+      <div className={cn("rounded-xl border border-slate-100 bg-slate-50/80 p-3", className)}>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+          Buying Summary
+        </p>
+        <p className="mt-2 text-xs text-slate-500">Calculating total...</p>
+      </div>
+    );
+  }
+
+  if (!quote) {
+    return (
+      <div className={cn("rounded-xl border border-slate-100 bg-slate-50/80 p-3", className)}>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+          Buying Summary
+        </p>
+        <p className="mt-2 text-xs text-slate-500">Unable to load latest pricing</p>
+      </div>
+    );
+  }
+
+  const discount = Number(quote.discountAmount);
   const rows = [
     {
       label: "Price",
-      value: formatInr(materialSubtotal, { compact: true }),
+      value: formatInr(Number(quote.baseAmount), { compact: true }),
     },
     ...(discount > 0
       ? [
@@ -43,11 +67,11 @@ export function BuyingSummary({
       : []),
     {
       label: "Estimated Freight",
-      value: formatInr(freight, { compact: true }),
+      value: formatInr(Number(quote.freightAmount), { compact: true }),
     },
     {
-      label: `Estimated GST (${Math.round(gstRate * 100)}%)`,
-      value: formatInr(gst, { compact: true }),
+      label: `Estimated GST (${quote.taxRate}%)`,
+      value: formatInr(Number(quote.taxAmount), { compact: true }),
     },
   ];
 
@@ -78,7 +102,7 @@ export function BuyingSummary({
         <div className="flex items-center justify-between gap-3 border-t border-slate-200 pt-2">
           <dt className="text-sm font-semibold text-slate-900">Grand Total</dt>
           <dd className="text-sm font-bold tabular-nums text-brand">
-            {formatInr(grandTotal, { compact: true })}
+            {formatInr(Number(quote.totalAmount), { compact: true })}
           </dd>
         </div>
       </dl>

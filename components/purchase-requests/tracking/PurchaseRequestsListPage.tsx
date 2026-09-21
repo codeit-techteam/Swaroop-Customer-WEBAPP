@@ -41,6 +41,7 @@ import type { PurchaseRequestTrackingItem } from "@/types/purchase-request-track
 import { TrackingFiltersBar } from "./TrackingFiltersBar";
 import { TrackingStatusBadge } from "./TrackingStatusBadge";
 import { TrackingEmptyState } from "./TrackingEmptyState";
+import { PrListSkeleton } from "@/components/purchase-requests/pr-list-skeleton";
 
 const PAGE_SIZE = 10;
 
@@ -336,7 +337,9 @@ export function PurchaseRequestsListPage() {
           }))}
         />
 
-        {!isHydrated ? null : rows.length === 0 ? (
+        {!isHydrated ? (
+          <PrListSkeleton />
+        ) : rows.length === 0 ? (
           <TrackingEmptyState showMarketplaceCta={statusCategory === "all"} />
         ) : (
           <>

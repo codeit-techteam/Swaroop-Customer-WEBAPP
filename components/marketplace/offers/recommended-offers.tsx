@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
-import { getOfferById, recommendedOfferGroupsMock } from "@/mock/offers";
+import { useOffersStore } from "@/store/offersStore";
 import { OfferCard } from "./offer-card";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,24 @@ interface RecommendedOffersProps {
 }
 
 export function RecommendedOffers({ className }: RecommendedOffersProps) {
+  const offers = useOffersStore((state) => state.offers);
+  const groups = [
+    {
+      id: "available",
+      title: "Available now",
+      subtitle: "Live marketplace offers from PostgreSQL",
+      items: offers.slice(0, 4),
+    },
+    {
+      id: "more",
+      title: "More grades",
+      subtitle: "Additional customer-visible listings",
+      items: offers.slice(4, 8),
+    },
+  ].filter((group) => group.items.length > 0);
+
+  if (!groups.length) return null;
+
   return (
     <section
       className={cn(
@@ -24,45 +42,37 @@ export function RecommendedOffers({ className }: RecommendedOffersProps) {
         </div>
         <div>
           <h2 className="text-lg font-semibold text-slate-900">
-            AI Recommended Offers
+            Recommended Offers
           </h2>
           <p className="mt-0.5 text-sm text-slate-500">
-            Based on previous purchases, browsing history and similar buyers.
+            Live offers from the same catalog used across Customer App and Web.
           </p>
         </div>
       </div>
 
-      {recommendedOfferGroupsMock.map((group) => {
-        const offers = group.offerIds
-          .map((id) => getOfferById(id))
-          .filter(Boolean);
-        if (!offers.length) return null;
-        return (
-          <div key={group.id}>
-            <div className="mb-3 flex items-end justify-between gap-3">
-              <div>
-                <h3 className="text-base font-semibold text-slate-900">
-                  {group.title}
-                </h3>
-                <p className="text-xs text-slate-500">{group.subtitle}</p>
-              </div>
-              <Link
-                href="#offers-grid"
-                className="text-xs font-semibold text-brand hover:underline"
-              >
-                View all
-              </Link>
+      {groups.map((group) => (
+        <div key={group.id}>
+          <div className="mb-3 flex items-end justify-between gap-3">
+            <div>
+              <h3 className="text-base font-semibold text-slate-900">
+                {group.title}
+              </h3>
+              <p className="text-xs text-slate-500">{group.subtitle}</p>
             </div>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              {offers.map((offer, index) =>
-                offer ? (
-                  <OfferCard key={offer.id} offer={offer} index={index} />
-                ) : null,
-              )}
-            </div>
+            <Link
+              href="#offers-grid"
+              className="text-xs font-semibold text-brand hover:underline"
+            >
+              View all
+            </Link>
           </div>
-        );
-      })}
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            {group.items.map((offer, index) => (
+              <OfferCard key={offer.id} offer={offer} index={index} />
+            ))}
+          </div>
+        </div>
+      ))}
     </section>
   );
 }

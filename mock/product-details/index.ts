@@ -1,4 +1,4 @@
-export { getProductDetailById, productCatalogMock } from "./product";
+export { getProductDetailById, buildProductDetail, productCatalogMock } from "./product";
 export { getSpecsForMaterial, DEFAULT_PRODUCT_SPECS } from "./specifications";
 export {
   buildSpotPrice,

@@ -63,6 +63,7 @@ import { OrdersFiltersBar } from "./OrdersFiltersBar";
 import { formatKpiValue, OrdersKpiCards } from "./OrdersKpiCards";
 import { OrdersPagination } from "./OrdersPagination";
 import { OrdersRequiringAttentionCard } from "./OrdersRequiringAttentionCard";
+import { SkeletonTable } from "@/components/skeleton";
 
 const VALID_STATUSES = new Set<string>(ALL_ORDER_STATUSES);
 
@@ -287,7 +288,9 @@ export function OrdersPage() {
           statusOptions={ALL_ORDER_STATUSES}
         />
 
-        {!isHydrated ? null : (
+        {!isHydrated ? (
+          <SkeletonTable rows={6} columns={6} />
+        ) : (
           <>
             <OrdersActiveFilterHeader
               title={tableTitle(kpiFocus, filters.status)}

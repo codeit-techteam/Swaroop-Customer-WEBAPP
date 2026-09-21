@@ -9,6 +9,7 @@ export { OfferBadge } from "./offer-badge";
 export { VolumePricing } from "./volume-pricing";
 export { SavingsCalculator } from "./savings-calculator";
 export { OfferEmptyState } from "./offer-empty-state";
+export { OffersPageSkeleton } from "./offers-page-skeleton";
 export { TrendingOffers } from "./trending-offers";
 export { BulkVolumeDeals } from "./bulk-volume-deals";
 export { RecommendedOffers } from "./recommended-offers";

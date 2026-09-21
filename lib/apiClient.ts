@@ -12,10 +12,13 @@ import { env } from "@/lib/env";
  * No business API endpoints are called in this foundation phase.
  */
 
-function getAuthTokenPlaceholder(): string | null {
+function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
   try {
-    return window.localStorage.getItem(env.authCookieName);
+    return (
+      window.localStorage.getItem(env.authCookieName) ??
+      window.localStorage.getItem("pt-customer-access-token")
+    );
   } catch {
     return null;
   }
@@ -23,7 +26,7 @@ function getAuthTokenPlaceholder(): string | null {
 
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = getAuthTokenPlaceholder();
+    const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

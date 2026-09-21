@@ -4,22 +4,26 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { PurchaseRequestTrackingItem } from "@/types/purchase-request-tracking";
 import type { SubmittedPurchaseRequest } from "@/types/purchase-request";
+import { mapSubmittedToTrackingItem } from "@/mock/purchase-request/trackingRequests";
 import {
-  mapSubmittedToTrackingItem,
-  trackingRequestsMock,
-} from "@/mock/purchase-request/trackingRequests";
+  cancelCustomerPurchaseRequest,
+  fetchCustomerPurchaseRequests,
+} from "@/services/purchase-requests";
 
-const STORAGE_KEY = "petrotrade.pr-tracking.v1";
+const STORAGE_KEY = "petrotrade.pr-tracking.v2";
 
 type TrackingState = {
   items: PurchaseRequestTrackingItem[];
   isHydrated: boolean;
+  isLoading: boolean;
+  loadError: string | null;
 };
 
 type TrackingActions = {
+  fetchFromApi: () => Promise<void>;
   upsertFromSubmitted: (submitted: SubmittedPurchaseRequest) => void;
-  cancelRequest: (id: string) => void;
-  withdrawRequest: (id: string) => void;
+  cancelRequest: (id: string) => Promise<void>;
+  withdrawRequest: (id: string) => Promise<void>;
   refreshPendingTimers: () => void;
   getById: (id: string) => PurchaseRequestTrackingItem | undefined;
   setHydrated: (value: boolean) => void;
@@ -31,8 +35,26 @@ export const usePurchaseRequestTrackingStore =
   create<PurchaseRequestTrackingStore>()(
     persist(
       (set, get) => ({
-        items: trackingRequestsMock,
+        items: [],
         isHydrated: false,
+        isLoading: false,
+        loadError: null,
+
+        fetchFromApi: async () => {
+          set({ isLoading: true, loadError: null });
+          try {
+            const items = await fetchCustomerPurchaseRequests();
+            set({ items, isLoading: false, isHydrated: true, loadError: null });
+          } catch (error) {
+            set({
+              items: [],
+              isLoading: false,
+              isHydrated: true,
+              loadError:
+                error instanceof Error ? error.message : "Unable to load purchase requests.",
+            });
+          }
+        },
 
         upsertFromSubmitted: (submitted) => {
           const mapped = mapSubmittedToTrackingItem(submitted);
@@ -45,7 +67,8 @@ export const usePurchaseRequestTrackingStore =
           });
         },
 
-        cancelRequest: (id) => {
+        cancelRequest: async (id) => {
+          await cancelCustomerPurchaseRequest(id);
           set((state) => ({
             items: state.items.map((item) =>
               item.id === id && item.canCancel
@@ -61,8 +84,8 @@ export const usePurchaseRequestTrackingStore =
           }));
         },
 
-        withdrawRequest: (id) => {
-          get().cancelRequest(id);
+        withdrawRequest: async (id) => {
+          await get().cancelRequest(id);
         },
 
         refreshPendingTimers: () => {
@@ -98,9 +121,9 @@ export const usePurchaseRequestTrackingStore =
       }),
       {
         name: STORAGE_KEY,
-        partialize: (state) => ({ items: state.items }),
+        partialize: () => ({ items: [] as PurchaseRequestTrackingItem[] }),
         onRehydrateStorage: () => (state) => {
-          state?.setHydrated(true);
+          void state?.fetchFromApi();
         },
       },
     ),

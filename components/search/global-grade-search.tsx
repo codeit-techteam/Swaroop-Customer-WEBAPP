@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { GradeSearchModal } from "./grade-search-modal";
 import { SearchSuggestions } from "./search-suggestions";
 import { ROUTES } from "@/constants";
-import { materialsTaxonomy } from "@/mock/materials-taxonomy";
+import { materialsFromCatalog } from "@/lib/material-taxonomy";
 import {
   flattenSearchSuggestions,
   getGradeSearchSuggestions,
@@ -45,9 +45,10 @@ export function GlobalGradeSearch({ className }: GlobalGradeSearchProps) {
   const [dismissed, setDismissed] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const taxonomy = useMemo(() => materialsFromCatalog(products), [products]);
   const suggestions = useMemo(
-    () => getGradeSearchSuggestions(products, materialsTaxonomy, draft),
-    [products, draft],
+    () => getGradeSearchSuggestions(products, taxonomy, draft),
+    [products, taxonomy, draft],
   );
   const items = useMemo(
     () => flattenSearchSuggestions(suggestions, listId),

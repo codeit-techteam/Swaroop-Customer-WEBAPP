@@ -26,6 +26,7 @@ import { usePurchaseRequestTrackingStore } from "@/store/purchaseRequestTracking
 import type { PurchaseRequestTrackingItem } from "@/types/purchase-request-tracking";
 import { TrackingEmptyState } from "./TrackingEmptyState";
 import { TrackingStatusBadge } from "./TrackingStatusBadge";
+import { PrListSkeleton } from "@/components/purchase-requests/pr-list-skeleton";
 
 export function RejectedRequestsListPage() {
   const router = useRouter();
@@ -59,7 +60,9 @@ export function RejectedRequestsListPage() {
         ]}
       />
 
-      {!isHydrated ? null : rows.length === 0 ? (
+      {!isHydrated ? (
+        <PrListSkeleton />
+      ) : rows.length === 0 ? (
         <TrackingEmptyState
           title="No rejected requests"
           description="Rejected purchase requests will be listed here with PetroTrade review reasons."

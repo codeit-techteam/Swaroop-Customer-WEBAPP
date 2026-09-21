@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Bell, CheckCircle2, PackageCheck, Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { PageContainer } from "@/components/layout/page-container";
+import { OrdersPageSkeleton } from "@/components/orders/orders-page-skeleton";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -110,7 +111,7 @@ export function TrackShipmentPage() {
   if (!isHydrated) {
     return (
       <PageContainer>
-        <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />
+        <OrdersPageSkeleton />
       </PageContainer>
     );
   }

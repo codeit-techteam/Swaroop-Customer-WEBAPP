@@ -16,7 +16,6 @@ import {
   createDefaultFormData,
   createInitialValidationTimeline,
   DEFAULT_PAYMENT_METHOD_ID,
-  DEFAULT_PR_PRODUCT_ID,
   generateOrderId,
   generatePoNumber,
   generatePurchaseRequestId,
@@ -78,13 +77,13 @@ type PurchaseRequestActions = {
 export type PurchaseRequestStore = PurchaseRequestState &
   PurchaseRequestActions;
 
-const defaultProduct = mapProductToSelected(DEFAULT_PR_PRODUCT_ID);
+const defaultProduct = null as SelectedProduct | null;
 
 const initialTimeline = createInitialValidationTimeline();
 
 const initialState: PurchaseRequestState = {
   product: defaultProduct,
-  form: createDefaultFormData(defaultProduct?.moq ?? 25),
+  form: createDefaultFormData(25),
   selectedPaymentMethodId: DEFAULT_PAYMENT_METHOD_ID,
   acceptedTerms: false,
   acceptedGstDeclaration: false,
@@ -104,7 +103,8 @@ export const usePurchaseRequestStore = create<PurchaseRequestStore>()(
       ...initialState,
 
       hydrateProduct: (productId, overrides) => {
-        const id = productId?.trim() || DEFAULT_PR_PRODUCT_ID;
+        const id = productId?.trim();
+        if (!id) return;
         const mapped = mapProductToSelected(id, overrides);
         if (!mapped) return;
 

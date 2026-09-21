@@ -133,4 +133,5 @@ export interface ProductDetailRecord {
   logistics: LogisticsEstimate;
   relatedProductIds: string[];
   creditEligible: boolean;
+  offerId?: string;
 }

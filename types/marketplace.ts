@@ -160,6 +160,7 @@ export interface MarketplaceProduct {
   sellerId?: string;
   /** When false, seller identity is hidden (blind marketplace) */
   sellerVisible?: boolean;
+  offerId?: string;
 }
 
 export interface MarketplaceProductDetails extends MarketplaceProduct {

@@ -8,8 +8,8 @@ import { toast } from "sonner";
 import { ROUTES } from "@/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formatInr } from "@/lib/format";
 import { useCartStore } from "@/store/cartStore";
+import type { CheckoutQuote } from "@/services/checkout";
 import type {
   BulkPricingTier,
   PaymentMethodId,
@@ -28,12 +28,16 @@ interface StickyPurchasePanelProps {
   spotPrice: SpotPriceInfo;
   bulkPricing: BulkPricingTier[];
   paymentOptions: PaymentOption[];
+  paymentId: PaymentMethodId;
+  onPaymentChange: (id: PaymentMethodId) => void;
+  quote: CheckoutQuote | null;
+  quoteLoading: boolean;
+  quoteError: string | null;
   moq: number;
   maxStock: number;
   packaging: string;
   availabilityLabel: string;
   eta: string;
-  freightPerMt: number;
   quantity: number;
   onQuantityChange: (quantity: number) => void;
   onSelectTier: (tier: BulkPricingTier) => void;
@@ -45,12 +49,16 @@ export function StickyPurchasePanel({
   spotPrice,
   bulkPricing,
   paymentOptions,
+  paymentId,
+  onPaymentChange,
+  quote,
+  quoteLoading,
+  quoteError,
   moq,
   maxStock,
   packaging,
   availabilityLabel,
   eta,
-  freightPerMt,
   quantity,
   onQuantityChange,
   onSelectTier,
@@ -58,13 +66,8 @@ export function StickyPurchasePanel({
 }: StickyPurchasePanelProps) {
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
-  const [error, setError] = useState<string | null>(null);
-  const eligible = paymentOptions.filter((option) => option.eligible);
-  const [paymentId, setPaymentId] = useState<PaymentMethodId>(
-    eligible[0]?.id ?? "advance",
-  );
-  const selectedPayment =
-    paymentOptions.find((option) => option.id === paymentId) ?? eligible[0];
+  const [qtyError, setQtyError] = useState<string | null>(null);
+  const canBuy = Boolean(quote) && !quoteLoading && !quoteError;
 
   function clamp(next: number) {
     return Math.max(moq, Math.min(maxStock, Math.round(next)));
@@ -72,27 +75,30 @@ export function StickyPurchasePanel({
 
   function changeQty(next: number) {
     if (next < moq) {
-      setError(`Minimum order is ${moq} MT`);
+      setQtyError(`Minimum order is ${moq} MT`);
       onQuantityChange(moq);
       return;
     }
-    setError(null);
+    setQtyError(null);
     onQuantityChange(clamp(next));
   }
 
-  function handleAdd(redirect: "cart" | "checkout" | null) {
+  function handleAddToCart() {
     const result = addItem(productId, quantity, packaging);
     if (!result.ok) {
-      setError(result.message);
+      setQtyError(result.message);
       toast.error(result.message);
       return;
     }
     toast.success(result.message);
-    if (redirect === "cart") {
-      router.push(ROUTES.cart);
-    } else if (redirect === "checkout") {
-      router.push(ROUTES.checkout);
+  }
+
+  function handleBuyNow() {
+    if (!quote) {
+      toast.error(quoteError ?? "Unable to load latest pricing");
+      return;
     }
+    router.push(`${ROUTES.checkout}?quoteId=${quote.quoteId}`);
   }
 
   return (
@@ -102,7 +108,13 @@ export function StickyPurchasePanel({
         className,
       )}
     >
-      <SpotPriceCard spotPrice={spotPrice} />
+      <SpotPriceCard
+        spotPrice={
+          quote
+            ? { ...spotPrice, pricePerMt: Number(quote.unitPrice) }
+            : spotPrice
+        }
+      />
       <BulkPricingCard
         tiers={bulkPricing}
         quantity={quantity}
@@ -153,13 +165,13 @@ export function StickyPurchasePanel({
           <p className="mt-1.5 text-xs text-slate-500">
             MOQ {moq} MT · Available {maxStock} MT
           </p>
-          {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : null}
+          {qtyError ? <p className="mt-1 text-xs text-red-600">{qtyError}</p> : null}
         </div>
 
         <PaymentOptionsCard
           options={paymentOptions}
           selectedId={paymentId}
-          onSelect={setPaymentId}
+          onSelect={onPaymentChange}
           compact
         />
 
@@ -180,18 +192,13 @@ export function StickyPurchasePanel({
           </div>
         </div>
 
-        <BuyingSummary
-          pricePerMt={spotPrice.pricePerMt}
-          quantity={quantity}
-          freightPerMt={freightPerMt}
-          discountRate={selectedPayment?.discountRate ?? 0}
-        />
+        <BuyingSummary quote={quote} loading={quoteLoading} error={quoteError} />
 
         <div className="space-y-2">
           <Button
             type="button"
             className="h-12 w-full rounded-xl bg-brand text-sm font-semibold hover:bg-brand-700"
-            onClick={() => handleAdd("cart")}
+            onClick={handleAddToCart}
           >
             <ShoppingCart className="h-4 w-4" />
             Add To Cart
@@ -200,10 +207,11 @@ export function StickyPurchasePanel({
             type="button"
             variant="outline"
             className="h-11 w-full rounded-xl text-sm font-semibold"
-            onClick={() => handleAdd("checkout")}
+            onClick={handleBuyNow}
+            disabled={!canBuy}
           >
             <ShoppingBag className="h-4 w-4" />
-            Buy Now
+            {quoteLoading ? "Loading latest price..." : "Buy Now"}
           </Button>
           <Button
             asChild
@@ -219,8 +227,8 @@ export function StickyPurchasePanel({
         </div>
 
         <p className="text-[11px] leading-relaxed text-slate-400">
-          {spotPrice.note} Estimated freight{" "}
-          {formatInr(freightPerMt, { compact: true })} / MT.
+          Totals come from the latest PetroTrade quote. Payment is collected after
+          seller response, commercial acceptance, and proforma invoice.
         </p>
       </div>
 
@@ -230,15 +238,17 @@ export function StickyPurchasePanel({
 }
 
 interface MobileBuyBarProps {
-  pricePerMt: number;
   quantity: number;
-  onAddToCart: () => void;
+  totalLabel: string;
+  onBuyNow: () => void;
+  disabled?: boolean;
 }
 
 export function MobileBuyBar({
-  pricePerMt,
   quantity,
-  onAddToCart,
+  totalLabel,
+  onBuyNow,
+  disabled = false,
 }: MobileBuyBarProps) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
@@ -248,16 +258,16 @@ export function MobileBuyBar({
             Est. total · {quantity} MT
           </p>
           <p className="truncate text-base font-bold tabular-nums text-brand">
-            {formatInr(pricePerMt * quantity, { compact: true })}
+            {totalLabel}
           </p>
         </div>
         <Button
           type="button"
           className="h-11 shrink-0 rounded-xl bg-brand px-5 text-sm font-semibold hover:bg-brand-700"
-          onClick={onAddToCart}
+          onClick={onBuyNow}
+          disabled={disabled}
         >
-          <ShoppingCart className="h-4 w-4" />
-          Add To Cart
+          Buy Now
         </Button>
       </div>
     </div>

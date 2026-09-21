@@ -9,7 +9,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ROUTES } from "@/constants";
 import { getEffectiveOfferPrice } from "@/lib/offer-utils";
-import { getOfferById } from "@/mock/offers";
+import { getLiveOfferById } from "@/lib/offer-lookup";
 import { usePurchaseRequestStore } from "@/store/purchaseRequestStore";
 import { useCartStore } from "@/store/cartStore";
 import { useOffersStore } from "@/store/offersStore";
@@ -50,6 +50,8 @@ export function CreatePurchaseRequestPage() {
   const setQuantity = usePurchaseRequestStore((s) => s.setQuantity);
   const getOrderSummary = usePurchaseRequestStore((s) => s.getOrderSummary);
   const markOfferApplied = useOffersStore((s) => s.markOfferApplied);
+  const fetchOffers = useOffersStore((s) => s.fetchOffers);
+  const offers = useOffersStore((s) => s.offers);
 
   useEffect(() => {
     const finish = () => {
@@ -70,7 +72,12 @@ export function CreatePurchaseRequestPage() {
       return;
     }
 
-    const offer = offerIdParam ? getOfferById(offerIdParam) : undefined;
+    if (offerIdParam && !offers.length) {
+      void fetchOffers();
+      return;
+    }
+
+    const offer = offerIdParam ? getLiveOfferById(offerIdParam) : undefined;
     const offerPrice = offerPriceParam ? Number(offerPriceParam) : undefined;
     const qty = qtyParam ? Number(qtyParam) : offer?.moq;
     const effectiveOfferPrice =
@@ -105,6 +112,8 @@ export function CreatePurchaseRequestPage() {
     paymentParam,
     qtyParam,
     markOfferApplied,
+    fetchOffers,
+    offers.length,
   ]);
 
   useEffect(() => {

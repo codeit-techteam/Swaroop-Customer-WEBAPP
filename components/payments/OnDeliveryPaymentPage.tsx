@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { IndianRupee, MapPinned, Navigation } from "lucide-react";
 import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
+import { PaymentsPageSkeleton } from "./payments-page-skeleton";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,7 +51,7 @@ export function OnDeliveryPaymentPage() {
   if (!isHydrated) {
     return (
       <PageContainer>
-        <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />
+        <PaymentsPageSkeleton />
       </PageContainer>
     );
   }

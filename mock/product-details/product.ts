@@ -17,6 +17,7 @@ import type {
   ProductAvailabilityLevel,
   ProductDetailRecord,
 } from "@/types/product-details";
+import type { MarketplaceProduct } from "@/types/marketplace";
 
 function availabilityFromStock(
   stock: number,
@@ -50,10 +51,13 @@ function buildSku(product: {
  * Builds full PDP record from marketplace catalog — Customer App fields first,
  * desktop design enrichments (SKU, gallery, docs, logistics) layered on top.
  */
-export function getProductDetailById(id: string): ProductDetailRecord | null {
-  const product = getProductById(id);
-  if (!product) return null;
-
+/**
+ * Builds full PDP record from a marketplace product.
+ */
+export function buildProductDetail(
+  product: MarketplaceProduct,
+  relatedProductIds: string[] = [],
+): ProductDetailRecord {
   const category =
     categoriesMock.find((item) => item.id === product.categoryId) ??
     categoriesMock[0]!;
@@ -62,16 +66,6 @@ export function getProductDetailById(id: string): ProductDetailRecord | null {
     product.stock,
     product.stockStatus,
   );
-  const relatedProductIds = productsMock
-    .filter(
-      (item) =>
-        item.id !== product.id &&
-        (item.categoryId === product.categoryId ||
-          item.materialType === product.materialType ||
-          item.grade === product.grade),
-    )
-    .slice(0, 8)
-    .map((item) => item.id);
 
   const techSpecs = product.technicalSpecs
     ? Object.entries(product.technicalSpecs)
@@ -140,7 +134,24 @@ export function getProductDetailById(id: string): ProductDetailRecord | null {
     }),
     relatedProductIds,
     creditEligible: product.creditEligible,
+    offerId: product.offerId,
   };
+}
+
+export function getProductDetailById(id: string): ProductDetailRecord | null {
+  const product = getProductById(id);
+  if (!product) return null;
+  const relatedProductIds = productsMock
+    .filter(
+      (item) =>
+        item.id !== product.id &&
+        (item.categoryId === product.categoryId ||
+          item.materialType === product.materialType ||
+          item.grade === product.grade),
+    )
+    .slice(0, 8)
+    .map((item) => item.id);
+  return buildProductDetail(product, relatedProductIds);
 }
 
 export { productsMock as productCatalogMock };

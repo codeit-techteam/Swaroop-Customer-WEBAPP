@@ -63,8 +63,8 @@ export function LoginForm() {
         options,
       ),
     defaultValues: {
-      identifier: "",
-      password: "",
+      identifier: "customer@test.local",
+      password: "Test@12345",
       rememberMe: false,
     },
   });
@@ -75,7 +75,7 @@ export function LoginForm() {
   const switchLoginMethod = (method: LoginMethod) => {
     if (method === loginMethod) return;
     setLoginMethod(method);
-    setValue("identifier", "");
+    setValue("identifier", method === "phone" ? "8240890242" : "customer@test.local");
     clearErrors("identifier");
   };
 
@@ -225,6 +225,13 @@ export function LoginForm() {
           >
             Continue with OTP
           </SecondaryButton>
+
+          <p className="text-center text-xs text-muted-foreground">
+            Dev login: <span className="font-medium text-foreground">Karan Veer</span> ·{" "}
+            <span className="font-medium text-foreground">8240890242</span> · OTP{" "}
+            <span className="font-medium text-foreground">123456</span> · password{" "}
+            <span className="font-medium text-foreground">Test@12345</span>
+          </p>
 
           <p className="text-center text-sm text-muted-foreground">
             New to PetroTrade?{" "}

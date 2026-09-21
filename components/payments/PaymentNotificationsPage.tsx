@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
+import { PaymentsPageSkeleton } from "./payments-page-skeleton";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { ROUTES } from "@/constants";
@@ -30,7 +31,7 @@ export function PaymentNotificationsPage() {
   if (!isHydrated) {
     return (
       <PageContainer>
-        <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />
+        <PaymentsPageSkeleton />
       </PageContainer>
     );
   }

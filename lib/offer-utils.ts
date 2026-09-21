@@ -1,7 +1,9 @@
+import { ROUTES } from "@/constants";
 import type {
   MarketplaceOffer,
   OfferBulkTier,
   OfferStatus,
+  OfferSummaryStats,
 } from "@/types/offers";
 
 const ENDING_SOON_MS = 24 * 60 * 60 * 1000;
@@ -97,6 +99,38 @@ export function getOfferTypeLabel(
     default:
       return "Offer";
   }
+}
+
+export function getOfferSummaryStats(
+  offers: MarketplaceOffer[],
+): OfferSummaryStats {
+  return {
+    activeOffers: offers.length,
+    limitedTimeDeals: offers.filter((offer) => offer.isLimitedTime).length,
+    bulkDiscountCampaigns: offers.filter((offer) => offer.offerType === "bulk_discount")
+      .length,
+    creditEligibleOffers: offers.filter((offer) => offer.creditEligible).length,
+  };
+}
+
+export function getOfferDetailHref(offerId: string): string {
+  return `${ROUTES.marketplaceOffers}/${offerId}`;
+}
+
+export function getOfferQuoteHref(
+  offer: MarketplaceOffer,
+  options?: { quantity?: number; paymentType?: string },
+): string {
+  const qty = options?.quantity ?? offer.moq;
+  const effectivePrice = getEffectiveOfferPrice(offer, qty);
+  const params = new URLSearchParams({
+    productId: offer.productId,
+    qty: String(qty),
+    offerId: offer.id,
+    offerPrice: String(effectivePrice),
+  });
+  if (options?.paymentType) params.set("payment", options.paymentType);
+  return `${ROUTES.purchaseRequestsCreate}?${params.toString()}`;
 }
 
 export function getStatusLabel(status: OfferStatus): string {

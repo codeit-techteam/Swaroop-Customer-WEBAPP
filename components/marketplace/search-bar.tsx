@@ -6,7 +6,7 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SearchSuggestions } from "@/components/search/search-suggestions";
 import { ROUTES } from "@/constants";
-import { materialsTaxonomy } from "@/mock/materials-taxonomy";
+import { materialsFromCatalog } from "@/lib/material-taxonomy";
 import {
   flattenSearchSuggestions,
   getGradeSearchSuggestions,
@@ -38,9 +38,10 @@ export function MarketplaceSearchBar({
   const [dismissed, setDismissed] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const taxonomy = useMemo(() => materialsFromCatalog(products), [products]);
   const suggestions = useMemo(
-    () => getGradeSearchSuggestions(products, materialsTaxonomy, value),
-    [products, value],
+    () => getGradeSearchSuggestions(products, taxonomy, value),
+    [products, taxonomy, value],
   );
   const items = useMemo(
     () => flattenSearchSuggestions(suggestions, listId),

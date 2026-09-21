@@ -19,11 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ROUTES } from "@/constants";
 import { formatDateDdMmYyyy, formatInr } from "@/lib/format";
 import { getOfferStatus, getStatusLabel } from "@/lib/offer-utils";
-import {
-  getOfferById,
-  getOfferDetailHref,
-  getOfferQuoteHref,
-} from "@/mock/offers";
+import { getOfferDetailHref, getOfferQuoteHref } from "@/lib/offer-utils";
 import { useOffersStore } from "@/store/offersStore";
 import type { MyOfferTab } from "@/types/offers";
 
@@ -98,7 +94,7 @@ export function MyOffersPage() {
                   </TableHeader>
                   <TableBody>
                     {records.map((record) => {
-                      const offer = getOfferById(record.offerId);
+                      const offer = useOffersStore.getState().getOffer(record.offerId);
                       if (!offer) return null;
                       const liveStatus = getOfferStatus(offer);
                       return (

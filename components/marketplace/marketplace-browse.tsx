@@ -8,6 +8,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ROUTES } from "@/constants";
 import { useMarketplaceStore } from "@/store/marketplaceStore";
+import { useOffersStore } from "@/store/offersStore";
 import { FilterTopBar } from "./filter-top-bar";
 import { MarketplaceHeader } from "./marketplace-header";
 import { MarketplaceSearchBar } from "./search-bar";
@@ -51,7 +52,6 @@ export function MarketplaceBrowse({
   breadcrumbs,
 }: MarketplaceBrowseProps) {
   const searchParams = useSearchParams();
-  const [ready, setReady] = useState(false);
   const [activeOfferId, setActiveOfferId] = useState<string | null>(null);
   const [activeMaterial, setActiveMaterial] = useState<string | null>(null);
 
@@ -68,6 +68,12 @@ export function MarketplaceBrowse({
   const quickViewProductId = useMarketplaceStore((s) => s.quickViewProductId);
   const products = useMarketplaceStore((s) => s.products);
   const selectedCategoryId = useMarketplaceStore((s) => s.selectedCategoryId);
+  const isLoading = useMarketplaceStore((s) => s.isLoading);
+  const hasLoaded = useMarketplaceStore((s) => s.hasLoaded);
+  const loadError = useMarketplaceStore((s) => s.loadError);
+  const fetchCatalog = useMarketplaceStore((s) => s.fetchCatalog);
+  const liveOffers = useOffersStore((s) => s.offers);
+  const fetchOffers = useOffersStore((s) => s.fetchOffers);
 
   const setSearch = useMarketplaceStore((s) => s.setSearch);
   const setOriginFilter = useMarketplaceStore((s) => s.setOriginFilter);
@@ -91,9 +97,14 @@ export function MarketplaceBrowse({
   );
 
   useEffect(() => {
+    void (async () => {
+      await fetchCatalog();
+      await fetchOffers();
+    })();
+  }, [fetchCatalog, fetchOffers]);
+
+  useEffect(() => {
     hydrateCategorySlug(initialCategorySlug);
-    const timer = window.setTimeout(() => setReady(true), 280);
-    return () => window.clearTimeout(timer);
   }, [hydrateCategorySlug, initialCategorySlug]);
 
   useEffect(() => {
@@ -158,11 +169,26 @@ export function MarketplaceBrowse({
     toast.success(`Showing products for ${offer.title}`);
   };
 
-  if (!ready) {
+  if (!hasLoaded || isLoading) {
     return (
       <PageContainer>
         <PageHeader title={pageTitle} breadcrumbs={crumbItems} />
         <MarketplaceBrowseSkeleton />
+      </PageContainer>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <PageContainer>
+        <PageHeader title={pageTitle} breadcrumbs={crumbItems} />
+        <MarketplaceEmptyState
+          title="Unable to load marketplace catalog"
+          description={loadError}
+          action={
+            <Button onClick={() => void fetchCatalog()}>Retry</Button>
+          }
+        />
       </PageContainer>
     );
   }
@@ -271,6 +297,7 @@ export function MarketplaceBrowse({
         />
 
         <OfferBanner
+          offers={liveOffers}
           activeOfferId={activeOfferId}
           onViewProducts={handleViewOfferProducts}
         />

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useEffect } from "react";
 import { useDashboardStore } from "@/store/dashboardStore";
+import { useMarketplaceStore } from "@/store/marketplaceStore";
 import {
   ActivityTimeline,
   CategoriesGrid,
@@ -16,10 +17,11 @@ import {
   RecommendedProducts,
   PopularMaterials,
 } from "@/components/dashboard";
+import { MarketplaceEmptyState } from "@/components/marketplace/empty-state";
+import { Button } from "@/components/ui/button";
+import { PageContainer } from "@/components/layout/page-container";
 
 export function CustomerDashboard() {
-  const [ready, setReady] = useState(false);
-
   const hero = useDashboardStore((s) => s.hero);
   const marketPrices = useDashboardStore((s) => s.marketPrices);
   const creditSummary = useDashboardStore((s) => s.creditSummary);
@@ -29,15 +31,45 @@ export function CustomerDashboard() {
   const categories = useDashboardStore((s) => s.categories);
   const recommendedProducts = useDashboardStore((s) => s.recommendedProducts);
   const promotion = useDashboardStore((s) => s.promotion);
+  const hydrateFromCatalog = useDashboardStore((s) => s.hydrateFromCatalog);
+
+  const catalogLoading = useMarketplaceStore((s) => s.isLoading);
+  const catalogHasLoaded = useMarketplaceStore((s) => s.hasLoaded);
+  const catalogError = useMarketplaceStore((s) => s.loadError);
+  const products = useMarketplaceStore((s) => s.products);
+  const fetchCatalog = useMarketplaceStore((s) => s.fetchCatalog);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setReady(true), 220);
-    return () => window.clearTimeout(timer);
-  }, []);
+    if (!catalogHasLoaded && !catalogLoading) {
+      void fetchCatalog();
+    }
+  }, [catalogHasLoaded, catalogLoading, fetchCatalog]);
+
+  useEffect(() => {
+    if (catalogHasLoaded) {
+      hydrateFromCatalog();
+    }
+  }, [catalogHasLoaded, products, hydrateFromCatalog]);
+
+  const showSkeleton = !catalogHasLoaded || catalogLoading;
+
+  if (catalogHasLoaded && catalogError && products.length === 0) {
+    return (
+      <PageContainer>
+        <MarketplaceEmptyState
+          title="Unable to load dashboard catalog"
+          description={catalogError}
+          action={
+            <Button onClick={() => void fetchCatalog()}>Retry</Button>
+          }
+        />
+      </PageContainer>
+    );
+  }
 
   return (
     <AnimatePresence mode="wait">
-      {!ready ? (
+      {showSkeleton ? (
         <motion.div
           key="skeleton"
           initial={{ opacity: 0 }}
@@ -76,7 +108,7 @@ export function CustomerDashboard() {
               <OutstandingCard outstanding={outstanding} />
               <ActivityTimeline items={recentActivity} />
               <CategoriesGrid categories={categories} />
-              <PromotionCard promotion={promotion} />
+              {promotion ? <PromotionCard promotion={promotion} /> : null}
             </aside>
           </div>
 
@@ -85,7 +117,7 @@ export function CustomerDashboard() {
             <ActivityTimeline items={recentActivity} />
             <div className="space-y-4">
               <CategoriesGrid categories={categories} />
-              <PromotionCard promotion={promotion} />
+              {promotion ? <PromotionCard promotion={promotion} /> : null}
             </div>
           </div>
         </motion.div>

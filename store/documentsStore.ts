@@ -5,13 +5,6 @@ import { persist } from "zustand/middleware";
 import {
   DEFAULT_DOCUMENTS_FILTERS,
   buildRecentlyGenerated,
-  certificatesMock,
-  documentNotificationsMock,
-  downloadsMock,
-  gstInvoicesMock,
-  invoicesMock,
-  proformaInvoicesMock,
-  purchaseOrdersMock,
 } from "@/mock/documents-catalog";
 import type {
   CertificateDocument,
@@ -29,8 +22,15 @@ import type {
   PurchaseOrderDocument,
   RecentlyGeneratedItem,
 } from "@/types/documents";
+import {
+  fetchCustomerProformas,
+  fetchCustomerPurchaseOrders,
+  mapPoToDocument,
+  mapProformaToDocument,
+  mapProformaToInvoice,
+} from "@/services/finance";
 
-const STORAGE_KEY = "petrotrade.documents-catalog.v1";
+const STORAGE_KEY = "petrotrade.documents-catalog.v2";
 
 export type { DocumentCategoryFilter };
 
@@ -50,7 +50,9 @@ export interface DocumentsStoreState {
   uploadOpen: boolean;
   isHydrated: boolean;
   isLoading: boolean;
+  loadError: string | null;
 
+  fetchFromApi: () => Promise<void>;
   setHydrated: (v: boolean) => void;
   setFilters: (patch: Partial<DocumentsFiltersState>) => void;
   resetFilters: () => void;
@@ -365,13 +367,13 @@ export function getRecentItems(
 export const useDocumentsStore = create<DocumentsStoreState>()(
   persist(
     (set, get) => ({
-      purchaseOrders: purchaseOrdersMock,
-      invoices: invoicesMock,
-      proformas: proformaInvoicesMock,
-      gstInvoices: gstInvoicesMock,
-      certificates: certificatesMock,
-      downloads: downloadsMock,
-      notifications: documentNotificationsMock,
+      purchaseOrders: [],
+      invoices: [],
+      proformas: [],
+      gstInvoices: [],
+      certificates: [],
+      downloads: [],
+      notifications: [],
       filters: { ...DEFAULT_DOCUMENTS_FILTERS },
       categoryFilter: "all",
       selectedDocumentId: null,
@@ -379,6 +381,42 @@ export const useDocumentsStore = create<DocumentsStoreState>()(
       uploadOpen: false,
       isHydrated: false,
       isLoading: false,
+      loadError: null,
+
+      fetchFromApi: async () => {
+        set({ isLoading: true, loadError: null });
+        try {
+          const [pos, proformas] = await Promise.all([
+            fetchCustomerPurchaseOrders(),
+            fetchCustomerProformas(),
+          ]);
+          set({
+            purchaseOrders: pos.map(mapPoToDocument),
+            invoices: proformas.map(mapProformaToInvoice),
+            proformas: proformas.map(mapProformaToDocument),
+            gstInvoices: [],
+            certificates: [],
+            downloads: [],
+            notifications: [],
+            isLoading: false,
+            isHydrated: true,
+            loadError: null,
+          });
+        } catch (error) {
+          set({
+            purchaseOrders: [],
+            invoices: [],
+            proformas: [],
+            gstInvoices: [],
+            certificates: [],
+            downloads: [],
+            notifications: [],
+            isLoading: false,
+            isHydrated: true,
+            loadError: error instanceof Error ? error.message : "Unable to load documents.",
+          });
+        }
+      },
 
       setHydrated: (v) => set({ isHydrated: v }),
 
@@ -629,18 +667,9 @@ export const useDocumentsStore = create<DocumentsStoreState>()(
     }),
     {
       name: STORAGE_KEY,
-      partialize: (s) => ({
-        purchaseOrders: s.purchaseOrders,
-        invoices: s.invoices,
-        proformas: s.proformas,
-        gstInvoices: s.gstInvoices,
-        certificates: s.certificates,
-        downloads: s.downloads,
-        notifications: s.notifications,
-        filters: s.filters,
-      }),
+      partialize: (s) => ({ filters: s.filters }),
       onRehydrateStorage: () => (state) => {
-        state?.setHydrated(true);
+        void state?.fetchFromApi();
       },
     },
   ),

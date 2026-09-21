@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { Clock3, Flame, TrendingUp } from "lucide-react";
 import { formatInr } from "@/lib/format";
-import { getOfferById, getOfferDetailHref } from "@/mock/offers";
+import { getOfferDetailHref } from "@/lib/offer-utils";
 import { useOffersStore } from "@/store/offersStore";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +21,7 @@ export function OffersRightSidebar({ className }: OffersRightSidebarProps) {
     .sort((a, b) => b.requestCount - a.requestCount)
     .slice(0, 4);
   const recentlyViewed = recentlyViewedIds
-    .map((id) => getOfferById(id))
+    .map((id) => offers.find((offer) => offer.id === id || offer.slug === id))
     .filter(Boolean)
     .slice(0, 4);
 

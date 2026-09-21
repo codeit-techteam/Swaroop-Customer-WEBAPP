@@ -8,10 +8,8 @@ import type {
   TrustFeature,
 } from "@/types/marketplace";
 
-import { blindGradesMock } from "./blind-grades";
-
-/** Blind B2B catalog — no product images; seller identity is PRIVATE. */
-export const productsMock: MarketplaceProduct[] = blindGradesMock;
+/** Production catalog is loaded from PostgreSQL via Swaroop-Backend. */
+export const productsMock: MarketplaceProduct[] = [];
 
 
 

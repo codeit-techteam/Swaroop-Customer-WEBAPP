@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatInr, formatQuantityMt } from "@/lib/format";
 import { calculateOfferSavings } from "@/lib/offer-utils";
-import { getOfferById } from "@/mock/offers";
+import { useOffersStore } from "@/store/offersStore";
 import { cn } from "@/lib/utils";
 
 interface AppliedOfferSummaryProps {
@@ -18,7 +18,7 @@ export function AppliedOfferSummary({
   quantityMt,
   className,
 }: AppliedOfferSummaryProps) {
-  const offer = getOfferById(offerId);
+  const offer = useOffersStore((state) => state.getOffer(offerId));
   if (!offer) return null;
 
   const { pricePerMt, savingsTotal } = calculateOfferSavings(offer, quantityMt);

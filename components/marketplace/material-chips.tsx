@@ -1,6 +1,8 @@
 "use client";
 
-import { materialsTaxonomy } from "@/mock/materials-taxonomy";
+import { useMemo } from "react";
+import { materialsFromCatalog } from "@/lib/material-taxonomy";
+import { useMarketplaceStore } from "@/store/marketplaceStore";
 import { cn } from "@/lib/utils";
 
 interface MaterialChipsProps {
@@ -36,6 +38,11 @@ export function MaterialChips({
   className,
   limit = 16,
 }: MaterialChipsProps) {
+  const products = useMarketplaceStore((s) => s.products);
+  const materialsTaxonomy = useMemo(
+    () => materialsFromCatalog(products),
+    [products],
+  );
   const prioritized = [
     ...PRIORITY_CODES.map((code) =>
       materialsTaxonomy.find((m) => m.code === code),

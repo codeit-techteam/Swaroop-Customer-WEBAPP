@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { PageContainer } from "@/components/layout/page-container";
+import { PaymentsPageSkeleton } from "./payments-page-skeleton";
 import { PageHeader } from "@/components/layout/page-header";
 import { ROUTES } from "@/constants";
 import {
@@ -52,7 +53,7 @@ export function AdvancePaymentPage() {
   if (!isHydrated) {
     return (
       <PageContainer>
-        <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />
+        <PaymentsPageSkeleton />
       </PageContainer>
     );
   }

@@ -7,6 +7,7 @@ import {
   CREDIT_DOCUMENT_DEFINITIONS,
   generateCreditApplicationId,
 } from "@/mock/credit-application";
+import { applyCustomerCredit } from "@/services/credit";
 import {
   addBusinessDays,
   CREDIT_REVIEW_BUSINESS_DAYS,
@@ -49,11 +50,11 @@ export interface CreditApplicationStoreState {
   goToApply: () => void;
   goToUpload: () => { ok: boolean; errors: Record<string, string> };
   saveDraft: () => void;
-  submitApplication: () => {
+  submitApplication: () => Promise<{
     ok: boolean;
     errors: Record<string, string>;
     application: SubmittedCreditApplication | null;
-  };
+  }>;
   isApplyComplete: () => boolean;
   isUploadReady: () => boolean;
 }
@@ -152,7 +153,7 @@ export const useCreditApplicationStore = create<CreditApplicationStoreState>()(
 
       saveDraft: () => set({ draftSavedAt: stampDraft() }),
 
-      submitApplication: () => {
+      submitApplication: async () => {
         const state = get();
         if (state.application) {
           return { ok: false, errors: {}, application: state.application };
@@ -173,6 +174,11 @@ export const useCreditApplicationStore = create<CreditApplicationStoreState>()(
         }
 
         const limit = parseCreditLimit(state.requestedLimit)!;
+        await applyCustomerCredit({
+          requestedLimit: limit,
+          requestedTenureDays: state.creditTerm === "net_30" ? 30 : 15,
+          purpose: state.purpose.trim(),
+        });
         const submittedAt = new Date().toISOString();
         const application: SubmittedCreditApplication = {
           applicationId: generateCreditApplicationId(),

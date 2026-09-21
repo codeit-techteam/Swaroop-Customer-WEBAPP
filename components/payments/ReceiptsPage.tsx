@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Download, Eye, Printer, Search, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
+import { PaymentsPageSkeleton } from "./payments-page-skeleton";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,7 +60,7 @@ export function ReceiptsPage() {
   if (!isHydrated) {
     return (
       <PageContainer>
-        <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />
+        <PaymentsPageSkeleton />
       </PageContainer>
     );
   }

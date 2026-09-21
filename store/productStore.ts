@@ -1,14 +1,9 @@
 "use client";
 
 import { create } from "zustand";
-import {
-  getProductDetailById,
-  getRelatedProductCards,
-} from "@/mock/product-details";
-import {
-  getPublishedProductsCache,
-  publishedProductToDetail,
-} from "@/lib/cx-feed";
+import { buildProductDetail } from "@/mock/product-details";
+import { fetchMarketplaceProduct } from "@/services/catalog";
+import { useMarketplaceStore } from "@/store/marketplaceStore";
 import type {
   ProductDetailRecord,
   RelatedProductCard,
@@ -20,63 +15,60 @@ export interface ProductStoreState {
   galleryIndex: number;
   relatedProducts: RelatedProductCard[];
   isLoading: boolean;
-
-  loadProduct: (productId: string) => void;
+  loadError: string | null;
+  loadProduct: (productId: string) => Promise<void>;
   setGalleryIndex: (index: number) => void;
   clearProduct: () => void;
 }
 
-function relatedFromPublished(
-  relatedProductIds: string[],
-): RelatedProductCard[] {
-  const cache = getPublishedProductsCache();
-  if (!cache.length) {
-    return getRelatedProductCards(relatedProductIds);
-  }
-
-  return relatedProductIds
-    .map((id) => cache.find((item) => item.id === id))
-    .filter((product): product is NonNullable<typeof product> =>
-      Boolean(product),
-    )
+function relatedCards(excludeId: string): RelatedProductCard[] {
+  return useMarketplaceStore
+    .getState()
+    .products.filter((item) => item.id !== excludeId)
+    .slice(0, 8)
     .map((product) => ({
       id: product.id,
       name: product.name,
-      brandName: product.brand,
-      categoryLabel: product.material.toUpperCase(),
-      pricePerMt: product.sellingPrice,
-      warehouseLabel: product.location,
-      stockLabel: `${product.availableQty.toLocaleString("en-IN")} MT`,
-      imageUrl: product.images[0] ?? "",
+      brandName: product.brandName,
+      categoryLabel: product.materialType.toUpperCase(),
+      pricePerMt: product.price,
+      warehouseLabel: product.warehouseLabel,
+      stockLabel: `${product.stock.toLocaleString("en-IN")} MT`,
+      imageUrl: "",
       href: `${ROUTES.marketplaceProduct}/${product.id}`,
     }));
 }
 
-/**
- * productStore — prefers admin-published CX feed, falls back to local mocks.
- */
 export const useProductStore = create<ProductStoreState>((set) => ({
   selectedProduct: null,
   galleryIndex: 0,
   relatedProducts: [],
   isLoading: false,
+  loadError: null,
 
-  loadProduct: (productId) => {
-    set({ isLoading: true, galleryIndex: 0 });
-    const published = getPublishedProductsCache().find(
-      (item) => item.id === productId,
-    );
-    const selectedProduct = published
-      ? publishedProductToDetail(published)
-      : getProductDetailById(productId);
-    const relatedProducts = selectedProduct
-      ? relatedFromPublished(selectedProduct.relatedProductIds)
-      : [];
-    set({
-      selectedProduct,
-      relatedProducts,
-      isLoading: false,
-    });
+  loadProduct: async (productId) => {
+    set({ isLoading: true, galleryIndex: 0, loadError: null });
+    try {
+      const product = await fetchMarketplaceProduct(productId);
+      const related = relatedCards(product.id);
+      set({
+        selectedProduct: buildProductDetail(
+          product,
+          related.map((item) => item.id),
+        ),
+        relatedProducts: related,
+        isLoading: false,
+        loadError: null,
+      });
+    } catch (error) {
+      set({
+        selectedProduct: null,
+        relatedProducts: [],
+        isLoading: false,
+        loadError:
+          error instanceof Error ? error.message : "Unable to load product.",
+      });
+    }
   },
 
   setGalleryIndex: (index) => set({ galleryIndex: index }),
@@ -86,5 +78,6 @@ export const useProductStore = create<ProductStoreState>((set) => ({
       selectedProduct: null,
       relatedProducts: [],
       galleryIndex: 0,
+      loadError: null,
     }),
 }));

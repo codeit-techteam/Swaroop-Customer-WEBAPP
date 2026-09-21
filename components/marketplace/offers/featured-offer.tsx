@@ -42,15 +42,17 @@ export function FeaturedOffer({ offer, className }: FeaturedOfferProps) {
       )}
     >
       <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr]">
-        <div className="relative min-h-[220px] lg:min-h-[320px]">
-          <Image
-            src={offer.bannerImage}
-            alt={offer.productName}
-            fill
-            priority
-            className="object-cover"
-            sizes="(max-width: 1024px) 100vw, 55vw"
-          />
+        <div className="relative min-h-[220px] lg:min-h-[320px] bg-gradient-to-r from-brand to-brand-700">
+          {offer.bannerImage ? (
+            <Image
+              src={offer.bannerImage}
+              alt={offer.productName}
+              fill
+              priority
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 55vw"
+            />
+          ) : null}
           <div className="absolute inset-0 bg-gradient-to-r from-brand/90 via-brand/60 to-transparent" />
           <div className="relative z-10 flex h-full flex-col justify-between p-6 md:p-8">
             <div>

@@ -987,8 +987,8 @@ export function getOfferSummaryStats(
   };
 }
 
-export function getOfferById(id: string): MarketplaceOffer | undefined {
-  return offersMock.find((offer) => offer.id === id || offer.slug === id);
+export function getOfferById(_id: string): MarketplaceOffer | undefined {
+  return undefined;
 }
 
 export function getOfferQuoteHref(

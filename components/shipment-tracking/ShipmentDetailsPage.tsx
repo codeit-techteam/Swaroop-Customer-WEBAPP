@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, FastForward, Headset } from "lucide-react";
 import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
+import { OrdersPageSkeleton } from "@/components/orders/orders-page-skeleton";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,7 +61,7 @@ export function ShipmentDetailsPage({ shipmentId }: ShipmentDetailsPageProps) {
   if (!isHydrated || !shipment) {
     return (
       <PageContainer>
-        <div className="h-48 animate-pulse rounded-2xl bg-slate-100" />
+        <OrdersPageSkeleton />
       </PageContainer>
     );
   }

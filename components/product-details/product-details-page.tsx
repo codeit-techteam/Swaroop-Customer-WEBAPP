@@ -1,17 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { AppBreadcrumb } from "@/components/navigation/app-breadcrumb";
 import { ROUTES } from "@/constants";
-import { hydrateCustomerExperienceFeed } from "@/lib/cx-feed";
+import { useCustomerQuote } from "@/hooks/use-customer-quote";
+import { formatInr } from "@/lib/format";
 import { useProductStore } from "@/store/productStore";
-import { useCartStore } from "@/store/cartStore";
 import { MarketplaceEmptyState } from "@/components/marketplace/empty-state";
 import { BlindSellerBadge } from "@/components/marketplace/blind-seller-badge";
-import type { BulkPricingTier } from "@/types/product-details";
+import type { BulkPricingTier, PaymentMethodId } from "@/types/product-details";
 import { ProductHeader } from "./product-header";
 import { ProductHighlights } from "./product-highlights";
 import { ProductInfoCard } from "./product-info-card";
@@ -31,37 +32,31 @@ interface ProductDetailsPageProps {
   productId: string;
 }
 
-function priceForQuantity(tiers: BulkPricingTier[], quantity: number) {
-  const match = [...tiers].reverse().find((tier) => quantity >= tier.minMt);
-  return match?.pricePerMt;
-}
-
 export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
-  const [ready, setReady] = useState(false);
+  const router = useRouter();
   const [quantity, setQuantity] = useState(25);
+  const [paymentId, setPaymentId] = useState<PaymentMethodId>("advance");
   const loadProduct = useProductStore((s) => s.loadProduct);
   const selectedProduct = useProductStore((s) => s.selectedProduct);
   const relatedProducts = useProductStore((s) => s.relatedProducts);
-  const addItem = useCartStore((s) => s.addItem);
+  const isLoading = useProductStore((s) => s.isLoading);
+  const loadError = useProductStore((s) => s.loadError);
+
+  const { quote, paymentOptions, loading: quoteLoading, error: quoteError } =
+    useCustomerQuote({
+      productId,
+      offerId: selectedProduct?.offerId,
+      quantity,
+      paymentId,
+      enabled: Boolean(selectedProduct),
+    });
 
   useEffect(() => {
-    let cancelled = false;
-    setReady(false);
-
-    async function boot() {
-      await hydrateCustomerExperienceFeed();
-      if (cancelled) return;
-      loadProduct(productId);
-      setReady(true);
-    }
-
-    void boot();
-    return () => {
-      cancelled = true;
-    };
+    void loadProduct(productId);
   }, [loadProduct, productId]);
 
-  const product = selectedProduct?.id === productId ? selectedProduct : null;
+  const product = selectedProduct;
+  const ready = !isLoading;
 
   useEffect(() => {
     if (!product) return;
@@ -87,8 +82,11 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
         />
         <div className="mt-6">
           <MarketplaceEmptyState
-            title="Grade not found"
-            description="This grade is unavailable or the link is invalid."
+            title={loadError ? "Unable to load product" : "Grade not found"}
+            description={
+              loadError ??
+              "This grade is unavailable or the link is invalid."
+            }
           />
         </div>
       </PageContainer>
@@ -96,24 +94,22 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
   }
 
   const detail = product;
-  const tierPrice = priceForQuantity(detail.bulkPricing, quantity);
-  const displaySpotPrice =
-    tierPrice != null && tierPrice !== detail.spotPrice.pricePerMt
-      ? { ...detail.spotPrice, pricePerMt: tierPrice }
-      : detail.spotPrice;
+  const livePaymentOptions = paymentOptions;
+  const displaySpotPrice = quote
+    ? { ...detail.spotPrice, pricePerMt: Number(quote.unitPrice) }
+    : detail.spotPrice;
 
   function handleSelectTier(tier: BulkPricingTier) {
     const next = Math.min(detail.stock, Math.max(detail.moq, tier.minMt));
     setQuantity(next);
   }
 
-  function handleMobileAdd() {
-    const result = addItem(detail.id, quantity, detail.packaging);
-    if (!result.ok) {
-      toast.error(result.message);
+  function handleBuyNow() {
+    if (!quote) {
+      toast.error(quoteError ?? "Unable to load latest pricing");
       return;
     }
-    toast.success(result.message);
+    router.push(`${ROUTES.checkout}?quoteId=${quote.quoteId}`);
   }
 
   return (
@@ -174,13 +170,17 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
             productId={detail.id}
             spotPrice={displaySpotPrice}
             bulkPricing={detail.bulkPricing}
-            paymentOptions={detail.paymentOptions}
+            paymentOptions={livePaymentOptions}
+            paymentId={paymentId}
+            onPaymentChange={setPaymentId}
+            quote={quote}
+            quoteLoading={quoteLoading}
+            quoteError={quoteError}
             moq={detail.moq}
             maxStock={detail.stock}
             packaging={detail.packaging}
             availabilityLabel={detail.availabilityLabel}
             eta={detail.eta}
-            freightPerMt={detail.logistics.freightPerMt}
             quantity={quantity}
             onQuantityChange={setQuantity}
             onSelectTier={handleSelectTier}
@@ -191,9 +191,16 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
       <RelatedProductsCarousel products={relatedProducts} />
 
       <MobileBuyBar
-        pricePerMt={displaySpotPrice.pricePerMt}
         quantity={quantity}
-        onAddToCart={handleMobileAdd}
+        totalLabel={
+          quote
+            ? formatInr(Number(quote.totalAmount), { compact: true })
+            : quoteLoading
+              ? "Calculating..."
+              : "—"
+        }
+        onBuyNow={handleBuyNow}
+        disabled={!quote || quoteLoading}
       />
     </PageContainer>
   );

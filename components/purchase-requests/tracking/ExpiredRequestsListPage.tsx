@@ -20,6 +20,7 @@ import { formatDateDdMmYyyy, formatInr, formatQuantityMt } from "@/lib/format";
 import { usePurchaseRequestTrackingStore } from "@/store/purchaseRequestTrackingStore";
 import { TrackingEmptyState } from "./TrackingEmptyState";
 import { TrackingStatusBadge } from "./TrackingStatusBadge";
+import { PrListSkeleton } from "@/components/purchase-requests/pr-list-skeleton";
 
 export function ExpiredRequestsListPage() {
   const router = useRouter();
@@ -51,7 +52,9 @@ export function ExpiredRequestsListPage() {
         ]}
       />
 
-      {!isHydrated ? null : rows.length === 0 ? (
+      {!isHydrated ? (
+        <PrListSkeleton />
+      ) : rows.length === 0 ? (
         <TrackingEmptyState
           title="No expired requests"
           description="Timed-out approval windows will appear here."

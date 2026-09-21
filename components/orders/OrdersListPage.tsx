@@ -13,6 +13,7 @@ import { ROUTES } from "@/constants";
 import { formatInr, formatQuantityMt } from "@/lib/format";
 import { orderPath, statusLabel } from "@/lib/order-journey-navigation";
 import { useOrdersStore } from "@/store/ordersStore";
+import { OrdersListSkeleton } from "@/components/orders/orders-page-skeleton";
 
 export function OrdersListPage() {
   const router = useRouter();
@@ -34,7 +35,9 @@ export function OrdersListPage() {
         breadcrumbs={[{ label: "Orders" }]}
       />
 
-      {!isHydrated ? null : orders.length === 0 ? (
+      {!isHydrated ? (
+        <OrdersListSkeleton />
+      ) : orders.length === 0 ? (
         <Card className="border-dashed border-slate-200">
           <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
             <Package className="h-10 w-10 text-slate-300" />

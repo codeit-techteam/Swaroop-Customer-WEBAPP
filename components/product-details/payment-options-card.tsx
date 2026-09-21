@@ -74,13 +74,17 @@ export function PaymentOptionsCard({
                 type="button"
                 role="radio"
                 aria-checked={isSelected}
-                onClick={() => handleSelect(option.id)}
+                disabled={!option.eligible}
+                onClick={() => {
+                  if (option.eligible) handleSelect(option.id);
+                }}
                 className={cn(
                   "flex w-full items-center gap-2.5 rounded-xl border text-left transition-colors",
                   compact ? "px-2.5 py-2" : "items-start px-3 py-2.5",
                   isSelected
                     ? "border-brand/30 bg-brand/5"
                     : "border-slate-100 bg-slate-50/70 hover:border-slate-200",
+                  !option.eligible && "cursor-not-allowed opacity-50",
                 )}
               >
                 <span

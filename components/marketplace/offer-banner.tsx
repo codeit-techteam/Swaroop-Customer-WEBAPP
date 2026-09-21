@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { formatInr, formatDateDdMmYyyy } from "@/lib/format";
 import { isOfferPurchasable } from "@/lib/offer-utils";
-import { offersMock } from "@/mock/offers";
 import type { MarketplaceOffer } from "@/types/offers";
 import { OfferBadge } from "./offers/offer-badge";
 import { cn } from "@/lib/utils";
@@ -33,9 +32,10 @@ function getOfferHighlight(offer: MarketplaceOffer): string {
 
 /** Active offers shown on the unified Marketplace home. */
 export function getTodaysOffers(
+  offers: MarketplaceOffer[],
   limit = MAX_TODAYS_OFFERS,
 ): MarketplaceOffer[] {
-  const active = offersMock.filter(isOfferPurchasable);
+  const active = offers.filter(isOfferPurchasable);
   const prioritized = [...active].sort((a, b) => {
     if (a.isLimitedTime !== b.isLimitedTime) {
       return a.isLimitedTime ? -1 : 1;
@@ -122,7 +122,7 @@ export function OfferBanner({
   onViewProducts,
   className,
 }: OfferBannerProps) {
-  const items = offers ?? getTodaysOffers();
+  const items = offers ? getTodaysOffers(offers) : [];
   if (items.length === 0) return null;
 
   return (

@@ -4,6 +4,7 @@ import type {
   ValidationStepId,
   ValidationTimelineStep,
 } from "@/types/purchase-request";
+import { useMarketplaceStore } from "@/store/marketplaceStore";
 import { getProductById } from "@/mock/products";
 import { DEFAULT_SHIPPING_ADDRESS_ID } from "./shippingAddress";
 import { DEFAULT_BILLING_ADDRESS_ID } from "./billingAddress";
@@ -60,7 +61,9 @@ export function mapProductToSelected(
     moq?: number;
   },
 ): SelectedProduct | null {
-  const product = getProductById(productId);
+  const product =
+    useMarketplaceStore.getState().products.find((item) => item.id === productId) ??
+    getProductById(productId);
   if (!product) return null;
 
   return {

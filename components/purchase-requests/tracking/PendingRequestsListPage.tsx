@@ -19,6 +19,7 @@ import { usePurchaseRequestTrackingStore } from "@/store/purchaseRequestTracking
 import { usePurchaseRequestStore } from "@/store/purchaseRequestStore";
 import { TrackingEmptyState } from "./TrackingEmptyState";
 import { TrackingStatusBadge } from "./TrackingStatusBadge";
+import { PrListSkeleton } from "@/components/purchase-requests/pr-list-skeleton";
 
 export function PendingRequestsListPage() {
   const router = useRouter();
@@ -94,7 +95,9 @@ export function PendingRequestsListPage() {
         </Card>
       ) : null}
 
-      {!isHydrated ? null : rows.length === 0 ? (
+      {!isHydrated ? (
+        <PrListSkeleton />
+      ) : rows.length === 0 ? (
         <TrackingEmptyState
           title="No pending approvals"
           description="Submitted requests awaiting PetroTrade review will appear here with a live countdown."

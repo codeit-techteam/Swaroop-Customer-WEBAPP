@@ -1,44 +1,46 @@
-/**
- * Service layer placeholders — ready for future API integration.
- * No live network calls in the foundation phase.
- */
-
-export const authService = {
-  // login, logout, refreshToken — future
-};
-
-export const dashboardService = {
-  // getMetrics, getRecentOrders — future
-};
+import { fetchMarketplaceCatalog } from "@/services/catalog";
+import { fetchCustomerPurchaseRequests } from "@/services/purchase-requests";
+import {
+  fetchCustomerPayments,
+  fetchCustomerProformas,
+  fetchCustomerPurchaseOrders,
+} from "@/services/finance";
+import { fetchCustomerCreditLimit, applyCustomerCredit } from "@/services/credit";
+import { fetchCustomerShipments } from "@/services/logistics";
+import { fetchCustomerDocuments, fetchCustomerBanners } from "@/services/operations";
+import { createCustomerQuote, placeCustomerPurchaseRequest } from "@/services/checkout";
 
 export const marketplaceService = {
-  // getProducts, getCategories — future
+  getCatalog: () => fetchMarketplaceCatalog(),
+};
+
+export const purchaseRequestService = {
+  list: () => fetchCustomerPurchaseRequests(),
 };
 
 export const ordersService = {
-  // list, getById — future
+  list: () => fetchCustomerPurchaseOrders(),
 };
 
 export const paymentsService = {
-  // list, getHistory — future
+  list: () => fetchCustomerPayments(),
+  proformas: () => fetchCustomerProformas(),
+};
+
+export const creditService = {
+  getLimit: () => fetchCustomerCreditLimit(),
+  apply: applyCustomerCredit,
 };
 
 export const documentsService = {
-  // list, download, preview — wired via documentsStore (frontend state)
+  list: () => fetchCustomerDocuments(),
 };
 
 export const shipmentTrackingService = {
-  // list, getById, documents — future
+  list: () => fetchCustomerShipments(),
 };
 
-export const notificationsService = {
-  // list, markRead, preferences — wired via notificationsCatalogStore (frontend state)
-};
-
-export const profileService = {
-  // get, update, contacts, banks — wired via profileStore (frontend state)
-};
-
-export const supportService = {
-  // listTickets, createTicket, chat — wired via supportStore (frontend state)
+export const checkoutService = {
+  quote: createCustomerQuote,
+  place: placeCustomerPurchaseRequest,
 };

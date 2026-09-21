@@ -17,8 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ROUTES } from "@/constants";
 import { formatInr, formatQuantityMt } from "@/lib/format";
-import { productsMock } from "@/mock/products";
 import { useCompareStore } from "@/store/compareStore";
+import { useMarketplaceStore } from "@/store/marketplaceStore";
 import type { MarketplaceProduct } from "@/types/marketplace";
 import { cn } from "@/lib/utils";
 
@@ -137,6 +137,7 @@ export function CompareGradesView() {
   const clear = useCompareStore((s) => s.clear);
   const remove = useCompareStore((s) => s.remove);
   const toggle = useCompareStore((s) => s.toggle);
+  const catalog = useMarketplaceStore((s) => s.products);
 
   useEffect(() => {
     setMounted(true);
@@ -145,19 +146,17 @@ export function CompareGradesView() {
   const items = useMemo(
     () =>
       ids
-        .map((id) => productsMock.find((product) => product.id === id))
+        .map((id) => catalog.find((product) => product.id === id))
         .filter((product): product is MarketplaceProduct => Boolean(product)),
-    [ids],
+    [catalog, ids],
   );
 
   const rows = useMemo(() => buildRows(items), [items]);
 
   const suggestions = useMemo(() => {
     const selected = new Set(ids);
-    return productsMock
-      .filter((product) => !selected.has(product.id))
-      .slice(0, 6);
-  }, [ids]);
+    return catalog.filter((product) => !selected.has(product.id)).slice(0, 6);
+  }, [catalog, ids]);
 
   const emptySlots = Math.max(0, MAX_COMPARE - items.length);
   const canCompare = items.length >= 2;

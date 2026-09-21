@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { ROUTES } from "@/constants";
-import { currentCreditProfileMock } from "@/mock/credit-application";
 import {
   CreditApplicationSubmittedView,
   CreditApplicationSuccessModal,
@@ -31,11 +30,13 @@ import {
   listOnboardingProvidedDocIds,
 } from "@/lib/credit-onboarding-documents";
 import { useCreditApplicationStore } from "@/store/creditApplicationStore";
+import { useCreditStore } from "@/store/creditStore";
 import { useOnboardingStore } from "@/store/onboardingStore";
+import { CreditPageSkeleton } from "@/components/credit/credit-page-skeleton";
 
 export function RequestCreditPage() {
-  const profile = currentCreditProfileMock;
-  const hasActiveFacility = profile.status === "approved";
+  const creditSummary = useCreditStore((s) => s.creditSummary);
+  const hasActiveFacility = creditSummary.creditLimit > 0;
 
   const isHydrated = useCreditApplicationStore((s) => s.isHydrated);
   const wizardStep = useCreditApplicationStore((s) => s.wizardStep);
@@ -173,7 +174,7 @@ export function RequestCreditPage() {
     }
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const applyErrors = validateApplyFields({
       requestedLimit,
       monthlyPurchase,
@@ -197,28 +198,25 @@ export function RequestCreditPage() {
     }
 
     setSubmitting(true);
-    window.setTimeout(() => {
-      const result = submitApplication();
-      setSubmitting(false);
+    try {
+      const result = await submitApplication();
       if (!result.ok) {
         setFieldErrors(result.errors);
-        toast.error(
-          "Could not submit the application. Please review the form.",
-        );
+        toast.error("Could not submit the application. Please review the form.");
         return;
       }
       setSuccessOpen(true);
-    }, 800);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to submit credit application.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (!isHydrated) {
     return (
       <PageContainer>
-        <div className="space-y-4">
-          <div className="h-16 animate-pulse rounded-2xl bg-slate-100" />
-          <div className="h-28 animate-pulse rounded-2xl bg-slate-100" />
-          <div className="h-72 animate-pulse rounded-2xl bg-slate-100" />
-        </div>
+        <CreditPageSkeleton />
       </PageContainer>
     );
   }
@@ -249,11 +247,11 @@ export function RequestCreditPage() {
       </CardStepperShell>
 
       <CreditStatusCard
-        status={profile.status}
-        approvedLimit={profile.approvedLimit}
-        availableCredit={profile.availableCredit}
-        creditUsed={profile.creditUsed}
-        paymentTerms={profile.paymentTerms}
+        status={hasActiveFacility ? "approved" : "not_applied"}
+        approvedLimit={creditSummary.creditLimit}
+        availableCredit={creditSummary.availableCredit}
+        creditUsed={Math.max(0, creditSummary.creditLimit - creditSummary.availableCredit)}
+        paymentTerms="PetroTrade managed"
         compact={hasActiveFacility}
         className="mb-4"
       />

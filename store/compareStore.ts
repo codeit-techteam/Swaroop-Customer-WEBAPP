@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { productsMock } from "@/mock/products";
+import { useMarketplaceStore } from "@/store/marketplaceStore";
 import type { MarketplaceProduct } from "@/types/marketplace";
 
 const MAX_COMPARE = 4;
@@ -41,7 +41,9 @@ export const useCompareStore = create<CompareStoreState>()(
       clear: () => set({ ids: [] }),
       getItems: () =>
         get()
-          .ids.map((id) => productsMock.find((p) => p.id === id))
+          .ids.map((id) =>
+            useMarketplaceStore.getState().products.find((p) => p.id === id),
+          )
           .filter((p): p is MarketplaceProduct => Boolean(p)),
     }),
     { name: "petrotrade.compare.v1" },

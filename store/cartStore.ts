@@ -2,8 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { getProductDetailById } from "@/mock/product-details";
-import { productsMock } from "@/mock/products";
+import { useMarketplaceStore } from "@/store/marketplaceStore";
 
 export interface CartLineItem {
   productId: string;
@@ -37,22 +36,7 @@ export interface CartStoreState {
 }
 
 function resolveProductMeta(productId: string) {
-  const detail = getProductDetailById(productId);
-  if (detail) {
-    return {
-      productId: detail.id,
-      name: detail.name,
-      grade: detail.grade,
-      materialType: detail.materialType,
-      imageUrl: "",
-      unitPrice: detail.spotPrice.pricePerMt,
-      moq: detail.moq,
-      availableStock: detail.stock,
-      packaging: detail.packaging,
-      regionLabel: detail.logistics.warehouseRegion || "Western India Region",
-    };
-  }
-  const catalog = productsMock.find((p) => p.id === productId);
+  const catalog = useMarketplaceStore.getState().products.find((p) => p.id === productId);
   if (!catalog) return null;
   return {
     productId: catalog.id,
@@ -64,7 +48,7 @@ function resolveProductMeta(productId: string) {
     moq: catalog.moq,
     availableStock: catalog.stock,
     packaging: "25 KG Bags",
-    regionLabel: "Western India Region",
+    regionLabel: catalog.warehouseLabel || catalog.origin || "Western India Region",
   };
 }
 

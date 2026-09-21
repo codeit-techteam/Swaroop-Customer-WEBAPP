@@ -21,6 +21,7 @@ import {
   usePaymentsCatalogStore,
 } from "@/store/paymentsCatalogStore";
 import { PaymentStatusChip } from "./PaymentStatusChip";
+import { CreditPageSkeleton } from "@/components/credit/credit-page-skeleton";
 
 interface CreditPageProps {
   mode: "credit_15" | "credit_30";
@@ -72,7 +73,7 @@ export function CreditPaymentPage({ mode }: CreditPageProps) {
   if (!isHydrated) {
     return (
       <PageContainer>
-        <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />
+        <CreditPageSkeleton />
       </PageContainer>
     );
   }

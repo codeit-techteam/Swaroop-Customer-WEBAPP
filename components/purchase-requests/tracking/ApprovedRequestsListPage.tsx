@@ -22,6 +22,7 @@ import { usePurchaseRequestTrackingStore } from "@/store/purchaseRequestTracking
 import { useOrdersStore } from "@/store/ordersStore";
 import { TrackingEmptyState } from "./TrackingEmptyState";
 import { TrackingStatusBadge } from "./TrackingStatusBadge";
+import { PrListSkeleton } from "@/components/purchase-requests/pr-list-skeleton";
 
 export function ApprovedRequestsListPage() {
   const router = useRouter();
@@ -54,7 +55,9 @@ export function ApprovedRequestsListPage() {
         ]}
       />
 
-      {!isHydrated ? null : rows.length === 0 ? (
+      {!isHydrated ? (
+        <PrListSkeleton />
+      ) : rows.length === 0 ? (
         <TrackingEmptyState
           title="No approved requests"
           description="Approved requests appear here after PetroTrade confirms within the 15-minute window."

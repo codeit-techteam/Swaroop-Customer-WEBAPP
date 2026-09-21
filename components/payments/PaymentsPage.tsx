@@ -28,6 +28,7 @@ import {
 } from "@/store/paymentsCatalogStore";
 import type { PaymentRecord, PaymentTypeId } from "@/types/payments";
 import { PaymentFiltersBar } from "./PaymentFiltersBar";
+import { PaymentsPageSkeleton } from "./payments-page-skeleton";
 import { PaymentStatusChip } from "./PaymentStatusChip";
 import {
   PaymentTypeFilterChips,
@@ -169,7 +170,7 @@ export function PaymentsPage() {
   if (!isHydrated) {
     return (
       <PageContainer>
-        <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />
+        <PaymentsPageSkeleton />
       </PageContainer>
     );
   }

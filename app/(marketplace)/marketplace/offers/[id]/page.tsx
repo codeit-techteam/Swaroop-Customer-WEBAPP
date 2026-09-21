@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { OfferDetailPage } from "@/components/marketplace/offers";
-import { getOfferById } from "@/mock/offers";
 
 interface OfferDetailRouteProps {
   params: Promise<{ id: string }>;
@@ -10,10 +9,9 @@ export async function generateMetadata({
   params,
 }: OfferDetailRouteProps): Promise<Metadata> {
   const { id } = await params;
-  const offer = getOfferById(id);
   return {
-    title: offer ? `${offer.title} | Offers` : "Offer Details",
-    description: offer?.description,
+    title: "Offer Details",
+    description: `Marketplace offer ${id}`,
   };
 }
 

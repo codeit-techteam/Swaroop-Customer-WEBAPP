@@ -137,15 +137,17 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
         className="space-y-6"
       >
         <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 shadow-elevated">
-          <div className="relative min-h-[240px] md:min-h-[300px]">
-            <Image
-              src={offer.bannerImage}
-              alt={offer.title}
-              fill
-              priority
-              className="object-cover"
-              sizes="(max-width: 1400px) 100vw, 1200px"
-            />
+          <div className="relative min-h-[240px] md:min-h-[300px] bg-gradient-to-r from-brand to-brand-700">
+            {offer.bannerImage ? (
+              <Image
+                src={offer.bannerImage}
+                alt={offer.title}
+                fill
+                priority
+                className="object-cover"
+                sizes="(max-width: 1400px) 100vw, 1200px"
+              />
+            ) : null}
             <div className="absolute inset-0 bg-gradient-to-r from-brand/90 via-brand/70 to-brand/30" />
             <div className="relative z-10 flex h-full flex-col justify-between gap-6 p-6 md:p-8">
               <div className="max-w-2xl space-y-3">
@@ -169,7 +171,7 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
             <section className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-card md:p-6">
               <div className="flex flex-col gap-5 sm:flex-row">
                 <div className="relative h-36 w-full shrink-0 overflow-hidden rounded-xl bg-slate-100 sm:h-40 sm:w-40">
-                  {!imageFailed ? (
+                  {offer.productImage && !imageFailed ? (
                     <Image
                       src={offer.productImage}
                       alt={offer.productName}

@@ -7,10 +7,13 @@ import type {
   OrdersDisplayStatus,
   OrdersSortBy,
 } from "@/types/orders-catalog";
-import { ordersCatalogMock } from "@/mock/orders-catalog";
 import type { CustomerOrder } from "@/types/order-journey";
+import {
+  fetchCustomerPurchaseOrders,
+  mapPurchaseOrder,
+} from "@/services/finance";
 
-const STORAGE_KEY = "petrotrade.orders-catalog.v2";
+const STORAGE_KEY = "petrotrade.orders-catalog.v3";
 
 export type OrdersCatalogFilters = {
   search: string;
@@ -30,9 +33,12 @@ type State = {
   page: number;
   pageSize: number;
   isHydrated: boolean;
+  isLoading: boolean;
+  loadError: string | null;
 };
 
 type Actions = {
+  fetchFromApi: () => Promise<void>;
   setFilters: (patch: Partial<OrdersCatalogFilters>) => void;
   resetFilters: () => void;
   setPage: (page: number) => void;
@@ -202,11 +208,33 @@ function mapCustomerToCatalog(order: CustomerOrder): OrdersCatalogItem {
 export const useOrdersCatalogStore = create<State & Actions>()(
   persist(
     (set, get) => ({
-      items: ordersCatalogMock,
+      items: [],
       filters: defaultFilters,
       page: 1,
       pageSize: 8,
       isHydrated: false,
+      isLoading: false,
+      loadError: null,
+
+      fetchFromApi: async () => {
+        set({ isLoading: true, loadError: null });
+        try {
+          const rows = await fetchCustomerPurchaseOrders();
+          set({
+            items: rows.map(mapPurchaseOrder),
+            isLoading: false,
+            isHydrated: true,
+            loadError: null,
+          });
+        } catch (error) {
+          set({
+            items: [],
+            isLoading: false,
+            isHydrated: true,
+            loadError: error instanceof Error ? error.message : "Unable to load orders.",
+          });
+        }
+      },
 
       setFilters: (patch) =>
         set((state) => ({
@@ -234,9 +262,9 @@ export const useOrdersCatalogStore = create<State & Actions>()(
     }),
     {
       name: STORAGE_KEY,
-      partialize: (state) => ({ items: state.items }),
+      partialize: (state) => ({ filters: state.filters }),
       onRehydrateStorage: () => (state) => {
-        state?.setHydrated(true);
+        void state?.fetchFromApi();
       },
     },
   ),

@@ -1,12 +1,8 @@
 "use client";
 
 import { create } from "zustand";
-import { marketplaceMock } from "@/mock/marketplace";
-import {
-  DEFAULT_MARKETPLACE_FILTERS,
-  MARKETPLACE_PAGE_SIZE,
-  PRICE_RANGE_BOUNDS,
-} from "@/mock/filters";
+import { DEFAULT_MARKETPLACE_FILTERS, MARKETPLACE_PAGE_SIZE, PRICE_RANGE_BOUNDS } from "@/mock/filters";
+import { fetchMarketplaceCatalog } from "@/services/catalog";
 import type {
   GradeOriginFilter,
   MarketplaceBrand,
@@ -40,7 +36,12 @@ export interface MarketplaceStoreState {
   pageSize: number;
   quickViewProductId: string | null;
   isLoading: boolean;
+  hasLoaded: boolean;
+  loadError: string | null;
+  catalogTotal: number;
   priceBounds: typeof PRICE_RANGE_BOUNDS;
+
+  fetchCatalog: () => Promise<void>;
 
   setSearch: (search: string) => void;
   setOriginFilter: (origin: GradeOriginFilter) => void;
@@ -186,15 +187,15 @@ function sortProducts(
 }
 
 /**
- * marketplaceStore — mock-backed catalog state for desktop Marketplace.
- * Filter / search / sort are client-only; ready for API hydration.
+ * marketplaceStore — PostgreSQL-backed catalog via Swaroop-Backend.
+ * Filter / search / sort remain client-side on the fetched page of records.
  */
 export const useMarketplaceStore = create<MarketplaceStoreState>(
   (set, get) => ({
-    products: marketplaceMock.products,
-    categories: marketplaceMock.categories,
-    brands: marketplaceMock.brands,
-    warehouses: marketplaceMock.warehouses,
+    products: [],
+    categories: [],
+    brands: [],
+    warehouses: [],
     selectedCategoryId: null,
     filters: { ...DEFAULT_MARKETPLACE_FILTERS },
     draftFilters: { ...DEFAULT_MARKETPLACE_FILTERS },
@@ -208,7 +209,41 @@ export const useMarketplaceStore = create<MarketplaceStoreState>(
     pageSize: MARKETPLACE_PAGE_SIZE,
     quickViewProductId: null,
     isLoading: false,
+    hasLoaded: false,
+    loadError: null,
+    catalogTotal: 0,
     priceBounds: PRICE_RANGE_BOUNDS,
+
+    fetchCatalog: async () => {
+      set({ isLoading: true, loadError: null });
+      try {
+        const catalog = await fetchMarketplaceCatalog();
+        set({
+          products: catalog.products,
+          categories: catalog.categories,
+          brands: catalog.brands,
+          warehouses: catalog.warehouses,
+          catalogTotal: catalog.total,
+          isLoading: false,
+          hasLoaded: true,
+          loadError: null,
+        });
+      } catch (error) {
+        set({
+          products: [],
+          categories: [],
+          brands: [],
+          warehouses: [],
+          catalogTotal: 0,
+          isLoading: false,
+          hasLoaded: true,
+          loadError:
+            error instanceof Error
+              ? error.message
+              : "Unable to load marketplace catalog.",
+        });
+      }
+    },
 
     setSearch: (search) => set({ search, page: 1 }),
     setOriginFilter: (originFilter) => set({ originFilter, page: 1 }),

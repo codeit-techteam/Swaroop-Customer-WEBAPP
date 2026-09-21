@@ -2,24 +2,19 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MarketplaceBrowse } from "@/components/marketplace";
 import { ROUTES } from "@/constants";
-import { getCategoryBySlug } from "@/mock/categories";
-import { marketplaceMock } from "@/mock/marketplace";
+import { getParentCategoryBySlug } from "@/lib/catalog-mapper";
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateStaticParams() {
-  return marketplaceMock.categories.map((category) => ({
-    slug: category.slug,
-  }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
 }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
+  const category = getParentCategoryBySlug(slug);
   return {
     title: category
       ? `${category.name} | Marketplace`
@@ -32,7 +27,7 @@ export default async function MarketplaceCategoryPage({
   params,
 }: CategoryPageProps) {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
+  const category = getParentCategoryBySlug(slug);
 
   if (!category) {
     notFound();

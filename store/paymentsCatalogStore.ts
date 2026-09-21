@@ -6,10 +6,6 @@ import {
   DEFAULT_PAYMENTS_FILTERS,
   computeCredit15Summary,
   computeCredit30Summary,
-  invoicesCatalogMock,
-  paymentNotificationsMock,
-  paymentsCatalogMock,
-  receiptsCatalogMock,
 } from "@/mock/payments-catalog";
 import type {
   CreditSummary,
@@ -29,8 +25,14 @@ import {
   advanceTimelineAfterSubmit,
   markTimelineVerified,
 } from "@/lib/payment-timeline";
+import {
+  fetchCustomerPayments,
+  mapPayment,
+  mapPaymentToInvoice,
+  mapPaymentToReceipt,
+} from "@/services/finance";
 
-const STORAGE_KEY = "petrotrade.payments-catalog.v1";
+const STORAGE_KEY = "petrotrade.payments-catalog.v2";
 
 function nowIso() {
   return new Date().toISOString();
@@ -164,9 +166,12 @@ type PaymentsCatalogState = {
   page: number;
   pageSize: number;
   isHydrated: boolean;
+  isLoading: boolean;
+  loadError: string | null;
 };
 
 type PaymentsCatalogActions = {
+  fetchFromApi: () => Promise<void>;
   setHydrated: (v: boolean) => void;
   setFilters: (patch: Partial<PaymentsFiltersState>) => void;
   resetFilters: () => void;
@@ -319,14 +324,42 @@ function settlePayment(
 export const usePaymentsCatalogStore = create<PaymentsCatalogStore>()(
   persist(
     (set, get) => ({
-      payments: paymentsCatalogMock,
-      invoices: invoicesCatalogMock,
-      receipts: receiptsCatalogMock,
-      notifications: paymentNotificationsMock,
+      payments: [],
+      invoices: [],
+      receipts: [],
+      notifications: [],
       filters: { ...DEFAULT_PAYMENTS_FILTERS },
       page: 1,
       pageSize: 10,
       isHydrated: false,
+      isLoading: false,
+      loadError: null,
+
+      fetchFromApi: async () => {
+        set({ isLoading: true, loadError: null });
+        try {
+          const rows = await fetchCustomerPayments();
+          set({
+            payments: rows.map(mapPayment),
+            invoices: rows.map(mapPaymentToInvoice),
+            receipts: rows.map(mapPaymentToReceipt).filter((item): item is NonNullable<typeof item> => Boolean(item)),
+            notifications: [],
+            isLoading: false,
+            isHydrated: true,
+            loadError: null,
+          });
+        } catch (error) {
+          set({
+            payments: [],
+            invoices: [],
+            receipts: [],
+            notifications: [],
+            isLoading: false,
+            isHydrated: true,
+            loadError: error instanceof Error ? error.message : "Unable to load payments.",
+          });
+        }
+      },
 
       setHydrated: (v) => set({ isHydrated: v }),
 
@@ -545,14 +578,9 @@ export const usePaymentsCatalogStore = create<PaymentsCatalogStore>()(
     }),
     {
       name: STORAGE_KEY,
-      partialize: (state) => ({
-        payments: state.payments,
-        invoices: state.invoices,
-        receipts: state.receipts,
-        notifications: state.notifications,
-      }),
+      partialize: (state) => ({ filters: state.filters }),
       onRehydrateStorage: () => (state) => {
-        state?.setHydrated(true);
+        void state?.fetchFromApi();
       },
     },
   ),

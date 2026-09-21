@@ -26,6 +26,7 @@ import type { TrackingListStatus } from "@/types/purchase-request-tracking";
 import { TrackingFiltersBar } from "./TrackingFiltersBar";
 import { TrackingStatusBadge } from "./TrackingStatusBadge";
 import { TrackingEmptyState } from "./TrackingEmptyState";
+import { PrListSkeleton } from "@/components/purchase-requests/pr-list-skeleton";
 
 export function ActiveRequestsPage() {
   const router = useRouter();
@@ -80,7 +81,9 @@ export function ActiveRequestsPage() {
           statusOptions={ACTIVE_STATUSES as TrackingListStatus[]}
         />
 
-        {!isHydrated ? null : rows.length === 0 ? (
+        {!isHydrated ? (
+          <PrListSkeleton />
+        ) : rows.length === 0 ? (
           <TrackingEmptyState />
         ) : (
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">

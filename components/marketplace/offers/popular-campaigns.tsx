@@ -1,20 +1,42 @@
 "use client";
 
-import Image from "next/image";
+import { useMemo } from "react";
 import { ArrowRight } from "lucide-react";
-import { offerCampaignsMock } from "@/mock/offers";
 import { useOffersStore } from "@/store/offersStore";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDateDdMmYyyy } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import type { OfferType } from "@/types/offers";
 
 interface PopularCampaignsProps {
   className?: string;
 }
 
 export function PopularCampaigns({ className }: PopularCampaignsProps) {
+  const offers = useOffersStore((state) => state.offers);
   const applyCampaignType = useOffersStore((s) => s.applyCampaignType);
+
+  const campaigns = useMemo(() => {
+    const byType = new Map<OfferType, typeof offers>();
+    for (const offer of offers) {
+      const list = byType.get(offer.offerType) ?? [];
+      list.push(offer);
+      byType.set(offer.offerType, list);
+    }
+    return [...byType.entries()].map(([offerType, items]) => ({
+      id: offerType,
+      title: items[0]?.categoryLabel ?? offerType,
+      description: `${items.length} live offer${items.length === 1 ? "" : "s"} in this campaign type.`,
+      badge: items[0]?.badge ?? "Live",
+      offerCount: items.length,
+      maxDiscountPercent: Math.max(...items.map((item) => item.discountPercent), 0),
+      expiresAt: items[0]?.expiresAt,
+      hrefOfferType: offerType,
+    }));
+  }, [offers]);
+
+  if (!campaigns.length) return null;
 
   return (
     <section
@@ -28,26 +50,17 @@ export function PopularCampaigns({ className }: PopularCampaignsProps) {
           Popular Campaigns
         </h2>
         <p className="mt-0.5 text-sm text-slate-500">
-          Seasonal and thematic promotions across the Indian petrochemical
-          market.
+          Campaign groups generated from live marketplace offers.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {offerCampaignsMock.map((campaign) => (
+        {campaigns.map((campaign) => (
           <article
             key={campaign.id}
             className="group flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:-translate-y-0.5 hover:shadow-elevated"
           >
-            <div className="relative h-36 overflow-hidden">
-              <Image
-                src={campaign.image}
-                alt={campaign.title}
-                fill
-                className="object-cover transition duration-500 group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, 33vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand/80 via-brand/20 to-transparent" />
+            <div className="relative h-24 overflow-hidden bg-gradient-to-r from-brand to-brand-700">
               <Badge className="absolute left-3 top-3 border-0 bg-white/95 text-brand">
                 {campaign.badge}
               </Badge>
@@ -68,14 +81,12 @@ export function PopularCampaigns({ className }: PopularCampaignsProps) {
                     </dd>
                   </div>
                 ) : null}
-                {campaign.eligibleProducts ? (
-                  <div>
-                    <dt className="text-slate-400">Eligible</dt>
-                    <dd className="font-medium text-slate-700">
-                      {campaign.eligibleProducts}
-                    </dd>
-                  </div>
-                ) : null}
+                <div>
+                  <dt className="text-slate-400">Eligible</dt>
+                  <dd className="font-medium text-slate-700">
+                    {campaign.offerCount} offers
+                  </dd>
+                </div>
                 {campaign.expiresAt ? (
                   <div className="col-span-2">
                     <dt className="text-slate-400">Expires</dt>
@@ -90,12 +101,10 @@ export function PopularCampaigns({ className }: PopularCampaignsProps) {
                 variant="outline"
                 className="mt-4 h-10 w-full rounded-xl"
                 onClick={() => {
-                  if (campaign.hrefOfferType) {
-                    applyCampaignType(campaign.hrefOfferType);
-                    document
-                      .getElementById("offers-grid")
-                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }
+                  applyCampaignType(campaign.hrefOfferType);
+                  document
+                    .getElementById("offers-grid")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
               >
                 Explore Offers

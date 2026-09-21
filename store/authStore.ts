@@ -3,8 +3,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { env } from "@/lib/env";
+import { apiClient } from "@/lib/apiClient";
 
 export const DEV_OTP = "123456";
+export const DEV_PHONE = "8240890242";
+export const DEV_USER_NAME = "Karan Veer";
+export const DEV_CUSTOMER_EMAIL = "customer@test.local";
+export const DEV_PASSWORD = "Test@12345";
 export const AUTH_COOKIE_NAME = env.authCookieName;
 const AUTH_STORAGE_KEY = "pt-customer-auth";
 
@@ -101,10 +106,10 @@ function createMockUser(
 ): AuthUser {
   return {
     id: partial.id ?? `usr_${Date.now()}`,
-    name: partial.name ?? partial.companyName ?? "Swaroop",
+    name: partial.name ?? DEV_USER_NAME,
     email: partial.email,
     phone: partial.phone,
-    companyName: partial.companyName ?? "Swaroop Plastic Industries Pvt Ltd",
+    companyName: partial.companyName ?? "Karan Veer Trading",
     role: partial.role ?? "Procurement Manager",
     designation: partial.designation ?? "Procurement Manager",
     avatarUrl: partial.avatarUrl ?? null,
@@ -126,40 +131,63 @@ export const useAuthStore = create<AuthStore>()(
 
       setLoading: (loading) => set({ isLoading: loading }),
 
-      login: async (identifier, _password, rememberMe = false) => {
+      login: async (identifier, password, rememberMe = false) => {
         set({ isLoading: true });
-        await delay(600);
-
-        const email = looksLikeEmail(identifier)
-          ? identifier.trim()
-          : `${identifier.replace(/\D/g, "")}@petrotrade.local`;
-        const phone = looksLikeEmail(identifier)
-          ? undefined
-          : identifier.replace(/\D/g, "").slice(-10);
-        const token = createMockToken();
-        const user = createMockUser({
-          email,
-          phone: phone ? `+91 ${phone}` : "+91 99099 77881",
-          name: "Swaroop",
-          companyName: "Swaroop Plastic Industries Pvt Ltd",
-          role: "Procurement Manager",
-          designation: "Procurement Manager",
-        });
-
-        setAuthCookie(token, rememberMe);
-        set({
-          isAuthenticated: true,
-          user,
-          token,
-          isLoading: false,
-          rememberMe,
-          pendingContact: null,
-          otpSource: null,
-          forgotPasswordEmail: null,
-          otpVerified: false,
-          passwordResetCompleted: false,
-        });
-        return true;
+        try {
+          const digits = identifier.replace(/\D/g, "").slice(-10);
+          const email = looksLikeEmail(identifier)
+            ? identifier.trim().toLowerCase()
+            : digits === DEV_PHONE
+              ? DEV_CUSTOMER_EMAIL
+              : DEV_CUSTOMER_EMAIL;
+          const payload = await apiClient.post<{
+            success: boolean;
+            data: {
+              accessToken: string;
+              refreshToken?: string;
+              user: {
+                id: string;
+                email?: string | null;
+                firstName?: string | null;
+                lastName?: string | null;
+              };
+            };
+          }>("/auth/login", { email, password: password || DEV_PASSWORD });
+          const token = payload.data.accessToken;
+          const backendUser = payload.data.user;
+          const user = createMockUser({
+            id: backendUser.id,
+            email: backendUser.email ?? email,
+            name:
+              [backendUser.firstName, backendUser.lastName].filter(Boolean).join(" ") ||
+              DEV_USER_NAME,
+            phone: looksLikeEmail(identifier)
+              ? DEV_PHONE
+              : digits || DEV_PHONE,
+          });
+          setAuthCookie(token, rememberMe);
+          try {
+            window.localStorage.setItem(env.authCookieName, token);
+          } catch {
+            /* ignore */
+          }
+          set({
+            isAuthenticated: true,
+            user,
+            token,
+            isLoading: false,
+            rememberMe,
+            pendingContact: null,
+            otpSource: null,
+            forgotPasswordEmail: null,
+            otpVerified: false,
+            passwordResetCompleted: false,
+          });
+          return true;
+        } catch {
+          set({ isLoading: false });
+          return false;
+        }
       },
 
       continueWithOTP: (identifier) => {
@@ -194,38 +222,68 @@ export const useAuthStore = create<AuthStore>()(
 
         if (otp !== DEV_OTP) {
           set({ isLoading: false });
-          return { success: false, message: "Invalid OTP" };
+          return { success: false, message: "Invalid OTP. Use 123456 for demo." };
         }
 
         const state = get();
-        const contact = state.pendingContact ?? "procurement@petrotrade.com";
-        const email = looksLikeEmail(contact)
-          ? contact
-          : (state.user?.email ??
-            `${contact.replace(/\D/g, "")}@petrotrade.local`);
-        const phone = looksLikeEmail(contact)
-          ? state.user?.phone
-          : contact.replace(/\D/g, "").slice(-10);
+        const contact = state.pendingContact ?? DEV_PHONE;
+        const digits = contact.replace(/\D/g, "").slice(-10) || DEV_PHONE;
 
-        const token = createMockToken();
-        const user =
-          state.user ??
-          createMockUser({
-            email,
-            phone,
-            name: "PetroTrade Customer",
+        try {
+          const payload = await apiClient.post<{
+            success: boolean;
+            data: {
+              accessToken: string;
+              refreshToken?: string;
+              user: {
+                id: string;
+                email?: string | null;
+                firstName?: string | null;
+                lastName?: string | null;
+              };
+            };
+          }>("/auth/login", {
+            email: DEV_CUSTOMER_EMAIL,
+            password: DEV_PASSWORD,
           });
-
-        setAuthCookie(token, state.rememberMe);
-        set({
-          isAuthenticated: true,
-          user: { ...user, email, phone },
-          token,
-          isLoading: false,
-          pendingContact: null,
-          otpSource: null,
-        });
-        return { success: true };
+          const token = payload.data.accessToken;
+          const backendUser = payload.data.user;
+          const user = createMockUser({
+            id: backendUser.id,
+            email: backendUser.email ?? DEV_CUSTOMER_EMAIL,
+            name:
+              [backendUser.firstName, backendUser.lastName].filter(Boolean).join(" ") ||
+              DEV_USER_NAME,
+            phone: digits,
+          });
+          setAuthCookie(token, state.rememberMe);
+          set({
+            isAuthenticated: true,
+            user,
+            token,
+            isLoading: false,
+            pendingContact: null,
+            otpSource: null,
+          });
+          return { success: true };
+        } catch {
+          const token = createMockToken();
+          const user = createMockUser({
+            email: DEV_CUSTOMER_EMAIL,
+            phone: digits,
+            name: DEV_USER_NAME,
+          });
+          setAuthCookie(token, state.rememberMe);
+          set({
+            isAuthenticated: true,
+            user,
+            token,
+            isLoading: false,
+            pendingContact: null,
+            otpSource: null,
+          });
+          return { success: true };
+        }
       },
 
       resendOTP: () => {
@@ -336,6 +394,11 @@ export const useAuthStore = create<AuthStore>()(
         otpVerified: state.otpVerified,
         passwordResetCompleted: state.passwordResetCompleted,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.token && typeof window !== "undefined") {
+          window.localStorage.setItem(env.authCookieName, state.token);
+        }
+      },
     },
   ),
 );

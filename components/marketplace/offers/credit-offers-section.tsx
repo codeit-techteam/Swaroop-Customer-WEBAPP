@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { Building2, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { creditOfferCardsMock } from "@/mock/offers";
+import { ROUTES } from "@/constants";
+import { formatInr } from "@/lib/format";
+import { useOffersStore } from "@/store/offersStore";
 import { cn } from "@/lib/utils";
 
 interface CreditOffersSectionProps {
@@ -11,6 +13,12 @@ interface CreditOffersSectionProps {
 }
 
 export function CreditOffersSection({ className }: CreditOffersSectionProps) {
+  const offers = useOffersStore((state) =>
+    state.offers.filter((offer) => offer.creditEligible).slice(0, 4),
+  );
+
+  if (!offers.length) return null;
+
   return (
     <section
       className={cn(
@@ -25,33 +33,35 @@ export function CreditOffersSection({ className }: CreditOffersSectionProps) {
         <div>
           <h2 className="text-lg font-semibold">Credit Offers</h2>
           <p className="mt-0.5 text-sm text-white/75">
-            Finance-backed payment options for eligible enterprise buyers.
+            Credit-eligible listings from the live marketplace catalog.
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {creditOfferCardsMock.map((card) => (
+        {offers.map((offer) => (
           <div
-            key={card.id}
+            key={offer.id}
             className="flex flex-col rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm"
           >
             <p className="text-[10px] font-bold uppercase tracking-wider text-sky-200">
-              {card.highlight}
+              {offer.grade}
             </p>
-            <h3 className="mt-2 text-base font-semibold">{card.title}</h3>
+            <h3 className="mt-2 text-base font-semibold">{offer.title}</h3>
             <p className="mt-1 flex-1 text-sm text-white/75">
-              {card.description}
+              {formatInr(offer.offerPrice)} / MT · MOQ {offer.moq}
             </p>
             <p className="mt-3 flex items-center gap-1.5 text-xs text-white/60">
               <Building2 className="h-3.5 w-3.5" />
-              {card.financePartner}
+              {offer.sellerName}
             </p>
             <Button
               asChild
               className="mt-4 h-10 rounded-xl bg-white font-semibold text-brand hover:bg-slate-100"
             >
-              <Link href={card.href}>{card.ctaLabel}</Link>
+              <Link href={`${ROUTES.marketplaceOffers}/${offer.id}`}>
+                View offer
+              </Link>
             </Button>
           </div>
         ))}

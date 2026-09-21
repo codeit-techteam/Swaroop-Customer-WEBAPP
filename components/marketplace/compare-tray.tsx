@@ -6,8 +6,8 @@ import { GitCompareArrows, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants";
 import { formatInr } from "@/lib/format";
-import { productsMock } from "@/mock/products";
 import { useCompareStore } from "@/store/compareStore";
+import { useMarketplaceStore } from "@/store/marketplaceStore";
 import type { MarketplaceProduct } from "@/types/marketplace";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +24,7 @@ export function CompareTray({ forceVisible = false, className }: CompareTrayProp
   const ids = useCompareStore((s) => s.ids);
   const remove = useCompareStore((s) => s.remove);
   const clear = useCompareStore((s) => s.clear);
+  const catalog = useMarketplaceStore((s) => s.products);
 
   useEffect(() => {
     setMounted(true);
@@ -32,9 +33,9 @@ export function CompareTray({ forceVisible = false, className }: CompareTrayProp
   const items = useMemo(
     () =>
       ids
-        .map((id) => productsMock.find((product) => product.id === id))
+        .map((id) => catalog.find((product) => product.id === id))
         .filter((product): product is MarketplaceProduct => Boolean(product)),
-    [ids],
+    [catalog, ids],
   );
 
   if (!mounted) return null;

@@ -5,11 +5,10 @@ import { persist } from "zustand/middleware";
 import {
   DEFAULT_OFFER_FILTERS,
   OFFER_PRICE_BOUNDS,
-  getOfferById,
-  getOfferSummaryStats,
-  offersCatalogMock,
 } from "@/mock/offers";
-import { getOfferStatus } from "@/lib/offer-utils";
+import { getOfferStatus, getOfferSummaryStats } from "@/lib/offer-utils";
+import { fetchMarketplaceOffers } from "@/services/catalog";
+import { useMarketplaceStore } from "@/store/marketplaceStore";
 import type {
   MarketplaceOffer,
   MyOfferRecord,
@@ -32,7 +31,11 @@ interface OffersStoreState {
   recentlyViewedIds: string[];
   myOfferRecords: MyOfferRecord[];
   priceBounds: typeof OFFER_PRICE_BOUNDS;
+  isLoading: boolean;
+  hasLoaded: boolean;
+  loadError: string | null;
 
+  fetchOffers: () => Promise<void>;
   setSearch: (search: string) => void;
   setSortBy: (sortBy: OfferSortBy) => void;
   setCategoryChip: (chip: OfferCategoryChip) => void;
@@ -203,33 +206,38 @@ function applyOfferFilters(
 export const useOffersStore = create<OffersStoreState>()(
   persist(
     (set, get) => ({
-      offers: offersCatalogMock.offers,
+      offers: [],
       filters: { ...DEFAULT_OFFER_FILTERS },
       draftFilters: { ...DEFAULT_OFFER_FILTERS },
       categoryChip: "all",
       search: "",
       sortBy: "recommended",
       compareIds: [],
-      recentlyViewedIds: [
-        "offer-pp-week",
-        "offer-hdpe-festival",
-        "offer-pet-flash",
-      ],
-      myOfferRecords: [
-        {
-          offerId: "offer-pp-week",
-          status: "applied",
-          appliedAt: "2026-08-01T10:00:00.000Z",
-        },
-        {
-          offerId: "offer-hdpe-festival",
-          status: "used",
-          usedAt: "2026-07-20T14:00:00.000Z",
-        },
-        { offerId: "offer-pet-flash", status: "available" },
-        { offerId: "offer-pvc-mega", status: "expired" },
-      ],
+      recentlyViewedIds: [],
+      isLoading: false,
+      hasLoaded: false,
+      loadError: null,
+      myOfferRecords: [],
       priceBounds: OFFER_PRICE_BOUNDS,
+
+      fetchOffers: async () => {
+        set({ isLoading: true, loadError: null });
+        try {
+          const products = useMarketplaceStore.getState().products;
+          const offers = await fetchMarketplaceOffers(products);
+          set({ offers, isLoading: false, hasLoaded: true, loadError: null });
+        } catch (error) {
+          set({
+            offers: [],
+            isLoading: false,
+            hasLoaded: true,
+            loadError:
+              error instanceof Error
+                ? error.message
+                : "Unable to load marketplace offers.",
+          });
+        }
+      },
 
       setSearch: (search) => set({ search }),
       setSortBy: (sortBy) => set({ sortBy }),
@@ -383,10 +391,9 @@ export const useOffersStore = create<OffersStoreState>()(
           };
         }),
 
-      refreshOffers: () =>
-        set({
-          offers: offersCatalogMock.offers,
-        }),
+      refreshOffers: () => {
+        void get().fetchOffers();
+      },
 
       getFilteredOffers: () => {
         const { offers, filters, search, sortBy, categoryChip } = get();
@@ -406,12 +413,12 @@ export const useOffersStore = create<OffersStoreState>()(
       },
 
       getOffer: (id) =>
-        getOfferById(id) ?? get().offers.find((o) => o.id === id),
+        get().offers.find((offer) => offer.id === id || offer.slug === id),
 
       getMyOffers: (tab) => {
         const records = get().myOfferRecords;
         return records.filter((record) => {
-          const offer = getOfferById(record.offerId);
+          const offer = get().getOffer(record.offerId);
           if (!offer) return false;
           const liveStatus = getOfferStatus(offer);
           switch (tab) {
@@ -433,7 +440,7 @@ export const useOffersStore = create<OffersStoreState>()(
       },
     }),
     {
-      name: "swaroop-marketplace-offers",
+      name: "swaroop-marketplace-offers-v2",
       partialize: (state) => ({
         compareIds: state.compareIds,
         recentlyViewedIds: state.recentlyViewedIds,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Filter, Search, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
@@ -35,6 +35,8 @@ import { TrendingOffers } from "./trending-offers";
 import { RecommendedOffers } from "./recommended-offers";
 import { CreditOffersSection } from "./credit-offers-section";
 import { OfferEmptyState } from "./offer-empty-state";
+import { OffersPageSkeleton } from "./offers-page-skeleton";
+import { MarketplaceEmptyState } from "@/components/marketplace/empty-state";
 
 export function MarketplaceOffersPage() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -45,6 +47,9 @@ export function MarketplaceOffersPage() {
   const draftFilters = useOffersStore((s) => s.draftFilters);
   const priceBounds = useOffersStore((s) => s.priceBounds);
   const offers = useOffersStore((s) => s.offers);
+  const isLoading = useOffersStore((s) => s.isLoading);
+  const hasLoaded = useOffersStore((s) => s.hasLoaded);
+  const loadError = useOffersStore((s) => s.loadError);
   const setSearch = useOffersStore((s) => s.setSearch);
   const setSortBy = useOffersStore((s) => s.setSortBy);
   const setCategoryChip = useOffersStore((s) => s.setCategoryChip);
@@ -66,6 +71,11 @@ export function MarketplaceOffersPage() {
   const resetFilters = useOffersStore((s) => s.resetFilters);
   const getFilteredOffers = useOffersStore((s) => s.getFilteredOffers);
   const getSummaryStats = useOffersStore((s) => s.getSummaryStats);
+  const fetchOffers = useOffersStore((s) => s.fetchOffers);
+
+  useEffect(() => {
+    void fetchOffers();
+  }, [fetchOffers]);
 
   const filters = useOffersStore((s) => s.filters);
   const visibleOffers = useMemo(
@@ -101,6 +111,28 @@ export function MarketplaceOffersPage() {
       toast.message("Filters cleared");
     },
   };
+
+  if (!hasLoaded || isLoading) {
+    return (
+      <PageContainer className="max-w-[1440px]">
+        <OffersPageSkeleton />
+      </PageContainer>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <PageContainer className="max-w-[1440px]">
+        <MarketplaceEmptyState
+          title="Unable to load offers"
+          description={loadError}
+          action={
+            <Button onClick={() => void fetchOffers()}>Retry</Button>
+          }
+        />
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer className="max-w-[1440px]">
@@ -226,8 +258,10 @@ export function MarketplaceOffersPage() {
 
             {visibleOffers.length === 0 ? (
               <OfferEmptyState
-                variant="no-results"
-                onClearFilters={resetFilters}
+                variant={offers.length === 0 ? "no-active" : "no-results"}
+                onClearFilters={
+                  offers.length === 0 ? undefined : resetFilters
+                }
               />
             ) : (
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">

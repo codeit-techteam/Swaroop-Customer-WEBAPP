@@ -50,14 +50,16 @@ export function OfferCard({ offer, index = 0, className }: OfferCardProps) {
         className,
       )}
     >
-      <div className="relative h-44 overflow-hidden bg-slate-100">
-        <Image
-          src={offer.bannerImage}
-          alt={offer.productName}
-          fill
-          className="object-cover transition duration-500 group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, 33vw"
-        />
+      <div className="relative h-44 overflow-hidden bg-gradient-to-r from-brand to-brand-700">
+        {offer.bannerImage ? (
+          <Image
+            src={offer.bannerImage}
+            alt={offer.productName}
+            fill
+            className="object-cover transition duration-500 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, 33vw"
+          />
+        ) : null}
         <div className="absolute inset-0 bg-gradient-to-t from-brand/60 via-transparent to-transparent" />
         <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
           <OfferBadge offer={offer} variant="discount" />
@@ -78,7 +80,7 @@ export function OfferCard({ offer, index = 0, className }: OfferCardProps) {
       <div className="flex flex-1 flex-col gap-3.5 p-4 sm:p-5">
         <div className="flex gap-3">
           <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-50">
-            {!imageFailed ? (
+            {offer.productImage && !imageFailed ? (
               <Image
                 src={offer.productImage}
                 alt={offer.productName}
