@@ -110,7 +110,7 @@ export function getNotificationHref(n: AppNotification): string {
         ? `${ROUTES.payments}/${n.paymentId}`
         : ROUTES.payments;
     case "downloadInvoice":
-      return ROUTES.documentsGstInvoices;
+      return ROUTES.documentsInvoices;
     case "viewOffer":
       return ROUTES.marketplace;
     case "viewDocument":

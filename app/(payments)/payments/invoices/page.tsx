@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
-import { InvoicesPage } from "@/components/payments";
-
-export const metadata: Metadata = {
-  title: "Invoices",
-};
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
 export default function Page() {
-  return <InvoicesPage />;
+  redirect(ROUTES.documentsInvoices);
 }

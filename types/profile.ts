@@ -35,7 +35,6 @@ export type ProfileDocumentKind =
   | "cancelled_cheque"
   | "purchase_order"
   | "invoice"
-  | "gst_invoice"
   | "quality_certificate"
   | "transport_document";
 

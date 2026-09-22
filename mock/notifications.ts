@@ -37,10 +37,10 @@ export const recentActivityMock: ActivityItem[] = [
     id: "act-4",
     type: "document_available",
     title: "Document Available",
-    description: "GST invoice for #ORD-98822 is ready to download.",
+    description: "Tax invoice for #ORD-98822 is ready to download.",
     timestamp: "2026-07-30T06:00:00.000Z",
     relativeTime: "Yesterday",
-    href: ROUTES.documentsGstInvoices,
+    href: ROUTES.documentsInvoices,
   },
   {
     id: "act-5",

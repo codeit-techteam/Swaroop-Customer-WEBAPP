@@ -19,13 +19,6 @@ export async function fetchCustomerDocuments(): Promise<BackendDocument[]> {
   });
 }
 
-export async function fetchCustomerBanners() {
-  const payload = await apiClient.get<Envelope<Array<{ id: string; title: string; subtitle?: string | null; targetRoute?: string | null }>>>(
-    "/customer/cms/banners",
-  );
-  return payload.data ?? [];
-}
-
 export async function fetchCustomerNotifications() {
   const payload = await apiClient.get<Envelope<Array<{
     id: string;

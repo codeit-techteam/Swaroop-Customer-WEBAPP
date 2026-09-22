@@ -16,7 +16,6 @@ export { OnLoadingPaymentPage } from "./OnLoadingPaymentPage";
 export { OnDeliveryPaymentPage } from "./OnDeliveryPaymentPage";
 export { CreditPaymentPage } from "./CreditPaymentPage";
 export { PaymentHistoryPage } from "./PaymentHistoryPage";
-export { InvoicesPage } from "./InvoicesPage";
 export { ReceiptsPage } from "./ReceiptsPage";
 export { PaymentStatusChip } from "./PaymentStatusChip";
 export { PaymentTimeline } from "./PaymentTimeline";

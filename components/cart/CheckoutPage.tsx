@@ -464,7 +464,7 @@ export function CheckoutPage() {
               <CardContent className="space-y-3">
                 {items.map((item) => (
                   <div
-                    key={item.productId}
+                    key={item.id || item.productId}
                     className="flex flex-col gap-3 rounded-xl border border-slate-200 p-3 sm:flex-row sm:items-center"
                   >
                     <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-xs font-bold text-brand">
@@ -492,7 +492,7 @@ export function CheckoutPage() {
                         className="h-8 w-8 rounded-lg"
                         disabled={item.quantityMt <= item.moq}
                         onClick={() =>
-                          setQuantity(item.productId, item.quantityMt - 1)
+                          void setQuantity(item.id, item.quantityMt - 1)
                         }
                       >
                         <Minus className="h-3.5 w-3.5" />
@@ -507,7 +507,7 @@ export function CheckoutPage() {
                         className="h-8 w-8 rounded-lg"
                         disabled={item.quantityMt >= item.availableStock}
                         onClick={() =>
-                          setQuantity(item.productId, item.quantityMt + 1)
+                          void setQuantity(item.id, item.quantityMt + 1)
                         }
                       >
                         <Plus className="h-3.5 w-3.5" />
@@ -524,7 +524,7 @@ export function CheckoutPage() {
                         variant="ghost"
                         size="sm"
                         className="h-8 text-red-600 hover:bg-red-50"
-                        onClick={() => removeItem(item.productId)}
+                        onClick={() => void removeItem(item.id)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                         Remove
@@ -928,7 +928,7 @@ export function CheckoutPage() {
                 <ConfirmBlock title="Products">
                   {items.map((item) => (
                     <div
-                      key={item.productId}
+                      key={item.id || item.productId}
                       className="flex justify-between gap-3 text-sm"
                     >
                       <span className="text-slate-700">

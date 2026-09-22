@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { DocumentsInvoicesPage } from "@/components/documents";
 
 export const metadata: Metadata = {
-  title: "Invoices",
+  title: "Tax Invoices",
 };
 
 export default function Page() {

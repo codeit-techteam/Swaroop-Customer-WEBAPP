@@ -44,7 +44,7 @@ export function DocumentSummaryCards({
       tone: "text-sky-600",
     },
     {
-      label: "Invoices",
+      label: "Tax Invoices",
       value: String(summary.invoices),
       icon: FileText,
       tone: "text-indigo-600",
@@ -121,7 +121,7 @@ export function DocumentQuickActions({
           onClick={() => router.push(ROUTES.documentsInvoices)}
         >
           <FileText className="h-4 w-4" />
-          View Invoices
+          View Tax Invoices
         </Button>
       </CardContent>
     </Card>

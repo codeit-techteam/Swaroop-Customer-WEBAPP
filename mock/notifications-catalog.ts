@@ -217,7 +217,7 @@ function defaultCopy(
     dispatch_scheduled: "Dispatch Scheduled",
     shipment_started: "Shipment Started",
     invoice_generated: "Invoice Generated",
-    gst_invoice_ready: "GST Invoice Ready",
+    gst_invoice_ready: "Invoice Ready",
     certificates_uploaded: "Certificates Uploaded",
     documents_available: "Documents Available",
     quality_certificate_ready: "Quality Certificate Ready",
@@ -274,7 +274,7 @@ function defaultCopy(
     dispatch_scheduled: `Dispatch scheduled for ${order} from ${warehouse}.`,
     shipment_started: `Shipment started for ${order}. Track live progress.`,
     invoice_generated: `Tax invoice generated for ${order} (${product}).`,
-    gst_invoice_ready: `GST invoice for ${order} is ready for download.`,
+    gst_invoice_ready: `Tax invoice for ${order} is ready for download.`,
     certificates_uploaded: `Quality & material certificates uploaded for ${order}.`,
     documents_available: `Order documents for ${order} are now available in Documents.`,
     quality_certificate_ready: `Quality certificate for ${product} is ready via PetroTrade QC.`,
@@ -1205,7 +1205,7 @@ function buildFromSeed(seed: Seed, index: number): AppNotification {
     ];
     href = `${ROUTES.shipmentTracking}/PT-SHP-${knownShp[index % knownShp.length]}`;
   } else if (seed.category === "documents") {
-    if (seed.type === "gst_invoice_ready") href = ROUTES.documentsGstInvoices;
+    if (seed.type === "gst_invoice_ready") href = ROUTES.documentsInvoices;
     else if (seed.type === "invoice_generated") href = ROUTES.documentsInvoices;
     else if (
       seed.type.includes("certificate") ||

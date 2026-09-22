@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
-import { GstInvoicesPage } from "@/components/documents";
-
-export const metadata: Metadata = {
-  title: "GST Invoices",
-};
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
 export default function Page() {
-  return <GstInvoicesPage />;
+  redirect(ROUTES.documentsInvoices);
 }

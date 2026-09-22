@@ -126,12 +126,17 @@ export function CreatePurchaseRequestPage() {
 
   const summary = getOrderSummary();
 
-  const handleSubmit = (data: PurchaseRequestFormData) => {
+  const handleSubmit = async (data: PurchaseRequestFormData) => {
     if (!product) return;
     setForm(data);
-    const result = useCartStore
+    const result = await useCartStore
       .getState()
-      .addItem(product.id, data.quantityMt, data.packaging);
+      .addItem(
+        product.id,
+        data.quantityMt,
+        data.packaging,
+        product.offerId ?? offerIdParam ?? undefined,
+      );
     if (!result.ok) {
       toast.error(result.message);
       return;

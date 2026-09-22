@@ -3,28 +3,19 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  GitCompareArrows,
-  Lock,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowRight, Lock, ShieldCheck } from "lucide-react";
 import { ROUTES } from "@/constants";
 import { formatInr, formatQuantityMt } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { MarketplaceProduct } from "@/types/marketplace";
 import { cn } from "@/lib/utils";
-import { useCompareStore } from "@/store/compareStore";
-import { toast } from "sonner";
 
 interface ProductCardProps {
   product: MarketplaceProduct;
   index?: number;
   variant?: "grid" | "list";
   onQuickView?: (productId: string) => void;
-  /** When true, primary CTA becomes Add to Compare */
-  compareMode?: boolean;
   className?: string;
 }
 
@@ -72,25 +63,11 @@ export function ProductCard({
   index = 0,
   variant = "list",
   onQuickView,
-  compareMode = false,
   className,
 }: ProductCardProps) {
   const productHref = `${ROUTES.marketplaceProduct}/${product.id}`;
   const gradeCode = product.gradeCode ?? product.grade;
   const specs = specEntries(product);
-  const toggleCompare = useCompareStore((s) => s.toggle);
-  const isCompared = useCompareStore((s) => s.ids.includes(product.id));
-
-  function handleToggleCompare() {
-    const result = toggleCompare(product.id);
-    if (!result.ok && result.message) {
-      toast.error(result.message);
-      return;
-    }
-    toast.success(
-      isCompared ? "Removed from comparison" : "Added to comparison",
-    );
-  }
 
   const content = (
     <>
@@ -108,11 +85,6 @@ export function ProductCard({
                 Verified Supply
               </Badge>
             ) : null}
-            {isCompared ? (
-              <Badge className="rounded-md border-0 bg-brand/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand hover:bg-brand/10">
-                In Comparison
-              </Badge>
-            ) : null}
           </div>
           <p className="font-mono text-xs font-medium text-slate-400">
             {gradeCode}
@@ -123,23 +95,14 @@ export function ProductCard({
           </p>
         </div>
 
-        {!compareMode ? (
+        {onQuickView ? (
           <div className="flex items-center gap-1.5">
             <IconAction
-              label={isCompared ? "Remove from compare" : "Compare grade"}
-              active={isCompared}
-              onClick={handleToggleCompare}
+              label="Quick view"
+              onClick={() => onQuickView(product.id)}
             >
-              <GitCompareArrows className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4" />
             </IconAction>
-            {onQuickView ? (
-              <IconAction
-                label="Quick view"
-                onClick={() => onQuickView(product.id)}
-              >
-                <ArrowRight className="h-4 w-4" />
-              </IconAction>
-            ) : null}
           </div>
         ) : null}
       </div>
@@ -205,49 +168,22 @@ export function ProductCard({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {compareMode ? (
-            <>
-              <Button
-                asChild
-                variant="outline"
-                className="h-10 rounded-xl border-slate-200 px-4 text-sm font-semibold"
-              >
-                <Link href={productHref}>View Details</Link>
-              </Button>
-              <Button
-                type="button"
-                className={cn(
-                  "h-10 rounded-xl px-4 text-sm font-semibold",
-                  isCompared
-                    ? "bg-slate-800 hover:bg-slate-900"
-                    : "bg-brand hover:bg-brand-700",
-                )}
-                onClick={handleToggleCompare}
-              >
-                <GitCompareArrows className="h-4 w-4" aria-hidden />
-                {isCompared ? "Remove from Compare" : "Add to Compare"}
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                asChild
-                variant="outline"
-                className="h-10 rounded-xl border-slate-200 px-4 text-sm font-semibold"
-              >
-                <Link href={productHref}>View Details</Link>
-              </Button>
-              <Button
-                asChild
-                className="h-10 rounded-xl bg-brand px-4 text-sm font-semibold hover:bg-brand-700"
-              >
-                <Link href={productHref}>
-                  Buy Now
-                  <ArrowRight className="h-4 w-4" aria-hidden />
-                </Link>
-              </Button>
-            </>
-          )}
+          <Button
+            asChild
+            variant="outline"
+            className="h-10 rounded-xl border-slate-200 px-4 text-sm font-semibold"
+          >
+            <Link href={productHref}>View Details</Link>
+          </Button>
+          <Button
+            asChild
+            className="h-10 rounded-xl bg-brand px-4 text-sm font-semibold hover:bg-brand-700"
+          >
+            <Link href={productHref}>
+              Buy Now
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </Button>
         </div>
       </div>
     </>

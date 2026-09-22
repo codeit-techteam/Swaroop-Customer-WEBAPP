@@ -80,7 +80,19 @@ export function LoginForm() {
   };
 
   const onLogin = handleSubmit(async (values) => {
-    await login(values.identifier, values.password, values.rememberMe);
+    const result = await login(
+      values.identifier,
+      values.password,
+      values.rememberMe,
+    );
+    if (!result.ok) {
+      setError("root", {
+        message:
+          result.message ??
+          "Invalid credentials. Use the same account as the Customer APP.",
+      });
+      return;
+    }
     const next = searchParams.get("next");
     router.push(getPostAuthDestination(next));
   });
@@ -99,7 +111,11 @@ export function LoginForm() {
       return;
     }
 
-    continueWithOTP(result.data.identifier);
+    const sent = await continueWithOTP(result.data.identifier);
+    if (!sent.ok) {
+      setError("root", { message: sent.message ?? "Unable to send OTP" });
+      return;
+    }
     router.push(ROUTES.otpVerification);
   };
 
@@ -227,10 +243,13 @@ export function LoginForm() {
           </SecondaryButton>
 
           <p className="text-center text-xs text-muted-foreground">
-            Dev login: <span className="font-medium text-foreground">Karan Veer</span> ·{" "}
-            <span className="font-medium text-foreground">8240890242</span> · OTP{" "}
-            <span className="font-medium text-foreground">123456</span> · password{" "}
-            <span className="font-medium text-foreground">Test@12345</span>
+            Same Customer APP account:{" "}
+            <span className="font-medium text-foreground">customer@test.local</span>{" "}
+            / <span className="font-medium text-foreground">8240890242</span>
+            <br />
+            Password <span className="font-medium text-foreground">Test@12345</span>
+            {" · "}
+            OTP <span className="font-medium text-foreground">123456</span>
           </p>
 
           <p className="text-center text-sm text-muted-foreground">

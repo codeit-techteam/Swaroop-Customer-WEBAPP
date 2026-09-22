@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 
+import { isUsableJwt } from "@/lib/auth-session";
+import { useAuthStore } from "@/store/authStore";
 import { useCreditStore } from "@/store/creditStore";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { useDocumentsStore } from "@/store/documentsStore";
@@ -13,6 +15,8 @@ import { usePurchaseRequestTrackingStore } from "@/store/purchaseRequestTracking
 import { useShipmentTrackingStore } from "@/store/shipmentTrackingStore";
 
 export function CxFeedHydrator() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const token = useAuthStore((state) => state.token);
   const fetchCatalog = useMarketplaceStore((state) => state.fetchCatalog);
   const fetchOffers = useOffersStore((state) => state.fetchOffers);
   const hydrateFromCatalog = useDashboardStore((state) => state.hydrateFromCatalog);
@@ -25,6 +29,7 @@ export function CxFeedHydrator() {
   const fetchShipments = useShipmentTrackingStore((state) => state.fetchFromApi);
 
   useEffect(() => {
+    if (!isAuthenticated || !isUsableJwt(token)) return;
     void (async () => {
       await fetchCatalog();
       hydrateFromCatalog();
@@ -40,6 +45,8 @@ export function CxFeedHydrator() {
       ]);
     })();
   }, [
+    isAuthenticated,
+    token,
     fetchCatalog,
     fetchOffers,
     hydrateFromCatalog,

@@ -9,6 +9,7 @@ import { AppBreadcrumb } from "@/components/navigation/app-breadcrumb";
 import { ROUTES } from "@/constants";
 import { useCustomerQuote } from "@/hooks/use-customer-quote";
 import { formatInr } from "@/lib/format";
+import { checkoutHref } from "@/services/checkout";
 import { useProductStore } from "@/store/productStore";
 import { MarketplaceEmptyState } from "@/components/marketplace/empty-state";
 import { BlindSellerBadge } from "@/components/marketplace/blind-seller-badge";
@@ -109,7 +110,7 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
       toast.error(quoteError ?? "Unable to load latest pricing");
       return;
     }
-    router.push(`${ROUTES.checkout}?quoteId=${quote.quoteId}`);
+    router.push(checkoutHref([quote.quoteId]));
   }
 
   return (
@@ -168,6 +169,7 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
         <div>
           <StickyPurchasePanel
             productId={detail.id}
+            offerId={quote?.offerId ?? selectedProduct?.offerId}
             spotPrice={displaySpotPrice}
             bulkPricing={detail.bulkPricing}
             paymentOptions={livePaymentOptions}

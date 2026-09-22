@@ -7,14 +7,12 @@ import { cn } from "@/lib/utils";
 interface ProductGridProps {
   products: MarketplaceProduct[];
   onQuickView?: (productId: string) => void;
-  compareMode?: boolean;
   className?: string;
 }
 
 export function ProductGrid({
   products,
   onQuickView,
-  compareMode = false,
   className,
 }: ProductGridProps) {
   return (
@@ -31,7 +29,6 @@ export function ProductGrid({
           index={index}
           variant="grid"
           onQuickView={onQuickView}
-          compareMode={compareMode}
         />
       ))}
     </div>

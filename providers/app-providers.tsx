@@ -5,6 +5,7 @@ import { QueryProvider } from "@/providers/query-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { CxFeedHydrator } from "@/components/cx-feed-hydrator";
 import { AdminPushHydrator } from "@/components/admin-push-hydrator";
+import { SessionHydrator } from "@/components/session-hydrator";
 import { ToastProvider } from "@/components/common/toast-provider";
 
 interface AppProvidersProps {
@@ -16,6 +17,7 @@ export function AppProviders({ children }: AppProvidersProps) {
     <ThemeProvider>
       <QueryProvider>
         {children}
+        <SessionHydrator />
         <CxFeedHydrator />
         <AdminPushHydrator />
         <ToastProvider />

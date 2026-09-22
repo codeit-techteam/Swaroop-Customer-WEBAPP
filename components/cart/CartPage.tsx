@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -11,12 +12,27 @@ import {
   ShoppingBag,
   Trash2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  CheckoutValidationDialog,
+  NetworkErrorDialog,
+  PriceUpdatedDialog,
+} from "@/components/checkout";
 import { ROUTES } from "@/constants";
+import { commerceErrorCopy } from "@/lib/commerce-errors";
 import { formatInr, formatInrPerMt, formatQuantityMt } from "@/lib/format";
+import {
+  checkoutErrorCode,
+  checkoutErrorMessage,
+  checkoutHref,
+  quoteCartForCheckout,
+  type CartPriceChange,
+  type CartQuoteResult,
+} from "@/services/checkout";
 import { useCartStore } from "@/store/cartStore";
 import { useCheckoutStore } from "@/store/checkoutStore";
 
@@ -26,7 +42,69 @@ export function CartPage() {
   const setQuantity = useCartStore((s) => s.setQuantity);
   const removeItem = useCartStore((s) => s.removeItem);
   const subtotal = useCartStore((s) => s.subtotal());
+  const fetchCart = useCartStore((s) => s.fetchCart);
   const activePurchaseOrder = useCheckoutStore((s) => s.activePurchaseOrder);
+  const checkoutLock = useRef(false);
+  const pendingQuote = useRef<CartQuoteResult | null>(null);
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [priceChanges, setPriceChanges] = useState<CartPriceChange[]>([]);
+  const [showPriceModal, setShowPriceModal] = useState(false);
+  const [showNetworkModal, setShowNetworkModal] = useState(false);
+  const [validationIssue, setValidationIssue] = useState<{
+    title: string;
+    message: string;
+  } | null>(null);
+
+  const goToCheckout = useCallback(
+    (next: CartQuoteResult) => {
+      const ids = next.quotes.map((quote) => quote.quoteId);
+      if (!ids[0]) return;
+      router.push(checkoutHref(ids));
+    },
+    [router],
+  );
+
+  const handleCheckout = useCallback(async () => {
+    if (checkoutLock.current || items.length === 0) return;
+    checkoutLock.current = true;
+    setCheckingOut(true);
+    try {
+      const next = await quoteCartForCheckout({
+        expectedPrices: items.map((item) => ({
+          cartItemId: item.id,
+          unitPrice: item.unitPrice,
+        })),
+      });
+      if (next.status === "INVALID" || !next.valid || next.quotes.length === 0) {
+        const issue = next.issues[0];
+        const copy = commerceErrorCopy(issue?.code, issue?.message);
+        setValidationIssue({ title: copy.title, message: copy.message });
+        return;
+      }
+      if (next.status === "PRICE_CHANGED" && next.changes.length > 0) {
+        pendingQuote.current = next;
+        setPriceChanges(next.changes);
+        setShowPriceModal(true);
+        void fetchCart();
+        return;
+      }
+      goToCheckout(next);
+    } catch (cause) {
+      const code = checkoutErrorCode(cause);
+      if (code === "NETWORK_ERROR") {
+        setShowNetworkModal(true);
+      } else {
+        toast.error(checkoutErrorMessage(cause, "Unable to continue to checkout"));
+      }
+    } finally {
+      checkoutLock.current = false;
+      setCheckingOut(false);
+    }
+  }, [fetchCart, goToCheckout, items]);
+
+  useEffect(() => {
+    void fetchCart();
+  }, [fetchCart]);
 
   if (items.length === 0) {
     return (
@@ -134,14 +212,14 @@ export function CartPage() {
 
       <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs text-slate-600 shadow-sm">
         <span className="font-semibold text-slate-800">Next:</span>
-        Checkout → allocate delivery locations → generate Purchase Order →
+        Checkout with live PetroTrade pricing → place purchase request →
         15-min seller confirmation
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <div className="space-y-3">
           {items.map((item) => (
-            <Card key={item.productId} className="border-slate-200 shadow-card">
+            <Card key={item.id} className="border-slate-200 shadow-card">
               <CardContent className="flex flex-col gap-4 p-4 sm:flex-row">
                 <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-brand">
                   {item.grade.slice(0, 4).toUpperCase()}
@@ -176,7 +254,7 @@ export function CartPage() {
                         className="h-8 w-8 rounded-lg"
                         disabled={item.quantityMt <= item.moq}
                         onClick={() =>
-                          setQuantity(item.productId, item.quantityMt - 1)
+                          void setQuantity(item.id, item.quantityMt - 1)
                         }
                       >
                         <Minus className="h-3.5 w-3.5" />
@@ -191,7 +269,7 @@ export function CartPage() {
                         className="h-8 w-8 rounded-lg"
                         disabled={item.quantityMt >= item.availableStock}
                         onClick={() =>
-                          setQuantity(item.productId, item.quantityMt + 1)
+                          void setQuantity(item.id, item.quantityMt + 1)
                         }
                       >
                         <Plus className="h-3.5 w-3.5" />
@@ -208,7 +286,7 @@ export function CartPage() {
                         variant="ghost"
                         size="sm"
                         className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                        onClick={() => removeItem(item.productId)}
+                        onClick={() => void removeItem(item.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                         Remove
@@ -249,9 +327,10 @@ export function CartPage() {
             </p>
             <Button
               className="h-11 w-full rounded-xl bg-brand hover:bg-brand-700"
-              onClick={() => router.push(ROUTES.checkout)}
+              disabled={checkingOut}
+              onClick={() => void handleCheckout()}
             >
-              Proceed to Checkout
+              {checkingOut ? "Checking latest pricing..." : "Proceed to Checkout"}
               <ArrowRight className="h-4 w-4" />
             </Button>
             <Button
@@ -264,6 +343,36 @@ export function CartPage() {
           </CardContent>
         </Card>
       </div>
+      <PriceUpdatedDialog
+        open={showPriceModal}
+        changes={priceChanges}
+        onReview={() => setShowPriceModal(false)}
+        onContinue={
+          pendingQuote.current
+            ? () => {
+                const next = pendingQuote.current;
+                setShowPriceModal(false);
+                if (next) goToCheckout(next);
+              }
+            : undefined
+        }
+      />
+      <NetworkErrorDialog
+        open={showNetworkModal}
+        retrying={checkingOut}
+        onClose={() => setShowNetworkModal(false)}
+        onRetry={() => {
+          setShowNetworkModal(false);
+          void handleCheckout();
+        }}
+      />
+      <CheckoutValidationDialog
+        open={Boolean(validationIssue)}
+        title={validationIssue?.title ?? "Unable to continue"}
+        message={validationIssue?.message ?? "Please review your cart and try again."}
+        confirmLabel="Review Cart"
+        onConfirm={() => setValidationIssue(null)}
+      />
     </PageContainer>
   );
 }

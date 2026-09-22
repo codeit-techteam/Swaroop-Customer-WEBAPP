@@ -20,9 +20,9 @@ export const DOCUMENT_STATUS_LABELS: Record<DocumentStatus, string> = {
 
 export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   purchase_order: "Purchase Order",
-  invoice: "Invoice",
+  invoice: "Tax Invoice",
   proforma: "Proforma Invoice",
-  gst_invoice: "GST Invoice",
+  gst_invoice: "Tax Invoice",
   certificate: "Certificate",
   packing_list: "Packing List",
   delivery_challan: "Delivery Challan",
@@ -34,8 +34,8 @@ export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
 
 export const DOWNLOAD_CATEGORY_LABELS: Record<DownloadCategory, string> = {
   purchase_order: "Purchase Order",
-  invoice: "Invoices",
-  gst_invoice: "GST Invoice",
+  invoice: "Tax Invoices",
+  gst_invoice: "Tax Invoice",
   certificate: "Certificates",
   packing_list: "Packing List",
   delivery_challan: "Delivery Challan",
@@ -83,7 +83,7 @@ export const DOCUMENT_NOTIFICATION_LABELS: Record<
 > = {
   po_ready: "Purchase Order Ready",
   invoice_generated: "Invoice Generated",
-  gst_ready: "GST Invoice Ready",
+  gst_ready: "Invoice Ready",
   certificate_available: "Certificate Available",
   download_completed: "Download Completed",
 };

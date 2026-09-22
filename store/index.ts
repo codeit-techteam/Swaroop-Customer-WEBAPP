@@ -23,4 +23,3 @@ export * from "./onboardingStore";
 export * from "./purchaseRequestStore";
 export * from "./purchaseRequestTrackingStore";
 export * from "./ordersCatalogStore";
-export * from "./compareStore";

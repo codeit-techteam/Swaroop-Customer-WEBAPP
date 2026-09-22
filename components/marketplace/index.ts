@@ -17,8 +17,6 @@ export { CategoryCard } from "./category-card";
 export { MaterialTile } from "./material-tile";
 export { MaterialChips } from "./material-chips";
 export { BlindSellerBadge } from "./blind-seller-badge";
-export { CompareGradesView } from "./compare-grades-view";
-export { CompareTray } from "./compare-tray";
 export { SortDropdown } from "./sort-dropdown";
 export { MarketplaceSearchBar } from "./search-bar";
 export { MarketplaceEmptyState } from "./empty-state";

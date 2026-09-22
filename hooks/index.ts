@@ -6,3 +6,4 @@ export * from "./useDisclosure";
 export * from "./useMediaQuery";
 export * from "./useMounted";
 export * from "./useLocalStorage";
+export * from "./use-cms-banners";

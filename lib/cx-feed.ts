@@ -19,7 +19,6 @@ import {
   buildSpotPrice,
   DEFAULT_QUALITY_ASSURANCE,
   getFeaturesForMaterial,
-  buildProductDocuments,
   buildProductHighlights,
   buildLogisticsEstimate,
   buildGalleryFromProduct,
@@ -230,17 +229,30 @@ function mapSpecs(product: PublishedProduct): ProductSpecRow[] | null {
   }));
 }
 
+function isOptionalProductDownload(name: string, type?: string): boolean {
+  const label = `${name} ${type ?? ""}`.toUpperCase();
+  return label.includes("TDS") || label.includes("MSDS");
+}
+
 function mapDocuments(
   product: PublishedProduct,
 ): ComplianceDocument[] | null {
   if (!product.documents?.length) return null;
-  return product.documents.map((doc, index) => ({
-    id: `doc-${product.id}-${index}`,
-    type: "coa",
-    title: doc.name,
-    description: doc.type,
-    fileName: doc.fileName,
-  }));
+  const mapped = product.documents
+    .filter((doc) => isOptionalProductDownload(doc.name, doc.type))
+    .map((doc, index) => {
+      const isMsds = `${doc.name} ${doc.type}`.toUpperCase().includes("MSDS");
+      return {
+        id: `doc-${product.id}-${index}`,
+        type: isMsds ? ("msds" as const) : ("test_certificate" as const),
+        title: isMsds ? "MSDS" : "TDS",
+        description: isMsds
+          ? "Material safety data sheet"
+          : "Technical data sheet",
+        fileName: doc.fileName,
+      };
+    });
+  return mapped.length > 0 ? mapped : null;
 }
 
 function availabilityFromPublished(product: PublishedProduct) {
@@ -270,8 +282,7 @@ export function publishedProductToDetail(
   const paymentOptions =
     mapPaymentOptions(product) ?? buildPaymentOptions(creditEligible);
   const specs = mapSpecs(product) ?? [];
-  const documents =
-    mapDocuments(product) ?? buildProductDocuments(product.name);
+  const documents = mapDocuments(product) ?? [];
   const galleryImages = product.images.length
     ? product.images
     : [product.images[0] ?? ""];

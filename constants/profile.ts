@@ -6,8 +6,7 @@ export const PROFILE_DOCUMENT_LABELS: Record<ProfileDocumentKind, string> = {
   company_registration: "Company Registration",
   cancelled_cheque: "Cancelled Cheque",
   purchase_order: "Purchase Orders",
-  invoice: "Invoices",
-  gst_invoice: "GST Invoices",
+  invoice: "Tax Invoices",
   quality_certificate: "Quality Certificates",
   transport_document: "Transport Documents",
 };

@@ -204,7 +204,7 @@ export const MOCK_SUPPORT_TICKETS: SupportTicket[] = [
         id: "c-5",
         sender: "executive",
         senderName: "Ankit Shah",
-        body: "Corrected e-invoice is available under Documents → GST Invoices.",
+        body: "Corrected e-invoice is available under Documents → Invoices.",
         at: "2026-07-22T12:35:00.000Z",
         read: true,
       },
@@ -298,9 +298,9 @@ export const MOCK_FAQS: FaqItem[] = [
   },
   {
     id: "faq-8",
-    question: "How to download GST invoice?",
+    question: "How to download invoice?",
     answer:
-      "Navigate to Documents → GST Invoices, search by IRN or invoice number, then Preview / Download. If IRN is missing, raise a GST category ticket — corrected JSON is usually pushed the same day.",
+      "Navigate to Documents → Invoices, search by invoice number, then Preview / Download. If a document is missing, raise a ticket — corrected files are usually pushed the same day.",
     tags: ["gst", "invoice"],
   },
 ];
@@ -320,7 +320,7 @@ export const MOCK_SUPPORT_DOCS: SupportDoc[] = [
 
 1. E-Invoice lifecycle
    - PetroTrade generates IRN on confirmation of tax invoice.
-   - Buyer downloads JSON/PDF from Documents → GST Invoices.
+   - Buyer downloads JSON/PDF from Documents → Invoices.
 
 2. HSN references
    - PE grades: typically 3901
@@ -466,12 +466,12 @@ export const MOCK_KNOWLEDGE_ARTICLES: KnowledgeArticle[] = [
   },
   {
     id: "kb-4",
-    title: "Downloading GST invoices with IRN",
-    shortDescription: "Find, preview, and archive e-invoices for GST filing.",
+    title: "Downloading invoices",
+    shortDescription: "Find, preview, and archive tax invoices.",
     category: "invoices",
     readTime: "3 min",
     content:
-      "Filter Documents by GST Invoices → search IRN or PetroTrade GSTIN → Preview validates signature hash before download.",
+      "Filter Documents by Invoices → search invoice number or order → Preview validates the file before download.",
   },
   {
     id: "kb-5",
@@ -538,14 +538,14 @@ export const MOCK_CHAT_THREAD: ChatMessage[] = [
     "chat-4",
     "customer",
     "You",
-    "ORD-88421 — need GST tax invoice PDF for August filing.",
+    "ORD-88421 — need tax invoice PDF for August filing.",
     "2026-08-04T10:02:15.000Z",
   ),
   msg(
     "chat-5",
     "executive",
     "Asha Krishnan",
-    "Found INV-PO-88421. I can email it to your registered ID or you can download from Documents → GST Invoices.",
+    "Found INV-PO-88421. I can email it to your registered ID or you can download from Documents → Invoices.",
     "2026-08-04T10:03:05.000Z",
     { attachmentName: "INV-PO-88421.pdf" },
   ),
@@ -580,7 +580,7 @@ export const MOCK_SUPPORT_ACTIVITIES: SupportActivity[] = [
     id: "act-4",
     type: "invoice_generated",
     title: "Invoice Generated",
-    description: "GST invoice for ORD-88102 is ready to download",
+    description: "Tax invoice for ORD-88102 is ready to download",
     at: "2026-08-01T11:40:00.000Z",
     read: true,
   },

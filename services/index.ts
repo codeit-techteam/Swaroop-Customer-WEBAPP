@@ -1,4 +1,10 @@
 import { fetchMarketplaceCatalog } from "@/services/catalog";
+import {
+  addCustomerCartItem,
+  fetchCustomerCart,
+  removeCustomerCartItem,
+  updateCustomerCartItem,
+} from "@/services/cart";
 import { fetchCustomerPurchaseRequests } from "@/services/purchase-requests";
 import {
   fetchCustomerPayments,
@@ -7,8 +13,20 @@ import {
 } from "@/services/finance";
 import { fetchCustomerCreditLimit, applyCustomerCredit } from "@/services/credit";
 import { fetchCustomerShipments } from "@/services/logistics";
-import { fetchCustomerDocuments, fetchCustomerBanners } from "@/services/operations";
-import { createCustomerQuote, placeCustomerPurchaseRequest } from "@/services/checkout";
+import { fetchCustomerDocuments } from "@/services/operations";
+import { fetchCustomerBanners } from "@/services/cms";
+import {
+  createCustomerQuote,
+  placeCustomerPurchaseRequest,
+  quoteCartForCheckout,
+} from "@/services/checkout";
+
+export const cartService = {
+  get: fetchCustomerCart,
+  addItem: addCustomerCartItem,
+  updateItem: updateCustomerCartItem,
+  removeItem: removeCustomerCartItem,
+};
 
 export const marketplaceService = {
   getCatalog: () => fetchMarketplaceCatalog(),
@@ -36,11 +54,16 @@ export const documentsService = {
   list: () => fetchCustomerDocuments(),
 };
 
+export const cmsService = {
+  listBanners: fetchCustomerBanners,
+};
+
 export const shipmentTrackingService = {
   list: () => fetchCustomerShipments(),
 };
 
 export const checkoutService = {
   quote: createCustomerQuote,
+  quoteFromCart: quoteCartForCheckout,
   place: placeCustomerPurchaseRequest,
 };

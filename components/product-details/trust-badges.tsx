@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 const TRUST_ITEMS = [
   { label: "PetroTrade Verified", icon: BadgeCheck },
-  { label: "GST Invoice", icon: Receipt },
+  { label: "Tax Invoice", icon: Receipt },
   { label: "Quality Checked", icon: FileCheck2 },
   { label: "Secure Payment", icon: Lock },
   { label: "Logistics Support", icon: Truck },

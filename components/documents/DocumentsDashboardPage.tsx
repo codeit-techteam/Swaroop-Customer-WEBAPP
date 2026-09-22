@@ -43,7 +43,6 @@ export function DocumentsDashboardPage() {
   const purchaseOrders = useDocumentsStore((s) => s.purchaseOrders);
   const invoices = useDocumentsStore((s) => s.invoices);
   const proformas = useDocumentsStore((s) => s.proformas);
-  const gstInvoices = useDocumentsStore((s) => s.gstInvoices);
   const certificates = useDocumentsStore((s) => s.certificates);
   const setUploadOpen = useDocumentsStore((s) => s.setUploadOpen);
   const markNotificationRead = useDocumentsStore((s) => s.markNotificationRead);
@@ -57,9 +56,8 @@ export function DocumentsDashboardPage() {
         certificates,
         downloads,
         proformas,
-        gstInvoices,
       }),
-    [purchaseOrders, invoices, certificates, downloads, proformas, gstInvoices],
+    [purchaseOrders, invoices, certificates, downloads, proformas],
   );
 
   const facets = useMemo(
@@ -73,15 +71,14 @@ export function DocumentsDashboardPage() {
         purchaseOrders,
         invoices,
         certificates,
-        gstInvoices,
       ),
-    [purchaseOrders, invoices, certificates, gstInvoices],
+    [purchaseOrders, invoices, certificates],
   );
 
   const searchResults = useMemo(() => {
     const state = useDocumentsStore.getState();
     return globalDocumentSearch(state, filters).slice(0, 12);
-  }, [filters, purchaseOrders, invoices, proformas, gstInvoices, certificates]);
+  }, [filters, purchaseOrders, invoices, proformas, certificates]);
 
   const unread = notifications.filter((n) => !n.read).slice(0, 5);
   const hasActiveSearch =
@@ -122,7 +119,7 @@ export function DocumentsDashboardPage() {
       <DocumentsModuleChrome />
       <PageHeader
         title="Documents"
-        description="Enterprise document centre for purchase orders, tax invoices, GST, and downloads across your order lifecycle."
+        description="Enterprise document centre for purchase orders, tax invoices, and downloads across your order lifecycle."
         breadcrumbs={[{ label: "Documents" }]}
       />
 
@@ -288,8 +285,7 @@ export function DocumentsDashboardPage() {
                       "2. Invoice Generated after commercial confirmation",
                       "3. Payment Completed unlocks receipts",
                       "4. Shipment Documents Ready (packing, challan, e-way)",
-                      "5. GST Invoice Generated for tax compliance",
-                      "6. Delivery Completed",
+                      "5. Delivery Completed",
                     ],
                   }),
                 });

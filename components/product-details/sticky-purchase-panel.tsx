@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCartStore } from "@/store/cartStore";
 import type { CheckoutQuote } from "@/services/checkout";
+import { checkoutHref, toBackendPaymentOption } from "@/services/checkout";
 import type {
   BulkPricingTier,
   PaymentMethodId,
@@ -25,6 +26,7 @@ import { TrustBadges } from "./trust-badges";
 
 interface StickyPurchasePanelProps {
   productId: string;
+  offerId?: string;
   spotPrice: SpotPriceInfo;
   bulkPricing: BulkPricingTier[];
   paymentOptions: PaymentOption[];
@@ -46,6 +48,7 @@ interface StickyPurchasePanelProps {
 
 export function StickyPurchasePanel({
   productId,
+  offerId,
   spotPrice,
   bulkPricing,
   paymentOptions,
@@ -67,6 +70,7 @@ export function StickyPurchasePanel({
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
   const [qtyError, setQtyError] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
   const canBuy = Boolean(quote) && !quoteLoading && !quoteError;
 
   function clamp(next: number) {
@@ -83,8 +87,16 @@ export function StickyPurchasePanel({
     onQuantityChange(clamp(next));
   }
 
-  function handleAddToCart() {
-    const result = addItem(productId, quantity, packaging);
+  async function handleAddToCart() {
+    setAdding(true);
+    const result = await addItem(
+      productId,
+      quantity,
+      packaging,
+      quote?.offerId ?? offerId,
+      toBackendPaymentOption(paymentId),
+    );
+    setAdding(false);
     if (!result.ok) {
       setQtyError(result.message);
       toast.error(result.message);
@@ -98,7 +110,7 @@ export function StickyPurchasePanel({
       toast.error(quoteError ?? "Unable to load latest pricing");
       return;
     }
-    router.push(`${ROUTES.checkout}?quoteId=${quote.quoteId}`);
+    router.push(checkoutHref([quote.quoteId]));
   }
 
   return (
@@ -199,9 +211,10 @@ export function StickyPurchasePanel({
             type="button"
             className="h-12 w-full rounded-xl bg-brand text-sm font-semibold hover:bg-brand-700"
             onClick={handleAddToCart}
+            disabled={adding}
           >
             <ShoppingCart className="h-4 w-4" />
-            Add To Cart
+            {adding ? "Adding..." : "Add To Cart"}
           </Button>
           <Button
             type="button"

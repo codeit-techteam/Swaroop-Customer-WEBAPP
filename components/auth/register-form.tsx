@@ -27,6 +27,7 @@ export function RegisterForm() {
     register,
     control,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -46,12 +47,18 @@ export function RegisterForm() {
     const onboarding = useOnboardingStore.getState();
     onboarding.reset();
     onboarding.seedCompanyLegalName(values.businessName);
-    await registerUser({
+    const result = await registerUser({
       businessName: values.businessName,
       email: values.email,
       phone: values.phone,
       password: values.password,
     });
+    if (!result.ok) {
+      setError("root", {
+        message: result.message ?? "Unable to start registration",
+      });
+      return;
+    }
     router.push(ROUTES.otpVerification);
   });
 

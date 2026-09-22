@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Download, Eye, Printer } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
@@ -42,6 +42,7 @@ import { cn } from "@/lib/utils";
 
 export function DocumentsInvoicesPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const isHydrated = useDocumentsStore((s) => s.isHydrated);
   const invoices = useDocumentsStore((s) => s.invoices);
   const purchaseOrders = useDocumentsStore((s) => s.purchaseOrders);
@@ -50,6 +51,13 @@ export function DocumentsInvoicesPage() {
   const resetFilters = useDocumentsStore((s) => s.resetFilters);
   const markDownloaded = useDocumentsStore((s) => s.markDownloaded);
   const openPreview = useDocumentsStore((s) => s.openPreview);
+
+  useEffect(() => {
+    const q = searchParams.get("search")?.trim();
+    if (q && filters.search !== q) {
+      setFilters({ search: q });
+    }
+  }, [searchParams, filters.search, setFilters]);
 
   const facets = useMemo(
     () => getFacetOptions({ purchaseOrders, invoices }),
@@ -62,7 +70,7 @@ export function DocumentsInvoicesPage() {
 
   const preview = (inv: InvoiceDocument) => {
     openPreview({
-      title: `Invoice ${inv.invoiceNumber}`,
+      title: `Tax Invoice ${inv.invoiceNumber}`,
       categoryLabel: "Tax Invoice",
       fileName: `${inv.invoiceNumber}.pdf`,
       documentNumber: inv.invoiceNumber,
@@ -84,11 +92,11 @@ export function DocumentsInvoicesPage() {
     <PageContainer>
       <DocumentsModuleChrome />
       <PageHeader
-        title="Invoices"
+        title="Tax Invoices"
         description="Tax invoices generated after commercial confirmation and payment milestones."
         breadcrumbs={[
           { label: "Documents", href: ROUTES.documents },
-          { label: "Invoices" },
+          { label: "Tax Invoices" },
         ]}
       />
 
@@ -99,7 +107,7 @@ export function DocumentsInvoicesPage() {
         onChange={setFilters}
         onReset={resetFilters}
         hideType
-        searchPlaceholder="Search invoice, order, PO, supply source, warehouse…"
+        searchPlaceholder="Search GST, GSTIN, invoice, order, PO, supply source, warehouse…"
       />
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">
@@ -210,7 +218,7 @@ export function DocumentsInvoicesPage() {
         </Table>
       </div>
       <p className="text-xs text-slate-500">
-        Showing {rows.length} of {invoices.length} invoices
+        Showing {rows.length} of {invoices.length} tax invoices
       </p>
     </PageContainer>
   );

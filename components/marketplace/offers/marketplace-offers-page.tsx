@@ -37,6 +37,7 @@ import { CreditOffersSection } from "./credit-offers-section";
 import { OfferEmptyState } from "./offer-empty-state";
 import { OffersPageSkeleton } from "./offers-page-skeleton";
 import { MarketplaceEmptyState } from "@/components/marketplace/empty-state";
+import { PromoBannerSlider } from "@/components/cms/promo-banner-slider";
 
 export function MarketplaceOffersPage() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -168,6 +169,8 @@ export function MarketplaceOffersPage() {
           </Button>
         </div>
       </header>
+
+      <PromoBannerSlider placement="OFFERS" className="mb-6" />
 
       {featuredOffer ? (
         <FeaturedOffer offer={featuredOffer} className="mb-6" />

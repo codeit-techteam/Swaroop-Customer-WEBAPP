@@ -15,6 +15,20 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "recharts", "date-fns"],
   },
+  async redirects() {
+    return [
+      {
+        source: "/payments/invoices",
+        destination: "/documents/invoices",
+        permanent: false,
+      },
+      {
+        source: "/documents/gst-invoices",
+        destination: "/documents/invoices",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -23,9 +23,6 @@ export const ROUTES = {
   marketplaceOffers: "/marketplace/offers",
   marketplaceMyOffers: "/marketplace/offers/my-offers",
   marketplaceOfferDetail: "/marketplace/offers",
-  marketplaceCompare: "/marketplace/compare",
-  /** Browse marketplace while picking grades for comparison */
-  marketplaceCompareBrowse: "/marketplace?compare=1",
   product: "/product",
   cart: "/cart",
   checkout: "/checkout",
@@ -67,7 +64,8 @@ export const ROUTES = {
   paymentsCredit15: "/payments/credit-15-days",
   paymentsCredit30: "/payments/credit-30-days",
   paymentsHistory: "/payments/history",
-  paymentsInvoices: "/payments/invoices",
+  /** @deprecated Invoices live under Documents. `/payments/invoices` redirects there. */
+  paymentsInvoices: "/documents/invoices",
   paymentsReceipts: "/payments/receipts",
 
   dispatchDetail: "/dispatch",
@@ -82,7 +80,8 @@ export const ROUTES = {
   documentsPurchaseOrders: "/documents/purchase-orders",
   documentsInvoices: "/documents/invoices",
   documentsProforma: "/documents/proforma-invoice",
-  documentsGstInvoices: "/documents/gst-invoices",
+  /** @deprecated GST invoices were merged into tax invoices. */
+  documentsGstInvoices: "/documents/invoices",
   documentsCertificates: "/documents/certificates",
 
   profile: "/profile",
@@ -170,11 +169,6 @@ export const CUSTOMER_NAV: NavItem[] = [
         title: "Browse Grades",
         href: ROUTES.marketplace,
       },
-      {
-        id: "marketplace-compare",
-        title: "Compare Grades",
-        href: ROUTES.marketplaceCompare,
-      },
     ],
   },
   {
@@ -210,13 +204,6 @@ export const CUSTOMER_NAV: NavItem[] = [
         id: "pay-history",
         title: "Payment History",
         href: ROUTES.paymentsHistory,
-      },
-      {
-        id: "pay-invoices",
-        title: "Invoices",
-        href: ROUTES.paymentsInvoices,
-        badge: 2,
-        badgeVariant: "pending",
       },
       {
         id: "pay-receipts",
@@ -258,18 +245,13 @@ export const CUSTOMER_NAV: NavItem[] = [
       },
       {
         id: "docs-invoices",
-        title: "Invoices",
+        title: "Tax Invoices",
         href: ROUTES.documentsInvoices,
       },
       {
         id: "docs-proforma",
         title: "Proforma Invoice",
         href: ROUTES.documentsProforma,
-      },
-      {
-        id: "docs-gst",
-        title: "GST Invoices",
-        href: ROUTES.documentsGstInvoices,
       },
     ],
   },

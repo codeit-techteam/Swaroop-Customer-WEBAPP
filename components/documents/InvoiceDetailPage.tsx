@@ -63,19 +63,19 @@ export function InvoiceDetailPage() {
           title="Invoice Not Found"
           breadcrumbs={[
             { label: "Documents", href: ROUTES.documents },
-            { label: "Invoices", href: ROUTES.documentsInvoices },
+            { label: "Tax Invoices", href: ROUTES.documentsInvoices },
             { label: "Details" },
           ]}
         />
         <Card className="border-slate-200 shadow-card">
           <CardContent className="py-12 text-center text-sm text-slate-500">
-            Invoice not available.{" "}
+            Tax invoice not available.{" "}
             <button
               type="button"
               className="font-semibold text-brand underline"
               onClick={() => router.push(ROUTES.documentsInvoices)}
             >
-              Back to invoices
+              Back to tax invoices
             </button>
           </CardContent>
         </Card>
@@ -93,7 +93,7 @@ export function InvoiceDetailPage() {
         description={`${inv.orderNumber} · ${inv.poNumber} · ${inv.seller}`}
         breadcrumbs={[
           { label: "Documents", href: ROUTES.documents },
-          { label: "Invoices", href: ROUTES.documentsInvoices },
+          { label: "Tax Invoices", href: ROUTES.documentsInvoices },
           { label: inv.invoiceNumber },
         ]}
         actions={

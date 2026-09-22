@@ -379,19 +379,10 @@ export const customerProfileMock: CustomerProfileState = {
     {
       id: "doc-6",
       kind: "invoice",
-      title: "Invoices",
-      fileName: "Invoices-Jul-2026.pdf",
+      title: "Tax Invoices",
+      fileName: "Tax-Invoices-Jul-2026.pdf",
       uploadedAt: "2026-07-31",
       sizeLabel: "980 KB",
-      status: "available",
-    },
-    {
-      id: "doc-7",
-      kind: "gst_invoice",
-      title: "GST Invoices",
-      fileName: "GST-INV-Jul-2026.pdf",
-      uploadedAt: "2026-07-31",
-      sizeLabel: "754 KB",
       status: "available",
     },
     {

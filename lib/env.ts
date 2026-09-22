@@ -1,9 +1,11 @@
 export const env = {
   appName: process.env.NEXT_PUBLIC_APP_NAME ?? "PetroTrade Customer Portal",
-  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001",
   appEnv: process.env.NEXT_PUBLIC_APP_ENV ?? "development",
   apiBaseUrl:
-    process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api/v1",
+    process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3000/api/v1",
+  refreshTokenStorageKey:
+    process.env.NEXT_PUBLIC_REFRESH_TOKEN_KEY ?? "pt_customer_refresh",
   apiTimeout: Number(process.env.NEXT_PUBLIC_API_TIMEOUT ?? 30000),
   authCookieName:
     process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME ?? "pt_customer_token",

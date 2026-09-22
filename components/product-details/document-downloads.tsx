@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Download, FileText } from "lucide-react";
 import { toast } from "sonner";
 import type { ComplianceDocument } from "@/types/product-details";
@@ -10,11 +11,26 @@ interface DocumentDownloadsProps {
   className?: string;
 }
 
+function isOptionalProductDownload(doc: ComplianceDocument): boolean {
+  const title = doc.title.trim().toUpperCase();
+  return (
+    title === "TDS" ||
+    title === "MSDS" ||
+    doc.type === "msds" ||
+    (doc.type === "test_certificate" && title.includes("TDS"))
+  );
+}
+
 export function DocumentDownloads({
   documents,
   className,
 }: DocumentDownloadsProps) {
-  if (documents.length === 0) return null;
+  const visibleDocuments = useMemo(
+    () => documents.filter(isOptionalProductDownload),
+    [documents],
+  );
+
+  if (visibleDocuments.length === 0) return null;
 
   return (
     <section
@@ -25,10 +41,10 @@ export function DocumentDownloads({
     >
       <h2 className="text-sm font-semibold text-slate-900">Downloads</h2>
       <p className="mt-0.5 text-xs text-slate-500">
-        Product documents and certificates
+        Optional TDS and MSDS when available
       </p>
       <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {documents.map((doc) => (
+        {visibleDocuments.map((doc) => (
           <li key={doc.id}>
             <button
               type="button"

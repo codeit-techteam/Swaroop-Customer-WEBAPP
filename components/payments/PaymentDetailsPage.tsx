@@ -275,10 +275,10 @@ export function PaymentDetailsPage({ paymentId }: PaymentDetailsPageProps) {
                 <Button
                   variant="outline"
                   className="mt-2 w-full rounded-xl"
-                  onClick={() => router.push(ROUTES.paymentsInvoices)}
+                  onClick={() => router.push(ROUTES.documentsInvoices)}
                 >
                   <Eye className="h-4 w-4" />
-                  Open Invoices
+                  Open Tax Invoices
                 </Button>
               </CardContent>
             </Card>

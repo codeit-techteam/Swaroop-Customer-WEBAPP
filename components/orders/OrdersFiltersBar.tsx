@@ -77,7 +77,7 @@ export function OrdersFiltersBar({
             onClick={() => toast.success("Invoice pack download queued (mock)")}
           >
             <Download className="h-4 w-4" />
-            Invoices
+            Tax Invoices
           </Button>
         </div>
       </div>

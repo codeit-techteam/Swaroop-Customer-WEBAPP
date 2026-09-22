@@ -21,7 +21,6 @@ import type {
   DocumentTimelineEvent,
   DocumentsFiltersState,
   DownloadableDocument,
-  GstInvoiceDocument,
   InvoiceDocument,
   PartyInfo,
   ProformaInvoiceDocument,
@@ -123,7 +122,6 @@ function lifecycleTimeline(
     "Payment Completed",
     "Receipt Generated",
     "Shipment Documents Ready",
-    "GST Invoice Generated",
     "Delivery Completed",
     "Certificate Issued",
   ];
@@ -153,7 +151,6 @@ type OrderSeed = {
   poNumber: string;
   invoiceNumber: string;
   proformaNumber: string;
-  gstInvoiceNumber: string;
   seller: (typeof DOCUMENT_SELLERS)[number];
   warehouse: (typeof DOCUMENT_WAREHOUSES)[number];
   productIdx: number;
@@ -193,7 +190,6 @@ function buildSeeds(): OrderSeed[] {
       poNumber: `PO-2026-${pad(2200 + i)}`,
       invoiceNumber: `INV-2026-${pad(3400 + i)}`,
       proformaNumber: `PI-2026-${pad(1100 + i)}`,
-      gstInvoiceNumber: `GST-INV-2026-${pad(4500 + i)}`,
       seller,
       warehouse,
       productIdx,
@@ -381,51 +377,6 @@ function buildProformas(): ProformaInvoiceDocument[] {
   });
 }
 
-function buildGstInvoices(): GstInvoiceDocument[] {
-  // 15 GST invoices from seeds with stage >= 5
-  const eligible = SEEDS.filter((s) => s.stage >= 4).slice(0, 15);
-  // If fewer than 15, pad with earlier seeds
-  while (eligible.length < 15) {
-    const next = SEEDS[eligible.length];
-    if (!next) break;
-    eligible.push(next);
-  }
-
-  return eligible.slice(0, 15).map((s, idx) => {
-    const product = DOCUMENT_PRODUCTS[s.productIdx];
-    const pricing = buildPricing(s.quantityMt, s.unitPrice, s.interstate);
-    const statuses: DocumentStatus[] = [
-      "generated",
-      "downloaded",
-      "verified",
-      "approved",
-      "pending",
-    ];
-    return {
-      id: `gst-${idx + 1}`,
-      gstNumber: PLATFORM_COMPANY.gstin,
-      invoiceNumber: s.gstInvoiceNumber,
-      orderNumber: s.orderNumber,
-      poNumber: s.poNumber,
-      taxableValue: pricing.taxableValue,
-      cgst: pricing.cgst,
-      sgst: pricing.sgst,
-      igst: pricing.igst,
-      totalGst: pricing.cgst + pricing.sgst + pricing.igst,
-      grandTotal: pricing.grandTotal,
-      invoiceDate: addDaysIso(s.poDate, 8),
-      seller: s.seller,
-      warehouse: s.warehouse,
-      product: product.name,
-      status: statuses[idx % statuses.length],
-      placeOfSupply: s.interstate ? "Haryana / Odisha" : "Gujarat",
-      hsn: product.hsn,
-      buyerGstin: BUYER_COMPANY.gstin,
-      sellerGstin: PLATFORM_COMPANY.gstin,
-    };
-  });
-}
-
 function buildCertificates(): CertificateDocument[] {
   return [];
 }
@@ -433,7 +384,6 @@ function buildCertificates(): CertificateDocument[] {
 function buildDownloads(
   pos: PurchaseOrderDocument[],
   invoices: InvoiceDocument[],
-  gstInvoices: GstInvoiceDocument[],
 ): DownloadableDocument[] {
   const files: DownloadableDocument[] = [];
   let n = 1;
@@ -481,23 +431,6 @@ function buildDownloads(
       product: inv.product,
       status: inv.status,
       relatedId: inv.id,
-    });
-  });
-
-  // GST
-  gstInvoices.slice(0, 4).forEach((g, i) => {
-    push({
-      fileName: `${g.invoiceNumber}.pdf`,
-      category: "gst_invoice",
-      sizeBytes: 160_000 + i * 2800,
-      date: g.invoiceDate,
-      orderNumber: g.orderNumber,
-      documentNumber: g.invoiceNumber,
-      seller: g.seller,
-      warehouse: g.warehouse,
-      product: g.product,
-      status: g.status,
-      relatedId: g.id,
     });
   });
 
@@ -585,16 +518,6 @@ function buildNotifications(): DocumentNotification[] {
       relatedId: "inv-3",
     },
     {
-      id: "dn-3",
-      type: "gst_ready",
-      title: "GST Invoice Ready",
-      message:
-        "GST tax invoice for Hazira dispatch is available under GST Invoices.",
-      createdAt: isoDaysAgo(2, 14),
-      read: false,
-      href: "/documents/gst-invoices",
-    },
-    {
       id: "dn-5",
       type: "download_completed",
       title: "Download Completed",
@@ -621,12 +544,10 @@ function buildNotifications(): DocumentNotification[] {
 export const purchaseOrdersMock = buildPurchaseOrders();
 export const invoicesMock = buildInvoices();
 export const proformaInvoicesMock = buildProformas();
-export const gstInvoicesMock = buildGstInvoices();
 export const certificatesMock = buildCertificates();
 export const downloadsMock = buildDownloads(
   purchaseOrdersMock,
   invoicesMock,
-  gstInvoicesMock,
 );
 export const documentNotificationsMock = buildNotifications();
 
@@ -645,7 +566,6 @@ export function buildRecentlyGenerated(
   pos: PurchaseOrderDocument[],
   invoices: InvoiceDocument[],
   certificates: CertificateDocument[],
-  gst: GstInvoiceDocument[],
 ): RecentlyGeneratedItem[] {
   const items: RecentlyGeneratedItem[] = [
     ...pos.map((p) => ({
@@ -683,18 +603,6 @@ export function buildRecentlyGenerated(
       createdAt: c.issueDate,
       status: c.status,
       href: "/documents/certificates",
-    })),
-    ...gst.map((g) => ({
-      id: g.id,
-      title: "GST Invoice",
-      documentNumber: g.invoiceNumber,
-      type: "gst_invoice" as const,
-      orderNumber: g.orderNumber,
-      seller: g.seller,
-      warehouse: g.warehouse,
-      createdAt: g.invoiceDate,
-      status: g.status,
-      href: "/documents/gst-invoices",
     })),
   ];
 

@@ -89,7 +89,6 @@ export function computeDocumentsSummary(
     | "certificates"
     | "downloads"
     | "proformas"
-    | "gstInvoices"
   >,
 ): DocumentsDashboardSummary {
   return {
@@ -97,7 +96,6 @@ export function computeDocumentsSummary(
       state.purchaseOrders.length +
       state.invoices.length +
       state.proformas.length +
-      state.gstInvoices.length +
       state.certificates.length +
       state.downloads.length,
     purchaseOrders: state.purchaseOrders.length,
@@ -118,6 +116,34 @@ function withinDate(iso: string, from: string, to: string) {
   if (from && t < new Date(from).getTime()) return false;
   if (to && t > new Date(to).getTime() + 86_400_000) return false;
   return true;
+}
+
+/** Derive searchable GST invoice rows from tax invoices for universal ERP search. */
+export function invoicesToGstDocuments(
+  invoices: InvoiceDocument[],
+): GstInvoiceDocument[] {
+  return invoices.map((inv) => ({
+    id: `gst-${inv.id}`,
+    gstNumber: inv.company?.gstin || inv.buyer?.gstin || inv.invoiceNumber,
+    invoiceNumber: inv.invoiceNumber,
+    orderNumber: inv.orderNumber,
+    poNumber: inv.poNumber,
+    taxableValue: inv.amount,
+    cgst: inv.pricing?.cgst ?? (inv.gst > 0 ? inv.gst / 2 : 0),
+    sgst: inv.pricing?.sgst ?? (inv.gst > 0 ? inv.gst / 2 : 0),
+    igst: inv.pricing?.igst ?? 0,
+    totalGst: inv.gst,
+    grandTotal: inv.totalAmount,
+    invoiceDate: inv.invoiceDate,
+    seller: inv.seller,
+    warehouse: inv.warehouse,
+    product: inv.product,
+    status: inv.status,
+    placeOfSupply: inv.buyer?.state || inv.company?.state || "—",
+    hsn: inv.lineItems?.[0]?.hsn ?? "",
+    buyerGstin: inv.buyer?.gstin ?? "",
+    sellerGstin: inv.sellerInfo?.gstin || inv.company?.gstin || "",
+  }));
 }
 
 function sortByDate<T>(
@@ -175,8 +201,20 @@ export function filterInvoices(
           i.orderNumber,
           i.poNumber,
           i.product,
+          i.grade,
           i.seller,
           i.warehouse,
+          i.buyer?.gstin,
+          i.sellerInfo?.gstin,
+          i.company?.gstin,
+          i.buyer?.name,
+          i.paymentStatus,
+          i.invoiceStatus,
+          "tax invoice",
+          "gst",
+          "gstin",
+          i.gst > 0 ? "gst tax" : null,
+          String(i.gst),
         ],
         q,
       ),
@@ -240,6 +278,16 @@ export function filterGstInvoices(
           g.product,
           g.seller,
           g.warehouse,
+          g.buyerGstin,
+          g.sellerGstin,
+          g.placeOfSupply,
+          g.hsn,
+          "gst",
+          "gstin",
+          "tax invoice",
+          "cgst",
+          "sgst",
+          "igst",
         ],
         q,
       ),
@@ -360,7 +408,6 @@ export function getRecentItems(
     state.purchaseOrders,
     state.invoices,
     state.certificates,
-    state.gstInvoices,
   );
 }
 
@@ -390,11 +437,12 @@ export const useDocumentsStore = create<DocumentsStoreState>()(
             fetchCustomerPurchaseOrders(),
             fetchCustomerProformas(),
           ]);
+          const mappedInvoices = proformas.map(mapProformaToInvoice);
           set({
             purchaseOrders: pos.map(mapPoToDocument),
-            invoices: proformas.map(mapProformaToInvoice),
+            invoices: mappedInvoices,
             proformas: proformas.map(mapProformaToDocument),
-            gstInvoices: [],
+            gstInvoices: invoicesToGstDocuments(mappedInvoices),
             certificates: [],
             downloads: [],
             notifications: [],
@@ -574,6 +622,10 @@ export const useDocumentsStore = create<DocumentsStoreState>()(
 
         set((s) => ({
           invoices: [invoice, ...s.invoices],
+          gstInvoices: [
+            ...invoicesToGstDocuments([invoice]),
+            ...s.gstInvoices,
+          ],
           proformas: s.proformas.map((p) =>
             p.id === proformaId
               ? {
@@ -721,7 +773,7 @@ export function globalDocumentSearch(
       results.push({
         id: i.id,
         type: "invoice",
-        title: "Invoice",
+        title: "Tax Invoice",
         documentNumber: i.invoiceNumber,
         orderNumber: i.orderNumber,
         seller: i.seller,
@@ -748,27 +800,6 @@ export function globalDocumentSearch(
         date: p.createdDate,
         status: p.docStatus,
         href: "/documents/proforma-invoice",
-      });
-    });
-  }
-
-  if (
-    filters.documentType === "all" ||
-    filters.documentType === "gst_invoice"
-  ) {
-    filterGstInvoices(state.gstInvoices, filters).forEach((g) => {
-      results.push({
-        id: g.id,
-        type: "gst_invoice",
-        title: "GST Invoice",
-        documentNumber: g.invoiceNumber,
-        orderNumber: g.orderNumber,
-        seller: g.seller,
-        warehouse: g.warehouse,
-        product: g.product,
-        date: g.invoiceDate,
-        status: g.status,
-        href: "/documents/gst-invoices",
       });
     });
   }

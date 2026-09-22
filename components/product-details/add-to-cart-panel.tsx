@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 
 interface AddToCartPanelProps {
   productId: string;
+  offerId?: string;
   moq: number;
   maxStock: number;
   packaging?: string;
@@ -24,6 +25,7 @@ interface AddToCartPanelProps {
 
 export function AddToCartPanel({
   productId,
+  offerId,
   moq,
   maxStock,
   packaging,
@@ -35,6 +37,7 @@ export function AddToCartPanel({
   const addItem = useCartStore((s) => s.addItem);
   const [internalQty, setInternalQty] = useState(moq);
   const [error, setError] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
 
   const isControlled =
     quantityProp !== undefined && typeof onQuantityChange === "function";
@@ -62,8 +65,10 @@ export function AddToCartPanel({
     setQty(clamp(next));
   }
 
-  function handleAdd() {
-    const result = addItem(productId, qty, packaging);
+  async function handleAdd() {
+    setAdding(true);
+    const result = await addItem(productId, qty, packaging, offerId);
+    setAdding(false);
     if (!result.ok) {
       setError(result.message);
       toast.error(result.message);
@@ -121,6 +126,7 @@ export function AddToCartPanel({
 
       <Button
         type="button"
+        disabled={adding}
         className="h-12 w-full rounded-xl bg-brand text-sm font-semibold hover:bg-brand-700"
         onClick={handleAdd}
       >

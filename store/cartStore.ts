@@ -3,138 +3,166 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useMarketplaceStore } from "@/store/marketplaceStore";
+import {
+  addCustomerCartItem,
+  clearCustomerCart,
+  fetchCustomerCart,
+  mapBackendCartItems,
+  removeCustomerCartItem,
+  updateCustomerCartItem,
+  type CartLineItem,
+} from "@/services/cart";
+import { authErrorMessage } from "@/services/auth";
 
-export interface CartLineItem {
-  productId: string;
-  name: string;
-  grade: string;
-  materialType: string;
-  imageUrl: string;
-  unitPrice: number;
-  quantityMt: number;
-  moq: number;
-  availableStock: number;
-  packaging: string;
-  /** Blind marketplace — region only, never seller */
-  regionLabel: string;
-}
+export type { CartLineItem };
+
+export type CartMutationResult = { ok: boolean; message: string };
 
 export interface CartStoreState {
   items: CartLineItem[];
   isOpen: boolean;
+  isSyncing: boolean;
+  loadError: string | null;
+  fetchCart: () => Promise<void>;
   addItem: (
     productId: string,
     quantityMt?: number,
     packaging?: string,
-  ) => { ok: boolean; message: string };
-  removeItem: (productId: string) => void;
-  setQuantity: (productId: string, quantityMt: number) => void;
-  clearCart: () => void;
+    offerId?: string,
+    paymentMethod?: string,
+  ) => Promise<CartMutationResult>;
+  removeItem: (itemId: string) => Promise<void>;
+  setQuantity: (itemId: string, quantityMt: number) => Promise<void>;
+  clearCart: () => Promise<void>;
+  resetLocalCart: () => void;
   setOpen: (open: boolean) => void;
   itemCount: () => number;
   subtotal: () => number;
 }
 
-function resolveProductMeta(productId: string) {
-  const catalog = useMarketplaceStore.getState().products.find((p) => p.id === productId);
-  if (!catalog) return null;
-  return {
-    productId: catalog.id,
-    name: catalog.name,
-    grade: catalog.grade,
-    materialType: catalog.materialType,
-    imageUrl: "",
-    unitPrice: catalog.price,
-    moq: catalog.moq,
-    availableStock: catalog.stock,
-    packaging: "25 KG Bags",
-    regionLabel: catalog.warehouseLabel || catalog.origin || "Western India Region",
-  };
+function resolveOfferId(productId: string, offerId?: string): string | undefined {
+  if (offerId) return offerId;
+  return useMarketplaceStore
+    .getState()
+    .products.find((product) => product.id === productId)?.offerId;
 }
 
-/**
- * cartStore — blind marketplace cart (frontend mock only).
- */
 export const useCartStore = create<CartStoreState>()(
   persist(
     (set, get) => ({
       items: [],
       isOpen: false,
+      isSyncing: false,
+      loadError: null,
 
-      addItem: (productId, quantityMt, packaging) => {
-        const meta = resolveProductMeta(productId);
-        if (!meta) {
-          return { ok: false, message: "Product not found" };
-        }
-        const qty = quantityMt ?? meta.moq;
-        if (qty < meta.moq) {
-          return {
-            ok: false,
-            message: `Minimum Order Quantity is ${meta.moq} MT`,
-          };
-        }
-        if (qty > meta.availableStock) {
-          return {
-            ok: false,
-            message: `Only ${meta.availableStock} MT available`,
-          };
-        }
-
-        const existing = get().items.find((i) => i.productId === productId);
-        if (existing) {
-          const nextQty = Math.min(
-            meta.availableStock,
-            existing.quantityMt + qty,
-          );
+      fetchCart: async () => {
+        set({ isSyncing: true });
+        try {
+          const cart = await fetchCustomerCart();
           set({
-            items: get().items.map((i) =>
-              i.productId === productId
-                ? {
-                    ...i,
-                    quantityMt: nextQty,
-                    packaging: packaging ?? i.packaging,
-                  }
-                : i,
-            ),
+            items: mapBackendCartItems(cart),
+            isSyncing: false,
+            loadError: null,
           });
-          return { ok: true, message: "Cart updated" };
+        } catch (error) {
+          set({
+            isSyncing: false,
+            loadError: authErrorMessage(error, "Unable to load cart"),
+          });
         }
-
-        set({
-          items: [
-            ...get().items,
-            {
-              ...meta,
-              quantityMt: qty,
-              packaging: packaging ?? meta.packaging,
-            },
-          ],
-        });
-        return { ok: true, message: "Added to cart" };
       },
 
-      removeItem: (productId) =>
-        set({ items: get().items.filter((i) => i.productId !== productId) }),
+      addItem: async (productId, quantityMt, packaging, offerId, paymentMethod) => {
+        const resolvedOfferId = resolveOfferId(productId, offerId);
+        if (!resolvedOfferId) {
+          return {
+            ok: false,
+            message: "Live pricing is still loading. Please try again.",
+          };
+        }
 
-      setQuantity: (productId, quantityMt) => {
-        const item = get().items.find((i) => i.productId === productId);
+        const catalog = useMarketplaceStore
+          .getState()
+          .products.find((product) => product.id === productId);
+        const qty = quantityMt ?? catalog?.moq ?? 1;
+        if (catalog && qty < catalog.moq) {
+          return { ok: false, message: `Minimum Order Quantity is ${catalog.moq} MT` };
+        }
+
+        set({ isSyncing: true });
+        try {
+          const result = await addCustomerCartItem({
+            offerId: resolvedOfferId,
+            quantity: qty,
+            paymentMethod,
+          });
+          set({
+            items: mapBackendCartItems(result.cart),
+            isSyncing: false,
+            loadError: null,
+          });
+          return { ok: true, message: "Added to cart" };
+        } catch (error) {
+          set({ isSyncing: false });
+          return {
+            ok: false,
+            message: authErrorMessage(error, "Unable to add to cart"),
+          };
+        } finally {
+          void packaging;
+        }
+      },
+
+      removeItem: async (itemId) => {
+        const previous = get().items;
+        set({ items: previous.filter((item) => item.id !== itemId && item.productId !== itemId) });
+        const target =
+          previous.find((item) => item.id === itemId) ??
+          previous.find((item) => item.productId === itemId);
+        if (!target) return;
+        try {
+          const cart = await removeCustomerCartItem(target.id);
+          set({ items: mapBackendCartItems(cart) });
+        } catch {
+          set({ items: previous });
+        }
+      },
+
+      setQuantity: async (itemId, quantityMt) => {
+        const previous = get().items;
+        const item =
+          previous.find((entry) => entry.id === itemId) ??
+          previous.find((entry) => entry.productId === itemId);
         if (!item) return;
-        const next = Math.max(
-          item.moq,
-          Math.min(item.availableStock, Math.round(quantityMt)),
-        );
+        const nextQty = Math.max(item.moq, Math.round(quantityMt));
         set({
-          items: get().items.map((i) =>
-            i.productId === productId ? { ...i, quantityMt: next } : i,
+          items: previous.map((entry) =>
+            entry.id === item.id ? { ...entry, quantityMt: nextQty } : entry,
           ),
         });
+        try {
+          const cart = await updateCustomerCartItem(item.id, { quantity: nextQty });
+          set({ items: mapBackendCartItems(cart) });
+        } catch {
+          set({ items: previous });
+        }
       },
 
-      clearCart: () => set({ items: [] }),
+      clearCart: async () => {
+        const previous = get().items;
+        set({ items: [] });
+        try {
+          await clearCustomerCart();
+        } catch {
+          set({ items: previous });
+        }
+      },
+
+      resetLocalCart: () => set({ items: [], loadError: null, isSyncing: false }),
       setOpen: (open) => set({ isOpen: open }),
-      itemCount: () => get().items.reduce((sum, i) => sum + i.quantityMt, 0),
+      itemCount: () => get().items.length,
       subtotal: () =>
-        get().items.reduce((sum, i) => sum + i.unitPrice * i.quantityMt, 0),
+        get().items.reduce((sum, item) => sum + item.unitPrice * item.quantityMt, 0),
     }),
     {
       name: "petrotrade.cart.v1",

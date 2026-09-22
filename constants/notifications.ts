@@ -68,7 +68,7 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
   shipment_delayed: "Shipment Delayed",
   shipment_delivered: "Shipment Delivered Successfully",
   invoice_generated: "Invoice Generated",
-  gst_invoice_ready: "GST Invoice Ready",
+  gst_invoice_ready: "Invoice Ready",
   purchase_order_ready: "Purchase Order Ready",
   certificates_uploaded: "Certificates Uploaded",
   documents_available: "Documents Available",

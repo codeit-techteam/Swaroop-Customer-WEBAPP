@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
-import { PurchaseOrderSuccessPage } from "@/components/cart";
+import { CheckoutSuccessEntry } from "@/components/checkout/success-entry";
 
 export const metadata: Metadata = {
-  title: "Purchase Order Generated",
+  title: "Purchase Request Submitted",
 };
 
 export default function Page() {
-  return (
-    <Suspense fallback={null}>
-      <PurchaseOrderSuccessPage />
-    </Suspense>
-  );
+  return <CheckoutSuccessEntry />;
 }

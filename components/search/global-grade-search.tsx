@@ -13,15 +13,20 @@ import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GradeSearchModal } from "./grade-search-modal";
-import { SearchSuggestions } from "./search-suggestions";
-import { ROUTES } from "@/constants";
+import { UniversalSearchSuggestions } from "./universal-search-suggestions";
 import { materialsFromCatalog } from "@/lib/material-taxonomy";
 import {
-  flattenSearchSuggestions,
-  getGradeSearchSuggestions,
-  type GradeSearchSuggestionItem,
-} from "@/lib/grade-search";
+  getUniversalSearchResults,
+  isGstRelatedQuery,
+  resolveUniversalFallbackHref,
+  type UniversalSearchResult,
+} from "@/lib/universal-search";
+import { useDocumentsStore } from "@/store/documentsStore";
 import { useMarketplaceStore } from "@/store/marketplaceStore";
+import { useOrdersCatalogStore } from "@/store/ordersCatalogStore";
+import { usePaymentsCatalogStore } from "@/store/paymentsCatalogStore";
+import { usePurchaseRequestTrackingStore } from "@/store/purchaseRequestTrackingStore";
+import { useShipmentTrackingStore } from "@/store/shipmentTrackingStore";
 import { cn } from "@/lib/utils";
 
 interface GlobalGradeSearchProps {
@@ -39,6 +44,16 @@ export function GlobalGradeSearch({ className }: GlobalGradeSearchProps) {
   const setSearch = useMarketplaceStore((s) => s.setSearch);
   const setOriginFilter = useMarketplaceStore((s) => s.setOriginFilter);
 
+  const invoices = useDocumentsStore((s) => s.invoices);
+  const gstInvoices = useDocumentsStore((s) => s.gstInvoices);
+  const purchaseOrders = useDocumentsStore((s) => s.purchaseOrders);
+  const proformas = useDocumentsStore((s) => s.proformas);
+  const certificates = useDocumentsStore((s) => s.certificates);
+  const orders = useOrdersCatalogStore((s) => s.items);
+  const payments = usePaymentsCatalogStore((s) => s.payments);
+  const purchaseRequests = usePurchaseRequestTrackingStore((s) => s.items);
+  const shipments = useShipmentTrackingStore((s) => s.shipments);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [focused, setFocused] = useState(false);
@@ -46,18 +61,66 @@ export function GlobalGradeSearch({ className }: GlobalGradeSearchProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const taxonomy = useMemo(() => materialsFromCatalog(products), [products]);
-  const suggestions = useMemo(
-    () => getGradeSearchSuggestions(products, taxonomy, draft),
-    [products, taxonomy, draft],
+  const payload = useMemo(
+    () =>
+      getUniversalSearchResults(
+        {
+          products,
+          materials: taxonomy,
+          invoices,
+          gstInvoices,
+          purchaseOrders,
+          proformas,
+          certificates,
+          orders,
+          payments,
+          purchaseRequests,
+          shipments,
+        },
+        draft,
+      ),
+    [
+      products,
+      taxonomy,
+      invoices,
+      gstInvoices,
+      purchaseOrders,
+      proformas,
+      certificates,
+      orders,
+      payments,
+      purchaseRequests,
+      shipments,
+      draft,
+    ],
   );
-  const items = useMemo(
-    () => flattenSearchSuggestions(suggestions, listId),
-    [suggestions, listId],
-  );
+
+  const items = useMemo(() => {
+    const flat = payload.groups.flatMap((group) => group.results);
+    if (payload.query.trim()) {
+      const trimmed = payload.query.trim();
+      const gstQuery = isGstRelatedQuery(trimmed);
+      return [
+        ...flat,
+        {
+          id: `${listId}-view-all`,
+          category: (gstQuery ? "tax_invoice" : "product") as UniversalSearchResult["category"],
+          title: gstQuery
+            ? `View tax invoices for “${trimmed}”`
+            : `Search marketplace for “${trimmed}”`,
+          subtitle: `${payload.total} ERP matches`,
+          href: resolveUniversalFallbackHref(trimmed),
+          score: 0,
+        },
+      ];
+    }
+    return flat;
+  }, [payload, listId]);
 
   const query = draft.trim();
   const showSuggestions = focused && query.length > 0 && !dismissed;
   const activeItem = items[activeIndex] ?? null;
+  const viewAllId = `${listId}-view-all`;
 
   useEffect(() => {
     setActiveIndex(0);
@@ -87,40 +150,34 @@ export function GlobalGradeSearch({ className }: GlobalGradeSearchProps) {
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [showSuggestions]);
 
-  const goToMarketplace = useCallback(
+  const goToFallback = useCallback(
     (searchQuery: string) => {
       const trimmed = searchQuery.trim();
-      setSearch(trimmed);
-      setOriginFilter("all");
+      if (!isGstRelatedQuery(trimmed)) {
+        setSearch(trimmed);
+        setOriginFilter("all");
+      }
       setDismissed(true);
       setFocused(false);
       inputRef.current?.blur();
-      const params = new URLSearchParams();
-      if (trimmed) params.set("search", trimmed);
-      const qs = params.toString();
-      router.push(qs ? `${ROUTES.marketplace}?${qs}` : ROUTES.marketplace);
+      router.push(resolveUniversalFallbackHref(trimmed));
     },
     [router, setOriginFilter, setSearch],
   );
 
   const selectItem = useCallback(
-    (item: GradeSearchSuggestionItem) => {
-      if (item.type === "material") {
-        setDraft(item.material.code);
-        goToMarketplace(item.material.code);
+    (item: UniversalSearchResult) => {
+      setDismissed(true);
+      setFocused(false);
+      inputRef.current?.blur();
+      if (item.id === viewAllId) {
+        goToFallback(draft);
         return;
       }
-      if (item.type === "product") {
-        setDraft(item.product.gradeCode ?? item.product.name);
-        setDismissed(true);
-        setFocused(false);
-        inputRef.current?.blur();
-        router.push(`${ROUTES.marketplaceProduct}/${item.product.id}`);
-        return;
-      }
-      goToMarketplace(draft);
+      setDraft(item.title);
+      router.push(item.href);
     },
-    [draft, goToMarketplace, router],
+    [draft, goToFallback, router, viewAllId],
   );
 
   function openModal() {
@@ -135,7 +192,13 @@ export function GlobalGradeSearch({ className }: GlobalGradeSearchProps) {
       return;
     }
     if (query) {
-      goToMarketplace(query);
+      // Prefer first ERP hit when available (e.g. GST / tax invoice)
+      const firstHit = payload.flat[0];
+      if (firstHit) {
+        selectItem(firstHit);
+        return;
+      }
+      goToFallback(query);
       return;
     }
     openModal();
@@ -151,8 +214,11 @@ export function GlobalGradeSearch({ className }: GlobalGradeSearchProps) {
     if (!showSuggestions || items.length === 0) {
       if (event.key === "Enter") {
         event.preventDefault();
-        if (query) goToMarketplace(query);
-        else openModal();
+        if (query) {
+          const firstHit = payload.flat[0];
+          if (firstHit) selectItem(firstHit);
+          else goToFallback(query);
+        } else openModal();
       }
       return;
     }
@@ -209,10 +275,10 @@ export function GlobalGradeSearch({ className }: GlobalGradeSearchProps) {
               );
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Search grades, materials, CAS…"
+            placeholder="Universal search — GST, invoices, grades, orders, POs…"
             className="h-10 rounded-full border-slate-200 bg-slate-50/80 pl-9 text-sm shadow-sm"
             role="combobox"
-            aria-label="Search products by grade"
+            aria-label="Universal ERP search"
             aria-autocomplete="list"
             aria-expanded={showSuggestions}
             aria-controls={showSuggestions ? listId : undefined}
@@ -232,8 +298,8 @@ export function GlobalGradeSearch({ className }: GlobalGradeSearchProps) {
 
         {showSuggestions ? (
           <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50">
-            <SearchSuggestions
-              suggestions={suggestions}
+            <UniversalSearchSuggestions
+              payload={payload}
               items={items}
               activeId={activeItem?.id ?? null}
               listId={listId}
@@ -242,6 +308,7 @@ export function GlobalGradeSearch({ className }: GlobalGradeSearchProps) {
                 if (index >= 0) setActiveIndex(index);
               }}
               onSelect={selectItem}
+              onViewAll={() => goToFallback(draft)}
             />
           </div>
         ) : null}
@@ -253,7 +320,7 @@ export function GlobalGradeSearch({ className }: GlobalGradeSearchProps) {
         size="icon"
         className="h-10 w-10 rounded-full md:hidden"
         onClick={openModal}
-        aria-label="Search grades"
+        aria-label="Open universal search"
       >
         <Search className="h-4 w-4" />
       </Button>

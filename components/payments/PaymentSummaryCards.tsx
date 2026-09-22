@@ -115,7 +115,7 @@ export function PaymentQuickActions() {
         <Button
           variant="outline"
           className="rounded-xl"
-          onClick={() => router.push(ROUTES.paymentsInvoices)}
+          onClick={() => router.push(ROUTES.documentsInvoices)}
         >
           <Download className="h-4 w-4" />
           Download Invoice

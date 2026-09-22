@@ -7,14 +7,12 @@ import { cn } from "@/lib/utils";
 interface ProductListProps {
   products: MarketplaceProduct[];
   onQuickView?: (productId: string) => void;
-  compareMode?: boolean;
   className?: string;
 }
 
 export function ProductList({
   products,
   onQuickView,
-  compareMode = false,
   className,
 }: ProductListProps) {
   return (
@@ -26,7 +24,6 @@ export function ProductList({
           index={index}
           variant="list"
           onQuickView={onQuickView}
-          compareMode={compareMode}
         />
       ))}
     </div>

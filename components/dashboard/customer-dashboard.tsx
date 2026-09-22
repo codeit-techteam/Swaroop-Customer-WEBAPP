@@ -17,6 +17,7 @@ import {
   RecommendedProducts,
   PopularMaterials,
 } from "@/components/dashboard";
+import { PromoBannerSlider } from "@/components/cms/promo-banner-slider";
 import { MarketplaceEmptyState } from "@/components/marketplace/empty-state";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/layout/page-container";
@@ -87,7 +88,10 @@ export function CustomerDashboard() {
           transition={{ duration: 0.35, ease: "easeOut" }}
           className="mx-auto max-w-[1440px] space-y-5 lg:space-y-6"
         >
-          <HeroBanner content={hero} />
+          <PromoBannerSlider
+            placement="HOME_HERO"
+            fallback={<HeroBanner content={hero} />}
+          />
 
           {/* Mobile / tablet finance strip */}
           <div className="grid gap-4 sm:grid-cols-2 xl:hidden">

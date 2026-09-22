@@ -39,7 +39,7 @@ export const KNOWLEDGE_CATEGORY_LABELS = {
   orders: "Orders",
   payments: "Payments",
   credit: "Credit",
-  invoices: "Invoices",
+  invoices: "Tax Invoices",
   logistics: "Logistics",
   marketplace: "Marketplace",
 } as const;

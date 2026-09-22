@@ -67,9 +67,13 @@ export function OtpForm() {
     return () => window.clearInterval(id);
   }, [secondsLeft]);
 
-  const handleResend = useCallback(() => {
+  const handleResend = useCallback(async () => {
     if (secondsLeft > 0) return;
-    resendOTP();
+    const sent = await resendOTP();
+    if (!sent.ok) {
+      setError(sent.message ?? "Unable to resend OTP");
+      return;
+    }
     setOtp("");
     setError(undefined);
     setSecondsLeft(OTP_COUNTDOWN);
