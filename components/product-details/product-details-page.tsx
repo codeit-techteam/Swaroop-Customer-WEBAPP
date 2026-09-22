@@ -163,7 +163,10 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
             industry={detail.industry}
           />
           <TechnicalSpecificationAccordion specs={detail.specs} />
-          <DocumentDownloads documents={detail.documents} />
+          <DocumentDownloads
+            documents={detail.documents}
+            productId={detail.id}
+          />
         </div>
 
         <div>

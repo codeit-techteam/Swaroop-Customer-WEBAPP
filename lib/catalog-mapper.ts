@@ -40,7 +40,21 @@ export type BlindProduct = {
     displayName?: string;
     category?: { id: string; code: string; name: string } | null;
   } | null;
+  documents?: Array<{
+    id: string;
+    type: string;
+    title: string;
+    description?: string;
+    version?: number;
+    status?: string;
+    available?: boolean;
+    mimeType?: string | null;
+    fileName?: string;
+    fileSizeBytes?: string | null;
+  }>;
 };
+
+export type BlindProductDocument = NonNullable<BlindProduct["documents"]>[number];
 
 const PARENT_FROM_GROUP: Record<string, MarketplaceParentCategoryId> = {
   POLYMERS: "polymers",
@@ -136,6 +150,8 @@ export function toMarketplaceProduct(product: BlindProduct): MarketplaceProduct 
     availableQuantity: stock,
     sellerVisible: false,
     offerId: listing?.offerId,
+    packaging: product.packaging ?? undefined,
+    documents: product.documents ?? [],
   };
 }
 

@@ -160,7 +160,21 @@ export interface MarketplaceProduct {
   sellerId?: string;
   /** When false, seller identity is hidden (blind marketplace) */
   sellerVisible?: boolean;
+  packaging?: string;
   offerId?: string;
+  /** Backend product documents (TDS/MDS/COA) — blind, no seller identity */
+  documents?: Array<{
+    id: string;
+    type: string;
+    title: string;
+    description?: string;
+    version?: number;
+    status?: string;
+    available?: boolean;
+    mimeType?: string | null;
+    fileName?: string;
+    fileSizeBytes?: string | null;
+  }>;
 }
 
 export interface MarketplaceProductDetails extends MarketplaceProduct {

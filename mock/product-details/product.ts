@@ -1,7 +1,6 @@
 import { categoriesMock } from "@/mock/categories";
 import { getProductById, productsMock } from "@/mock/products";
 import {
-  buildProductDocuments,
   buildProductHighlights,
   getFeaturesForMaterial,
 } from "./features";
@@ -14,10 +13,23 @@ import {
 import { getSpecsForMaterial } from "./specifications";
 import { buildLogisticsEstimate } from "./warehouse";
 import type {
+  ComplianceDocumentType,
   ProductAvailabilityLevel,
   ProductDetailRecord,
 } from "@/types/product-details";
 import type { MarketplaceProduct } from "@/types/marketplace";
+
+function mapDocType(type: string): ComplianceDocumentType {
+  const t = type.toUpperCase();
+  if (t === "TDS" || t === "PRODUCT_TDS") return "tds";
+  if (t === "MSDS" || t === "SDS" || t === "MDS") return "msds";
+  if (t === "COA") return "coa";
+  if (t === "ISO") return "iso";
+  if (t.includes("TEST")) return "test_certificate";
+  if (t.includes("QUALITY")) return "quality_report";
+  if (t.includes("TECHNICAL") || t.includes("SPEC")) return "technical_specification";
+  return "other";
+}
 
 function availabilityFromStock(
   stock: number,
@@ -87,9 +99,9 @@ export function buildProductDetail(
     id: product.id,
     sku: buildSku(product),
     name: product.name,
-    brandName: "Verified Supply",
-    brandShortName: "PETROTRADE",
-    manufacturer: "PetroTrade Network",
+    brandName: product.brandName || "Verified Supply",
+    brandShortName: product.brandShortName || "PETROTRADE",
+    manufacturer: product.brandName || "Verified Supply",
     categoryId: product.categoryId,
     categoryName: category.name,
     categorySlug: category.slug,
@@ -103,7 +115,7 @@ export function buildProductDetail(
     features: getFeaturesForMaterial(product.materialType),
     highlights: buildProductHighlights(product.creditEligible),
     industry: "Petrochemicals & Packaging",
-    packaging: "25 KG Bags",
+    packaging: product.packaging ?? "25 KG Bags",
     origin: product.origin,
     warehouseId: product.warehouseId,
     warehouseLabel: product.warehouseLabel,
@@ -124,7 +136,19 @@ export function buildProductDetail(
         "Issued Through PetroTrade Quality Assurance · Verified By PetroTrade QC · NABL Approved Laboratory",
     },
     specs: techSpecs,
-    documents: buildProductDocuments(product.name),
+    documents:
+      product.documents && product.documents.length > 0
+        ? product.documents.map((doc) => ({
+            id: doc.id,
+            type: mapDocType(doc.type),
+            title: doc.title,
+            description: doc.description ?? "Verified Product Document",
+            fileName: doc.fileName ?? `${doc.title}.pdf`,
+            version: doc.version,
+            status: doc.status,
+            productId: product.id,
+          }))
+        : [],
     spotPrice: buildSpotPrice(product.price),
     bulkPricing: buildBulkPricing(product.price),
     paymentOptions: buildPaymentOptions(product.creditEligible),

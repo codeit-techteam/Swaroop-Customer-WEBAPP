@@ -12,7 +12,14 @@ export type PaymentMethodId =
   "advance" | "on_loading" | "on_delivery" | "credit_15" | "credit_30";
 
 export type ComplianceDocumentType =
-  "coa" | "msds" | "iso" | "test_certificate" | "quality_report";
+  | "coa"
+  | "msds"
+  | "tds"
+  | "iso"
+  | "test_certificate"
+  | "quality_report"
+  | "technical_specification"
+  | "other";
 
 export interface ProductGalleryImage {
   id: string;
@@ -62,6 +69,9 @@ export interface ComplianceDocument {
   title: string;
   description: string;
   fileName: string;
+  version?: number;
+  status?: string;
+  productId?: string;
 }
 
 export interface LogisticsEstimate {
