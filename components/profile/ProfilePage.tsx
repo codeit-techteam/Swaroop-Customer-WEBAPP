@@ -6,6 +6,7 @@ import { ConfirmationDialog } from "@/components/dialogs/confirmation-dialog";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
+import { SavedAddressesSection } from "@/components/profile/SavedAddressesSection";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -136,6 +137,8 @@ export function ProfilePage() {
               />
             </dl>
           </section>
+
+          <SavedAddressesSection />
 
           <div className="flex flex-col gap-2 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
             <Button

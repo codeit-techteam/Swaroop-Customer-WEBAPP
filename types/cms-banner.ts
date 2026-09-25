@@ -1,10 +1,5 @@
 export type CmsBannerPlacement =
-  | "HOME_HERO"
-  | "MARKETPLACE"
-  | "DASHBOARD"
-  | "OFFERS"
-  | "LOGIN"
-  | "OTHER";
+  "HOME_HERO" | "MARKETPLACE" | "DASHBOARD" | "OFFERS" | "LOGIN" | "OTHER";
 
 export type CmsBannerEvent = "IMPRESSION" | "CLICK";
 
@@ -17,6 +12,8 @@ export type CmsBanner = {
   displayOrder?: number;
   mediaKey?: string | null;
   mediaUrl?: string | null;
+  /** Resolved mobile creative from Admin (falls back to mediaUrl). */
+  mobileMediaUrl?: string | null;
   targetRoute?: string | null;
   ctaText?: string | null;
   ctaAction?: string | null;

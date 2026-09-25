@@ -31,7 +31,7 @@ export function DeliveryCard({
     {
       icon: Truck,
       label: "Estimated Delivery",
-      value: logistics.estimatedDelivery || eta,
+      value: logistics.estimatedDelivery || eta || "4–6 Business Days",
     },
     {
       icon: Warehouse,
@@ -61,7 +61,7 @@ export function DeliveryCard({
                 {row.label}
               </div>
               <p className="mt-1 text-sm font-semibold text-slate-800">
-                {row.value}
+                {row.value?.trim() ? row.value : "—"}
               </p>
             </div>
           );

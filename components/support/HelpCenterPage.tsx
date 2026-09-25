@@ -9,8 +9,11 @@ import { useSupportStore } from "@/store/supportStore";
 
 export function HelpCenterPage() {
   const isHydrated = useSupportStore((s) => s.isHydrated);
+  const isLoading = useSupportStore((s) => s.isLoading);
+  const loadError = useSupportStore((s) => s.loadError);
+  const loadTickets = useSupportStore((s) => s.loadTickets);
 
-  if (!isHydrated) return <SupportLoadingSkeleton />;
+  if (!isHydrated || isLoading) return <SupportLoadingSkeleton />;
 
   return (
     <>
@@ -24,6 +27,19 @@ export function HelpCenterPage() {
             PetroTrade support team is here to help.
           </p>
         </header>
+
+        {loadError ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            {loadError}{" "}
+            <button
+              type="button"
+              className="font-semibold underline"
+              onClick={() => void loadTickets()}
+            >
+              Retry
+            </button>
+          </div>
+        ) : null}
 
         <SupportContactCards />
         <RecentTicketsTable />

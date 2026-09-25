@@ -15,6 +15,8 @@ export const env = {
   enablePayments: process.env.NEXT_PUBLIC_ENABLE_PAYMENTS === "true",
   cxApiUrl: process.env.NEXT_PUBLIC_CX_API_URL ?? "http://localhost:3000",
   adminApiUrl: process.env.NEXT_PUBLIC_ADMIN_API_URL ?? "http://localhost:3002",
+  /** Optional — improves reverse geocode; OSM fallback is used when empty. */
+  googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "",
   isDevelopment: process.env.NODE_ENV === "development",
   isProduction: process.env.NODE_ENV === "production",
 } as const;

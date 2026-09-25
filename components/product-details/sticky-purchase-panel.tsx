@@ -71,16 +71,34 @@ export function StickyPurchasePanel({
   const addItem = useCartStore((s) => s.addItem);
   const [qtyError, setQtyError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
-  const canBuy = Boolean(quote) && !quoteLoading && !quoteError;
+  const outOfStock = maxStock <= 0;
+  const canBuy =
+    Boolean(quote) &&
+    !quoteLoading &&
+    !quoteError &&
+    !outOfStock &&
+    quantity > 0;
 
   function clamp(next: number) {
-    return Math.max(moq, Math.min(maxStock, Math.round(next)));
+    if (maxStock <= 0) return 0;
+    const floor = Math.min(moq, maxStock);
+    return Math.max(floor, Math.min(maxStock, Math.round(next)));
   }
 
   function changeQty(next: number) {
+    if (maxStock <= 0) {
+      setQtyError("Out of stock — quantity unavailable");
+      onQuantityChange(0);
+      return;
+    }
     if (next < moq) {
       setQtyError(`Minimum order is ${moq} MT`);
-      onQuantityChange(moq);
+      onQuantityChange(clamp(moq));
+      return;
+    }
+    if (next > maxStock) {
+      setQtyError(`Only ${maxStock} MT available`);
+      onQuantityChange(maxStock);
       return;
     }
     setQtyError(null);
@@ -88,6 +106,16 @@ export function StickyPurchasePanel({
   }
 
   async function handleAddToCart() {
+    if (outOfStock || quantity <= 0) {
+      setQtyError("Out of stock — cannot add to cart");
+      toast.error("This grade is out of stock");
+      return;
+    }
+    if (quantity > maxStock) {
+      setQtyError(`Only ${maxStock} MT available`);
+      toast.error(`Quantity exceeds availability (${maxStock} MT)`);
+      return;
+    }
     setAdding(true);
     const result = await addItem(
       productId,
@@ -143,8 +171,11 @@ export function StickyPurchasePanel({
               type="button"
               variant="outline"
               size="icon"
-              className="h-11 w-11 min-h-11 min-w-11 shrink-0 rounded-xl"
-              disabled={quantity <= moq}
+              className="h-11 min-h-11 w-11 min-w-11 shrink-0 rounded-xl"
+              disabled={
+                outOfStock ||
+                quantity <= (maxStock > 0 ? Math.min(moq, maxStock) : 0)
+              }
               onClick={() => changeQty(quantity - 1)}
               aria-label="Decrease quantity"
             >
@@ -152,10 +183,11 @@ export function StickyPurchasePanel({
             </Button>
             <Input
               type="number"
-              min={moq}
+              min={outOfStock ? 0 : Math.min(moq, maxStock)}
               max={maxStock}
               step={1}
               value={quantity}
+              disabled={outOfStock}
               onChange={(e) => {
                 const parsed = Number(e.target.value);
                 if (Number.isFinite(parsed)) changeQty(parsed);
@@ -166,8 +198,8 @@ export function StickyPurchasePanel({
               type="button"
               variant="outline"
               size="icon"
-              className="h-11 w-11 min-h-11 min-w-11 shrink-0 rounded-xl"
-              disabled={quantity >= maxStock}
+              className="h-11 min-h-11 w-11 min-w-11 shrink-0 rounded-xl"
+              disabled={outOfStock || quantity >= maxStock}
               onClick={() => changeQty(quantity + 1)}
               aria-label="Increase quantity"
             >
@@ -177,7 +209,14 @@ export function StickyPurchasePanel({
           <p className="mt-1.5 text-xs text-slate-500">
             MOQ {moq} MT · Available {maxStock} MT
           </p>
-          {qtyError ? <p className="mt-1 text-xs text-red-600">{qtyError}</p> : null}
+          {outOfStock ? (
+            <p className="mt-1 text-xs font-medium text-red-600">
+              Out of stock — update unavailable until stock is replenished.
+            </p>
+          ) : null}
+          {qtyError ? (
+            <p className="mt-1 text-xs text-red-600">{qtyError}</p>
+          ) : null}
         </div>
 
         <PaymentOptionsCard
@@ -200,21 +239,27 @@ export function StickyPurchasePanel({
             <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
               Delivery ETA
             </p>
-            <p className="mt-0.5 text-xs font-semibold text-slate-800">{eta}</p>
+            <p className="mt-0.5 text-xs font-semibold text-slate-800">
+              {eta?.trim() || "4–6 Business Days"}
+            </p>
           </div>
         </div>
 
-        <BuyingSummary quote={quote} loading={quoteLoading} error={quoteError} />
+        <BuyingSummary
+          quote={quote}
+          loading={quoteLoading}
+          error={quoteError}
+        />
 
         <div className="space-y-2">
           <Button
             type="button"
             className="h-12 w-full rounded-xl bg-brand text-sm font-semibold hover:bg-brand-700"
             onClick={handleAddToCart}
-            disabled={adding}
+            disabled={adding || outOfStock}
           >
             <ShoppingCart className="h-4 w-4" />
-            {adding ? "Adding..." : "Add To Cart"}
+            {outOfStock ? "Out Of Stock" : adding ? "Adding..." : "Add To Cart"}
           </Button>
           <Button
             type="button"
@@ -240,8 +285,8 @@ export function StickyPurchasePanel({
         </div>
 
         <p className="text-[11px] leading-relaxed text-slate-400">
-          Totals come from the latest PetroTrade quote. Payment is collected after
-          seller response, commercial acceptance, and proforma invoice.
+          Totals come from the latest PetroTrade quote. Payment is collected
+          after seller response, commercial acceptance, and proforma invoice.
         </p>
       </div>
 

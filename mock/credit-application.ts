@@ -1,16 +1,10 @@
-import type {
-  CreditDocumentDefinition,
-  CurrentCreditProfile,
-} from "@/types/credit-application";
+import type { CreditDocumentDefinition } from "@/types/credit-application";
 
-export const currentCreditProfileMock: CurrentCreditProfile = {
-  status: "approved",
-  approvedLimit: 5_000_000,
-  availableCredit: 3_750_000,
-  creditUsed: 1_250_000,
-  paymentTerms: "Net-15 Days",
-};
-
+/**
+ * Document slots the web wizard collects. `required` drives UI validation;
+ * the backend additionally hard-requires gst_registration, bank_statement
+ * and itr_financials before an application can be submitted.
+ */
 export const CREDIT_DOCUMENT_DEFINITIONS: CreditDocumentDefinition[] = [
   {
     id: "gst_registration",
@@ -61,10 +55,6 @@ export const MONTHLY_PURCHASE_OPTIONS = [
   { value: "above_50l", label: "Above ₹50L" },
 ] as const;
 
+/** Only the unsubmitted draft form fields are persisted under this key. */
 export const CREDIT_APPLICATION_STORAGE_KEY =
-  "petrotrade.credit-application.v1";
-
-export function generateCreditApplicationId(): string {
-  const seq = Math.floor(Math.random() * 900) + 100;
-  return `CRD-2026-${String(seq).padStart(5, "0")}`;
-}
+  "petrotrade.credit-application.v2";

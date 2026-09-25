@@ -8,6 +8,7 @@ import {
   clearSessionTokens,
   persistSessionTokens,
 } from "@/lib/auth-session";
+import { env } from "@/lib/env";
 import { isOtpPasscode, looksLikeEmail } from "@/lib/phone";
 import {
   authErrorMessage,
@@ -101,7 +102,10 @@ const initialState: AuthStoreState = {
   passwordResetCompleted: false,
 };
 
-function toAuthUser(user: BackendAuthUser, fallback?: Partial<AuthUser>): AuthUser {
+function toAuthUser(
+  user: BackendAuthUser,
+  fallback?: Partial<AuthUser>,
+): AuthUser {
   const name =
     [user.firstName, user.lastName].filter(Boolean).join(" ") ||
     fallback?.name ||
@@ -242,7 +246,10 @@ export const useAuthStore = create<AuthStore>()(
         const contact = state.pendingContact;
         if (!contact) {
           set({ isLoading: false });
-          return { success: false, message: "Start login again to receive a new OTP." };
+          return {
+            success: false,
+            message: "Start login again to receive a new OTP.",
+          };
         }
 
         const purpose = state.otpSource === "register" ? "SIGNUP" : "LOGIN";
@@ -322,7 +329,11 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       resetPassword: async (_password) => {
-        set({ isLoading: true, passwordResetCompleted: true, otpVerified: false });
+        set({
+          isLoading: true,
+          passwordResetCompleted: true,
+          otpVerified: false,
+        });
         set({
           isLoading: false,
           otpSource: null,
@@ -345,6 +356,13 @@ export const useAuthStore = create<AuthStore>()(
       logout: () => {
         clearSessionTokens();
         set({ ...initialState });
+        // Clear customer-scoped delivery selection so the next login cannot
+        // inherit another user's address (lazy import avoids store cycles).
+        void import("@/store/deliveryLocationStore").then(
+          ({ useDeliveryLocationStore }) => {
+            useDeliveryLocationStore.getState().clearForLogout();
+          },
+        );
       },
 
       updateUser: (patch) => {
@@ -402,9 +420,26 @@ export const useAuthStore = create<AuthStore>()(
         passwordResetCompleted: state.passwordResetCompleted,
       }),
       onRehydrateStorage: () => (state) => {
-        if (state?.token) {
-          persistSessionTokens(state.token, state.refreshToken, state.rememberMe);
+        if (!state?.token) return;
+        // Prefer tokens already written by a silent refresh (pt_customer_* keys)
+        // so rehydration never rolls back a rotated refresh token.
+        const liveAccess =
+          typeof window !== "undefined"
+            ? window.localStorage.getItem(env.authCookieName) ||
+              window.localStorage.getItem("pt-customer-access-token")
+            : null;
+        const liveRefresh =
+          typeof window !== "undefined"
+            ? window.localStorage.getItem(env.refreshTokenStorageKey)
+            : null;
+        const access =
+          liveAccess && liveAccess.length > 40 ? liveAccess : state.token;
+        const refresh = liveRefresh || state.refreshToken;
+        if (access !== state.token || refresh !== state.refreshToken) {
+          state.token = access;
+          state.refreshToken = refresh ?? null;
         }
+        persistSessionTokens(access, refresh, state.rememberMe);
       },
     },
   ),

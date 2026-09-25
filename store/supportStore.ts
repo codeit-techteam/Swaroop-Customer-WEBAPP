@@ -12,9 +12,13 @@ import {
   MOCK_SUPPORT_ACTIVITIES,
   MOCK_SUPPORT_DOCS,
   MOCK_SUPPORT_SUMMARY,
-  MOCK_SUPPORT_TICKETS,
 } from "@/mock/support";
-import { TICKET_CATEGORY_LABELS } from "@/constants/support";
+import {
+  createCustomerSupportTicket,
+  listCustomerSupportTickets,
+} from "@/services/support";
+import apiClient from "@/lib/apiClient";
+import type { Envelope } from "@/lib/api-envelope";
 import type {
   AccountManager,
   ChatMessage,
@@ -28,13 +32,11 @@ import type {
   SupportPreferences,
   SupportStatusSummary,
   SupportTicket,
-  TicketAttachment,
-  TicketMessage,
   TicketPriority,
   TicketStatus,
 } from "@/types/support";
 
-const STORAGE_KEY = "petrotrade.support-center.v1";
+const STORAGE_KEY = "petrotrade.support-center.v2";
 
 export interface SupportStoreState {
   tickets: SupportTicket[];
@@ -62,6 +64,7 @@ export interface SupportStoreState {
   knowledgePreviewId: string | null;
   isHydrated: boolean;
   isLoading: boolean;
+  loadError: string | null;
 
   setHydrated: (v: boolean) => void;
   setGlobalSearch: (q: string) => void;
@@ -72,11 +75,16 @@ export interface SupportStoreState {
   setRaiseTicketSuccessOpen: (open: boolean) => void;
   setChatModalOpen: (open: boolean) => void;
   setFloatingChatOpen: (open: boolean) => void;
-  createTicket: (input: RaiseTicketInput) => string;
-  updateTicketStatus: (id: string, status: TicketStatus) => void;
-  replyToTicket: (id: string, body: string, attachmentName?: string) => void;
+  loadTickets: () => Promise<void>;
+  createTicket: (input: RaiseTicketInput) => Promise<string>;
+  replyToTicket: (
+    id: string,
+    body: string,
+    attachmentName?: string,
+  ) => Promise<void>;
   addTicketAttachment: (id: string, fileName: string) => void;
   closeTicket: (id: string) => void;
+  updateTicketStatus: (id: string, status: TicketStatus) => void;
   sendChatMessage: (body: string, attachmentName?: string) => void;
   markActivityRead: (id: string) => void;
   markAllActivitiesRead: () => void;
@@ -91,18 +99,6 @@ export interface SupportStoreState {
 
 function nowIso() {
   return new Date().toISOString();
-}
-
-function nextTicketNumber(tickets: SupportTicket[]) {
-  const year = new Date().getFullYear();
-  const nums = tickets
-    .map((t) => {
-      const match = t.ticketId.match(/SUP-\d{4}-(\d+)/);
-      return match ? Number(match[1]) : NaN;
-    })
-    .filter((n) => !Number.isNaN(n));
-  const next = (nums.length ? Math.max(...nums) : 101) + 1;
-  return `SUP-${year}-${String(next).padStart(5, "0")}`;
 }
 
 export function computeOpenTicketCount(tickets: SupportTicket[]) {
@@ -188,17 +184,26 @@ export function filterArticles(
   return list;
 }
 
+function rebuildSummary(tickets: SupportTicket[]): SupportStatusSummary {
+  return {
+    openTickets: computeOpenTicketCount(tickets),
+    paymentVerificationPending: MOCK_SUPPORT_SUMMARY.paymentVerificationPending,
+    shipmentIssuesActive: MOCK_SUPPORT_SUMMARY.shipmentIssuesActive,
+    resolvedThisMonth: tickets.filter((t) => t.status === "resolved").length,
+  };
+}
+
 export const useSupportStore = create<SupportStoreState>()(
   persist(
     (set, get) => ({
-      tickets: MOCK_SUPPORT_TICKETS,
+      tickets: [],
       faqs: MOCK_FAQS,
       docs: MOCK_SUPPORT_DOCS,
       articles: MOCK_KNOWLEDGE_ARTICLES,
       chatMessages: MOCK_CHAT_THREAD,
       activities: MOCK_SUPPORT_ACTIVITIES,
       accountManager: ACCOUNT_MANAGER,
-      summary: MOCK_SUPPORT_SUMMARY,
+      summary: { ...MOCK_SUPPORT_SUMMARY, openTickets: 0 },
       filters: { ...DEFAULT_SUPPORT_FILTERS },
       globalSearch: "",
       preferences: {
@@ -221,6 +226,7 @@ export const useSupportStore = create<SupportStoreState>()(
       knowledgePreviewId: null,
       isHydrated: false,
       isLoading: false,
+      loadError: null,
 
       setHydrated: (v) => set({ isHydrated: v }),
       setGlobalSearch: (q) => set({ globalSearch: q }),
@@ -235,210 +241,106 @@ export const useSupportStore = create<SupportStoreState>()(
       setChatModalOpen: (open) => set({ chatModalOpen: open }),
       setFloatingChatOpen: (open) => set({ floatingChatOpen: open }),
 
-      createTicket: (input) => {
-        const ticketId = nextTicketNumber(get().tickets);
-        const id = `tkt-${ticketId.toLowerCase()}`;
-        const now = nowIso();
-        const ticket: SupportTicket = {
-          id,
-          ticketId,
-          category: input.category,
-          categoryLabel: TICKET_CATEGORY_LABELS[input.category],
-          priority: input.priority ?? "medium",
-          status: "open",
-          subject: input.subject.trim(),
-          description: input.description.trim(),
-          createdAt: now,
-          updatedAt: now,
-          assignedTo: "Queue — Enterprise Desk",
-          attachments: input.attachmentName
-            ? [
-                {
-                  id: `att-${Date.now()}`,
-                  name: input.attachmentName,
-                  sizeLabel: "—",
-                  mimeType: "application/octet-stream",
-                  uploadedAt: now,
-                },
-              ]
-            : [],
-          timeline: [
-            {
-              id: `tl-${Date.now()}`,
-              label: "Ticket Created",
-              description: "Submitted via Raise New Ticket",
-              at: now,
-              actor: "You",
-            },
-          ],
-          conversation: [
-            {
-              id: `msg-${Date.now()}`,
-              sender: "customer",
-              senderName: "You",
-              body: input.description.trim(),
-              at: now,
-              read: true,
-              attachmentName: input.attachmentName,
-            },
-          ],
-          internalNotes: ["Auto-routed to Enterprise queue (frontend mock)."],
-        };
+      loadTickets: async () => {
+        set({ isLoading: true, loadError: null });
+        try {
+          const tickets = await listCustomerSupportTickets();
+          set({
+            tickets,
+            summary: rebuildSummary(tickets),
+            isLoading: false,
+            isHydrated: true,
+          });
+        } catch (error) {
+          set({
+            isLoading: false,
+            isHydrated: true,
+            loadError:
+              error instanceof Error
+                ? error.message
+                : "Unable to load support tickets.",
+          });
+        }
+      },
 
-        set((s) => ({
-          tickets: [ticket, ...s.tickets],
-          raiseTicketOpen: false,
-          raiseTicketSuccessOpen: true,
-          lastCreatedTicketId: ticketId,
-          summary: {
-            ...s.summary,
-            openTickets: s.summary.openTickets + 1,
+      createTicket: async (input) => {
+        const ticket = await createCustomerSupportTicket(input);
+        set((s) => {
+          const tickets = [
+            ticket,
+            ...s.tickets.filter((t) => t.id !== ticket.id),
+          ];
+          return {
+            tickets,
+            raiseTicketOpen: false,
+            raiseTicketSuccessOpen: true,
+            lastCreatedTicketId: ticket.ticketId,
+            summary: rebuildSummary(tickets),
+            activities: [
+              {
+                id: `act-${Date.now()}`,
+                type: "ticket_assigned",
+                title: "Ticket Created",
+                description: `${ticket.ticketId} — ${ticket.subject}`,
+                at: nowIso(),
+                read: false,
+              },
+              ...s.activities,
+            ],
+          };
+        });
+        return ticket.ticketId;
+      },
+
+      replyToTicket: async (id, body, attachmentName) => {
+        const trimmed = body.trim();
+        if (!trimmed && !attachmentName) return;
+        await apiClient.post<Envelope<unknown>>(
+          `/customer/support/tickets/${id}/reply`,
+          {
+            body: trimmed || "(Attachment)",
+            attachmentName,
           },
-          activities: [
-            {
-              id: `act-${Date.now()}`,
-              type: "ticket_assigned",
-              title: "Ticket Created",
-              description: `${ticketId} — ${input.subject.trim()}`,
-              at: now,
-              read: false,
-            },
-            ...s.activities,
-          ],
+        );
+        await get().loadTickets();
+        set({ replyDraft: "" });
+      },
+
+      addTicketAttachment: (id, fileName) => {
+        const now = nowIso();
+        set((s) => ({
+          tickets: s.tickets.map((t) =>
+            t.id === id
+              ? {
+                  ...t,
+                  updatedAt: now,
+                  attachments: [
+                    ...t.attachments,
+                    {
+                      id: `att-${Date.now()}`,
+                      name: fileName,
+                      sizeLabel: "—",
+                      mimeType: "application/octet-stream",
+                      uploadedAt: now,
+                    },
+                  ],
+                }
+              : t,
+          ),
         }));
-        return ticketId;
       },
 
       updateTicketStatus: (id, status) => {
         const now = nowIso();
         set((s) => ({
           tickets: s.tickets.map((t) =>
-            t.id === id
-              ? {
-                  ...t,
-                  status,
-                  updatedAt: now,
-                  timeline: [
-                    ...t.timeline,
-                    {
-                      id: `tl-${Date.now()}`,
-                      label: `Status → ${status.replace(/_/g, " ")}`,
-                      description: "Updated from Support Center",
-                      at: now,
-                      actor: "You",
-                    },
-                  ],
-                }
-              : t,
-          ),
-        }));
-      },
-
-      replyToTicket: (id, body, attachmentName) => {
-        const trimmed = body.trim();
-        if (!trimmed && !attachmentName) return;
-        const now = nowIso();
-        const message: TicketMessage = {
-          id: `msg-${Date.now()}`,
-          sender: "customer",
-          senderName: "You",
-          body: trimmed || "(Attachment)",
-          at: now,
-          read: true,
-          attachmentName,
-        };
-        set((s) => ({
-          tickets: s.tickets.map((t) => {
-            if (t.id !== id) return t;
-            return {
-              ...t,
-              status:
-                t.status === "waiting_customer" ? "in_progress" : t.status,
-              updatedAt: now,
-              conversation: [...t.conversation, message],
-              timeline: [
-                ...t.timeline,
-                {
-                  id: `tl-${Date.now()}`,
-                  label: "Customer Reply",
-                  description: trimmed.slice(0, 80) || "Attachment uploaded",
-                  at: now,
-                  actor: "You",
-                },
-              ],
-            };
-          }),
-          replyDraft: "",
-        }));
-
-        window.setTimeout(() => {
-          const replyAt = nowIso();
-          set((s) => ({
-            tickets: s.tickets.map((t) => {
-              if (t.id !== id) return t;
-              return {
-                ...t,
-                updatedAt: replyAt,
-                conversation: [
-                  ...t.conversation,
-                  {
-                    id: `msg-${Date.now()}`,
-                    sender: "executive",
-                    senderName: t.assignedTo.startsWith("Unassigned")
-                      ? "Enterprise Desk"
-                      : t.assignedTo,
-                    body: "Thanks for the update. We're reviewing and will revert shortly.",
-                    at: replyAt,
-                    read: true,
-                  },
-                ],
-              };
-            }),
-          }));
-        }, 1600);
-      },
-
-      addTicketAttachment: (id, fileName) => {
-        const now = nowIso();
-        const attachment: TicketAttachment = {
-          id: `att-${Date.now()}`,
-          name: fileName,
-          sizeLabel: "—",
-          mimeType: "application/octet-stream",
-          uploadedAt: now,
-        };
-        set((s) => ({
-          tickets: s.tickets.map((t) =>
-            t.id === id
-              ? {
-                  ...t,
-                  updatedAt: now,
-                  attachments: [...t.attachments, attachment],
-                  timeline: [
-                    ...t.timeline,
-                    {
-                      id: `tl-${Date.now()}`,
-                      label: "Attachment Added",
-                      description: fileName,
-                      at: now,
-                      actor: "You",
-                    },
-                  ],
-                }
-              : t,
+            t.id === id ? { ...t, status, updatedAt: now } : t,
           ),
         }));
       },
 
       closeTicket: (id) => {
         get().updateTicketStatus(id, "closed");
-        set((s) => ({
-          summary: {
-            ...s.summary,
-            openTickets: Math.max(0, s.summary.openTickets - 1),
-            resolvedThisMonth: s.summary.resolvedThisMonth + 1,
-          },
-        }));
       },
 
       sendChatMessage: (body, attachmentName) => {
@@ -533,11 +435,8 @@ export const useSupportStore = create<SupportStoreState>()(
     {
       name: STORAGE_KEY,
       partialize: (s) => ({
-        tickets: s.tickets,
         chatMessages: s.chatMessages,
-        activities: s.activities,
         preferences: s.preferences,
-        summary: s.summary,
       }),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true);
@@ -546,4 +445,4 @@ export const useSupportStore = create<SupportStoreState>()(
   ),
 );
 
-export type { TicketPriority };
+export type { TicketPriority, TicketStatus };

@@ -8,7 +8,7 @@ import {
   CloudUpload,
   FileText,
   Loader2,
-  ShieldCheck,
+  ShieldAlert,
   Trash2,
 } from "lucide-react";
 import type {
@@ -34,13 +34,28 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  UPLOADED: "Uploaded",
+  UNDER_REVIEW: "Under review",
+  VERIFIED: "Verified",
+};
+
+function statusLabel(upload: UploadedCreditDocument): string {
+  return STATUS_LABELS[upload.status ?? ""] ?? "Uploaded";
+}
+
 interface CreditDocumentUploadCardProps {
   definition: CreditDocumentDefinition;
   upload?: UploadedCreditDocument;
   error?: string;
-  onUpload: (file: File) => void;
+  /** Resolves once the file is recorded and pushed to storage. */
+  onUpload: (
+    file: File,
+    onProgress: (percent: number) => void,
+  ) => Promise<void>;
   onRemove: () => void;
   onPreview: (upload: UploadedCreditDocument) => void;
+  disabled?: boolean;
 }
 
 export function CreditDocumentUploadCard({
@@ -50,36 +65,11 @@ export function CreditDocumentUploadCard({
   onUpload,
   onRemove,
   onPreview,
+  disabled = false,
 }: CreditDocumentUploadCardProps) {
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
-
-  const simulateUpload = useCallback(
-    (file: File) => {
-      setUploading(true);
-      setProgress(0);
-      setLocalError(null);
-
-      let current = 0;
-      const interval = window.setInterval(() => {
-        current += Math.random() * 30 + 20;
-        if (current >= 100) {
-          current = 100;
-          window.clearInterval(interval);
-          setProgress(100);
-          window.setTimeout(() => {
-            setUploading(false);
-            onUpload(file);
-            setProgress(0);
-          }, 250);
-        } else {
-          setProgress(Math.min(current, 92));
-        }
-      }, 100);
-    },
-    [onUpload],
-  );
 
   const onDrop = useCallback(
     (accepted: File[], rejected: unknown[]) => {
@@ -93,27 +83,45 @@ export function CreditDocumentUploadCard({
         setLocalError(`File exceeds ${MAX_MB}MB limit.`);
         return;
       }
-      simulateUpload(file);
+
+      setLocalError(null);
+      setUploading(true);
+      setProgress(0);
+      void onUpload(file, setProgress)
+        .then(() => {
+          setProgress(100);
+        })
+        .catch((uploadError: unknown) => {
+          setLocalError(
+            uploadError instanceof Error
+              ? uploadError.message
+              : "Upload failed. Please try again.",
+          );
+        })
+        .finally(() => {
+          setUploading(false);
+          setProgress(0);
+        });
     },
-    [simulateUpload],
+    [onUpload],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: ACCEPT,
     maxFiles: 1,
-    disabled: uploading || Boolean(upload),
+    disabled: disabled || uploading || Boolean(upload),
     multiple: false,
   });
 
   const displayError = error ?? localError;
-  const fromOnboarding = upload?.source === "onboarding";
+  const storagePending = Boolean(upload?.storagePending);
 
   return (
     <div
       className={cn(
         "rounded-2xl border bg-white p-4 shadow-card",
-        fromOnboarding ? "border-emerald-200" : "border-slate-200",
+        storagePending ? "border-amber-200" : "border-slate-200",
       )}
     >
       <div className="mb-3 flex items-start justify-between gap-2">
@@ -160,6 +168,7 @@ export function CreditDocumentUploadCard({
               className={cn(
                 "cursor-pointer rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/80 px-4 py-8 transition-colors hover:border-brand/40 hover:bg-brand/[0.02]",
                 isDragActive && "border-brand bg-brand/[0.04]",
+                disabled && "cursor-not-allowed opacity-60",
               )}
             >
               <input
@@ -183,6 +192,7 @@ export function CreditDocumentUploadCard({
                   size="sm"
                   className="mt-4 rounded-lg"
                   tabIndex={-1}
+                  disabled={disabled}
                 >
                   Choose File
                 </Button>
@@ -201,7 +211,7 @@ export function CreditDocumentUploadCard({
           >
             <div className="mb-2 flex items-center gap-2 text-sm text-slate-600">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Uploading…
+              Uploading… {progress}%
             </div>
             <Progress value={progress} className="h-2" />
           </motion.div>
@@ -215,31 +225,31 @@ export function CreditDocumentUploadCard({
             exit={{ opacity: 0 }}
             className={cn(
               "rounded-xl border p-3",
-              fromOnboarding
-                ? "border-emerald-100 bg-emerald-50/50"
+              storagePending
+                ? "border-amber-100 bg-amber-50/50"
                 : "border-emerald-100 bg-emerald-50/40",
             )}
           >
             <div className="flex items-start gap-3">
-              {fromOnboarding ? (
-                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+              {storagePending ? (
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
               ) : (
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge
-                    variant="success"
+                    variant={storagePending ? "warning" : "success"}
                     className="rounded-full text-[10px] uppercase"
                   >
-                    {fromOnboarding ? "On File" : "Uploaded"}
+                    {storagePending ? "Recorded" : statusLabel(upload)}
                   </Badge>
-                  {fromOnboarding ? (
+                  {upload.version && upload.version > 1 ? (
                     <Badge
                       variant="outline"
-                      className="rounded-full border-emerald-200 text-[10px] text-emerald-700"
+                      className="rounded-full text-[10px] text-slate-600"
                     >
-                      From Onboarding
+                      v{upload.version}
                     </Badge>
                   ) : null}
                 </div>
@@ -251,23 +261,22 @@ export function CreditDocumentUploadCard({
                   {upload.fileName}
                 </button>
                 <p className="text-xs text-slate-500">
-                  {fromOnboarding
-                    ? "Provided during customer onboarding — no re-upload needed"
+                  {storagePending
+                    ? "File details saved — storage upload is pending"
                     : formatFileSize(upload.fileSizeBytes)}
                 </p>
               </div>
-              {!fromOnboarding ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="shrink-0 text-red-600 hover:bg-red-50 hover:text-red-700"
-                  onClick={onRemove}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Remove
-                </Button>
-              ) : null}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="shrink-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                onClick={onRemove}
+                disabled={disabled}
+              >
+                <Trash2 className="h-4 w-4" />
+                Remove
+              </Button>
             </div>
           </motion.div>
         ) : null}

@@ -2,14 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  Ban,
-  Copy,
-  Eye,
-  Package,
-  Radio,
-  RotateCcw,
-} from "lucide-react";
+import { Ban, Copy, Eye, Package, Radio, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
@@ -73,7 +66,9 @@ export function PurchaseRequestsListPage() {
   const searchParams = useSearchParams();
   const items = usePurchaseRequestTrackingStore((s) => s.items);
   const cancelRequest = usePurchaseRequestTrackingStore((s) => s.cancelRequest);
+  const fetchFromApi = usePurchaseRequestTrackingStore((s) => s.fetchFromApi);
   const isHydrated = usePurchaseRequestTrackingStore((s) => s.isHydrated);
+  const isLoading = usePurchaseRequestTrackingStore((s) => s.isLoading);
   const liveRequest = usePurchaseRequestStore((s) => s.submittedRequest);
   const liveStatus = usePurchaseRequestStore((s) => s.requestStatus);
   const orders = useOrdersStore((s) => s.orders);
@@ -99,6 +94,10 @@ export function PurchaseRequestsListPage() {
     if (usePurchaseRequestTrackingStore.persist.hasHydrated()) finish();
     return unsub;
   }, []);
+
+  useEffect(() => {
+    void fetchFromApi();
+  }, [fetchFromApi]);
 
   const statusFilterOptions = useMemo(
     () =>
@@ -337,7 +336,7 @@ export function PurchaseRequestsListPage() {
           }))}
         />
 
-        {!isHydrated ? (
+        {!isHydrated || (isLoading && items.length === 0) ? (
           <PrListSkeleton />
         ) : rows.length === 0 ? (
           <TrackingEmptyState showMarketplaceCta={statusCategory === "all"} />

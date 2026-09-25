@@ -46,6 +46,10 @@ export function PendingRequestsListPage() {
   }, []);
 
   useEffect(() => {
+    void usePurchaseRequestTrackingStore.getState().fetchFromApi();
+  }, []);
+
+  useEffect(() => {
     const id = window.setInterval(() => {
       refreshPendingTimers();
       setTick((t) => t + 1);

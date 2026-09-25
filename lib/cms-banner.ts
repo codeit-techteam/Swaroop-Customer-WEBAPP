@@ -1,8 +1,15 @@
 import { ROUTES } from "@/constants";
 import type { CmsBanner } from "@/types/cms-banner";
 
-export function cmsBannerImage(banner: CmsBanner): string {
-  return banner.mediaUrl || banner.mediaKey || "";
+/** Desktop/web prefers mediaUrl; falls back to mobile creative. */
+export function cmsBannerImage(
+  banner: CmsBanner,
+  options?: { preferMobile?: boolean },
+): string {
+  if (options?.preferMobile) {
+    return banner.mobileMediaUrl || banner.mediaUrl || banner.mediaKey || "";
+  }
+  return banner.mediaUrl || banner.mobileMediaUrl || banner.mediaKey || "";
 }
 
 export function cmsBannerHref(banner: CmsBanner): string | null {

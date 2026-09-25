@@ -21,17 +21,10 @@ function isProductTechnicalDoc(doc: ComplianceDocument): boolean {
   return (
     type === "tds" ||
     type === "msds" ||
-    type === "coa" ||
-    type === "iso" ||
-    type === "test_certificate" ||
-    type === "quality_report" ||
-    type === "technical_specification" ||
-    type === "other" ||
     title.includes("TDS") ||
     title.includes("MSDS") ||
-    title.includes("DATA SHEET") ||
-    title.includes("CERTIFICATE") ||
-    title.includes("SPECIFICATION")
+    title.includes("MATERIAL SAFETY") ||
+    title.includes("TECHNICAL DATA")
   );
 }
 
@@ -55,10 +48,11 @@ export function DocumentDownloads({
         )}
       >
         <h2 className="text-sm font-semibold text-slate-900">
-          Technical Documents
+          Technical Documents (TDS / MSDS)
         </h2>
         <p className="mt-2 text-xs text-slate-500">
-          No technical documents available yet.
+          TDS and MSDS will appear here when the supplier uploads them
+          (optional).
         </p>
       </section>
     );

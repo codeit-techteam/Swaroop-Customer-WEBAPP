@@ -1,6 +1,9 @@
 import apiClient from "@/lib/apiClient";
 import { iso, num, paginateAll, type Envelope } from "@/lib/api-envelope";
-import type { OrdersCatalogItem, OrdersDisplayStatus } from "@/types/orders-catalog";
+import type {
+  OrdersCatalogItem,
+  OrdersDisplayStatus,
+} from "@/types/orders-catalog";
 import type {
   InvoiceRecord,
   PaymentRecord,
@@ -154,19 +157,35 @@ function mapPaymentStatus(status: string): PaymentStatus {
   }
 }
 
-function mapOrderStatus(status: string, bucket?: string, shipmentStatus?: string | null): OrdersDisplayStatus {
+function mapOrderStatus(
+  status: string,
+  bucket?: string,
+  shipmentStatus?: string | null,
+): OrdersDisplayStatus {
   const b = (bucket ?? "").toUpperCase();
-  if (b === "CANCELLED" || status.toUpperCase().includes("CANCEL")) return "cancelled";
-  if (b === "COMPLETED" || status.toUpperCase().includes("DELIVER")) return "delivered";
+  if (b === "CANCELLED" || status.toUpperCase().includes("CANCEL"))
+    return "cancelled";
+  if (b === "COMPLETED" || status.toUpperCase().includes("DELIVER"))
+    return "delivered";
   const ship = (shipmentStatus ?? "").toUpperCase();
-  if (ship.includes("TRANSIT") || ship.includes("DISPATCH") || status.toUpperCase().includes("TRANSIT")) {
+  if (
+    ship.includes("TRANSIT") ||
+    ship.includes("DISPATCH") ||
+    status.toUpperCase().includes("TRANSIT")
+  ) {
     return "in_transit";
   }
-  if (status.toUpperCase().includes("READY") || status.toUpperCase().includes("DISPATCH")) return "ready";
+  if (
+    status.toUpperCase().includes("READY") ||
+    status.toUpperCase().includes("DISPATCH")
+  )
+    return "ready";
   return "processing";
 }
 
-export function mapPurchaseOrder(item: BackendPurchaseOrder): OrdersCatalogItem {
+export function mapPurchaseOrder(
+  item: BackendPurchaseOrder,
+): OrdersCatalogItem {
   const paymentOption = item.payment?.paymentOption ?? item.paymentMethod;
   const paymentMethodId = mapPaymentType(paymentOption);
   const displayStatus = mapOrderStatus(
@@ -175,7 +194,9 @@ export function mapPurchaseOrder(item: BackendPurchaseOrder): OrdersCatalogItem 
     item.shipment?.status,
   );
   const primary = item.items?.[0];
-  const total = num(item.amounts?.totalAmount ?? item.totalAmount ?? primary?.totalAmount);
+  const total = num(
+    item.amounts?.totalAmount ?? item.totalAmount ?? primary?.totalAmount,
+  );
   const quantity = num(item.quantity ?? primary?.quantity);
   const unitPrice = quantity > 0 ? total / quantity : num(primary?.unitPrice);
   const progress =
@@ -190,7 +211,9 @@ export function mapPurchaseOrder(item: BackendPurchaseOrder): OrdersCatalogItem 
             : 25;
   const paymentStatus =
     item.payment?.verifiedByPetroTrade ||
-    ["VERIFIED", "PAID", "AUTHORIZED"].includes((item.payment?.paymentStatus ?? "").toUpperCase())
+    ["VERIFIED", "PAID", "AUTHORIZED"].includes(
+      (item.payment?.paymentStatus ?? "").toUpperCase(),
+    )
       ? "verified"
       : "pending";
   const poNumber = item.orderNumber ?? item.referenceNumber ?? item.id;
@@ -220,7 +243,10 @@ export function mapPurchaseOrder(item: BackendPurchaseOrder): OrdersCatalogItem 
     paymentStatus: displayStatus === "cancelled" ? "pending" : paymentStatus,
     displayStatus,
     progress,
-    expectedDelivery: (item.shipment?.estimatedDeliveryDate ?? createdAt).slice(0, 10),
+    expectedDelivery: (item.shipment?.estimatedDeliveryDate ?? createdAt).slice(
+      0,
+      10,
+    ),
     createdAt,
     updatedAt: iso(item.updatedAt ?? item.createdAt),
     destination: "Assigned destination",
@@ -245,7 +271,10 @@ export function mapPurchaseOrder(item: BackendPurchaseOrder): OrdersCatalogItem 
     invoiceNumber: null,
     ewayBillNumber: null,
     podId: null,
-    cancelledAt: displayStatus === "cancelled" ? iso(item.updatedAt ?? item.createdAt) : null,
+    cancelledAt:
+      displayStatus === "cancelled"
+        ? iso(item.updatedAt ?? item.createdAt)
+        : null,
     cancellationReason: null,
     cancelledBy: null,
     refundStatus: null,
@@ -276,7 +305,10 @@ export function mapPurchaseOrder(item: BackendPurchaseOrder): OrdersCatalogItem 
         id: "4",
         title: "Delivered",
         status: displayStatus === "delivered" ? "completed" : "pending",
-        at: displayStatus === "delivered" ? iso(item.delivery?.deliveredAt ?? item.updatedAt) : null,
+        at:
+          displayStatus === "delivered"
+            ? iso(item.delivery?.deliveredAt ?? item.updatedAt)
+            : null,
       },
     ],
   };
@@ -305,7 +337,11 @@ export function mapPayment(item: BackendPayment): PaymentRecord {
     amountPaid: Math.max(0, amount - remaining),
     remainingBalance: remaining,
     status,
-    paymentDate: item.verifiedAt ? iso(item.verifiedAt) : item.submittedAt ? iso(item.submittedAt) : undefined,
+    paymentDate: item.verifiedAt
+      ? iso(item.verifiedAt)
+      : item.submittedAt
+        ? iso(item.submittedAt)
+        : undefined,
     dueDate: iso(item.createdAt),
     utrNumber: item.utr ?? undefined,
     paymentMethod: (item.rail as PaymentRecord["paymentMethod"]) ?? "NEFT",
@@ -346,7 +382,9 @@ export function mapPaymentToInvoice(item: BackendPayment): InvoiceRecord {
   };
 }
 
-export function mapPaymentToReceipt(item: BackendPayment): ReceiptRecord | null {
+export function mapPaymentToReceipt(
+  item: BackendPayment,
+): ReceiptRecord | null {
   if (!item.utr && item.status !== "VERIFIED" && item.status !== "CLEARED") {
     return null;
   }
@@ -373,12 +411,14 @@ export function mapPaymentToReceipt(item: BackendPayment): ReceiptRecord | null 
   };
 }
 
-export function mapPoToDocument(item: BackendPurchaseOrder): PurchaseOrderDocument {
+export function mapPoToDocument(
+  item: BackendPurchaseOrder,
+): PurchaseOrderDocument {
   const amount = num(item.totalAmount);
   return {
     id: item.id,
-    poNumber: item.referenceNumber,
-    orderNumber: item.referenceNumber,
+    poNumber: item.referenceNumber ?? item.id,
+    orderNumber: item.referenceNumber ?? item.id,
     product: "Purchase order",
     grade: "—",
     seller: "ANONYMOUS SUPPLIER",
@@ -393,12 +433,25 @@ export function mapPoToDocument(item: BackendPurchaseOrder): PurchaseOrderDocume
     pricing: pricing(amount),
     paymentTerms: item.paymentMethod ?? "ADVANCE",
     deliveryTerms: "As agreed",
-    approval: { approvedBy: "System", approvedAt: iso(item.createdAt), remarks: "" },
-    timeline: [{ id: "created", label: "Created", at: iso(item.createdAt), status: "completed" }],
+    approval: {
+      approvedBy: "System",
+      approvedAt: iso(item.createdAt),
+      remarks: "",
+    },
+    timeline: [
+      {
+        id: "created",
+        label: "Created",
+        at: iso(item.createdAt),
+        status: "completed",
+      },
+    ],
   };
 }
 
-export function mapProformaToDocument(item: BackendProforma): ProformaInvoiceDocument {
+export function mapProformaToDocument(
+  item: BackendProforma,
+): ProformaInvoiceDocument {
   const amount = num(item.totalAmount);
   return {
     id: item.id,
@@ -410,7 +463,12 @@ export function mapProformaToDocument(item: BackendProforma): ProformaInvoiceDoc
     amount,
     createdDate: iso(item.createdAt),
     expiryDate: iso(item.createdAt),
-    status: item.status === "CANCELLED" ? "cancelled" : item.status === "PAID" ? "converted" : "active",
+    status:
+      item.status === "CANCELLED"
+        ? "cancelled"
+        : item.status === "PAID"
+          ? "converted"
+          : "active",
     docStatus: item.status === "CANCELLED" ? "cancelled" : "generated",
     seller: "ANONYMOUS SUPPLIER",
     warehouse: "Assigned hub",
@@ -466,20 +524,34 @@ export function mapProformaToInvoice(item: BackendProforma): InvoiceDocument {
       method: item.paymentMethod ?? "ADVANCE",
       dueDate: iso(item.createdAt),
     },
-    timeline: [{ id: "created", label: "Issued", at: iso(item.createdAt), status: "completed" }],
+    timeline: [
+      {
+        id: "created",
+        label: "Issued",
+        at: iso(item.createdAt),
+        status: "completed",
+      },
+    ],
   };
 }
 
-export async function fetchCustomerPurchaseOrders(): Promise<BackendPurchaseOrder[]> {
+export async function fetchCustomerPurchaseOrders(): Promise<
+  BackendPurchaseOrder[]
+> {
   return paginateAll(async (page) => {
     const payload = await apiClient.get<Envelope<BackendPurchaseOrder[]>>(
       `/customer/orders?page=${page}&limit=50`,
     );
-    return { items: payload.data ?? [], totalPages: payload.meta?.totalPages ?? 1 };
+    return {
+      items: payload.data ?? [],
+      totalPages: payload.meta?.totalPages ?? 1,
+    };
   });
 }
 
-export async function fetchCustomerOrderById(id: string): Promise<BackendPurchaseOrder | null> {
+export async function fetchCustomerOrderById(
+  id: string,
+): Promise<BackendPurchaseOrder | null> {
   try {
     const payload = await apiClient.get<Envelope<BackendPurchaseOrder>>(
       `/customer/orders/${id}`,
@@ -515,7 +587,10 @@ export async function fetchCustomerPayments(): Promise<BackendPayment[]> {
     const payload = await apiClient.get<Envelope<BackendPayment[]>>(
       `/customer/payments?page=${page}&limit=50`,
     );
-    return { items: payload.data ?? [], totalPages: payload.meta?.totalPages ?? 1 };
+    return {
+      items: payload.data ?? [],
+      totalPages: payload.meta?.totalPages ?? 1,
+    };
   });
 }
 
@@ -524,7 +599,10 @@ export async function fetchCustomerProformas(): Promise<BackendProforma[]> {
     const payload = await apiClient.get<Envelope<BackendProforma[]>>(
       `/customer/proforma-invoices?page=${page}&limit=50`,
     );
-    return { items: payload.data ?? [], totalPages: payload.meta?.totalPages ?? 1 };
+    return {
+      items: payload.data ?? [],
+      totalPages: payload.meta?.totalPages ?? 1,
+    };
   });
 }
 

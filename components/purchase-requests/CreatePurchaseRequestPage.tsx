@@ -135,7 +135,7 @@ export function CreatePurchaseRequestPage() {
         product.id,
         data.quantityMt,
         data.packaging,
-        product.offerId ?? offerIdParam ?? undefined,
+        offerIdParam ?? undefined,
       );
     if (!result.ok) {
       toast.error(result.message);

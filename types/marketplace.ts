@@ -162,7 +162,15 @@ export interface MarketplaceProduct {
   sellerVisible?: boolean;
   packaging?: string;
   offerId?: string;
-  /** Backend product documents (TDS/MDS/COA) — blind, no seller identity */
+  /** Seller-configured bulk tiers from marketplace offer */
+  bulkPricing?: Array<{
+    id: string;
+    minMt: number;
+    maxMt: number | null;
+    pricePerMt: number;
+    quantityLabel: string;
+  }>;
+  /** Backend product documents (TDS/MSDS) — blind, no seller identity */
   documents?: Array<{
     id: string;
     type: string;

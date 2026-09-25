@@ -89,7 +89,7 @@ export const ROUTES = {
   profileCompany: "/profile",
   profileGst: "/profile",
   profilePan: "/profile",
-  profileAddresses: "/profile",
+  profileAddresses: "/profile#addresses",
   profileBusiness: "/profile",
   profileBank: "/profile",
   settings: "/profile",

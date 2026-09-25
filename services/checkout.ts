@@ -51,6 +51,8 @@ export type CheckoutAddress = {
   country?: string;
   postalCode: string;
   landmark?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   isDefault: boolean;
 };
 
@@ -209,11 +211,7 @@ export async function quoteCartForCheckout(input?: {
   const data = payload.data;
   return {
     ...data,
-    quotes: data.quotes?.length
-      ? data.quotes
-      : data.quote
-        ? [data.quote]
-        : [],
+    quotes: data.quotes?.length ? data.quotes : data.quote ? [data.quote] : [],
     issues: data.issues ?? [],
     changes: data.changes ?? [],
   };

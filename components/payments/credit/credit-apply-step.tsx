@@ -1,7 +1,6 @@
 "use client";
 
-import { ArrowRight, IndianRupee } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowRight, IndianRupee, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,6 +31,7 @@ interface CreditApplyStepProps {
   onContinue: () => void;
   onSaveDraft: () => void;
   hasActiveFacility: boolean;
+  saving?: boolean;
 }
 
 export function CreditApplyStep({
@@ -40,6 +40,7 @@ export function CreditApplyStep({
   onContinue,
   onSaveDraft,
   hasActiveFacility,
+  saving = false,
 }: CreditApplyStepProps) {
   const requestedLimit = useCreditApplicationStore((s) => s.requestedLimit);
   const creditTerm = useCreditApplicationStore((s) => s.creditTerm);
@@ -194,18 +195,24 @@ export function CreditApplyStep({
             variant="outline"
             size="lg"
             className="rounded-xl"
-            onClick={() => {
-              onSaveDraft();
-              toast.success("Draft saved. You can continue later.");
-            }}
+            onClick={onSaveDraft}
+            disabled={saving}
           >
-            Save draft
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Saving…
+              </>
+            ) : (
+              "Save draft"
+            )}
           </Button>
           <Button
             type="button"
             size="lg"
             className="min-w-[200px] rounded-xl bg-brand hover:bg-brand-700"
             onClick={onContinue}
+            disabled={saving}
           >
             Continue to documents
             <ArrowRight className="h-4 w-4" />

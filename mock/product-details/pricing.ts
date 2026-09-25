@@ -16,8 +16,26 @@ export function buildSpotPrice(pricePerMt: number): SpotPriceInfo {
   };
 }
 
-/** Bulk tiers for desktop PDP — design ranges, priced from catalog spot. */
-export function buildBulkPricing(spotPricePerMt: number): BulkPricingTier[] {
+/** Bulk tiers — prefer seller-configured tiers from the offer. */
+export function buildBulkPricing(
+  spotPricePerMt: number,
+  configured?: Array<{
+    id: string;
+    minMt: number;
+    maxMt: number | null;
+    pricePerMt: number;
+    quantityLabel: string;
+  }>,
+): BulkPricingTier[] {
+  if (configured && configured.length > 0) {
+    return configured.map((tier) => ({
+      id: tier.id,
+      quantityLabel: tier.quantityLabel,
+      pricePerMt: tier.pricePerMt,
+      minMt: tier.minMt,
+      maxMt: tier.maxMt,
+    }));
+  }
   return [
     {
       id: "tier-25-99",
@@ -70,14 +88,16 @@ export function buildPaymentOptions(creditEligible: boolean): PaymentOption[] {
     {
       id: "credit_15",
       title: "PetroTrade Credit — 15 Days",
-      description: "PetroTrade managed working capital. Seller does not extend credit.",
+      description:
+        "PetroTrade managed working capital. Seller does not extend credit.",
       benefitLabel: "Approval Required",
       eligible: creditEligible,
     },
     {
       id: "credit_30",
       title: "PetroTrade Credit — 30 Days",
-      description: "PetroTrade managed working capital. Seller does not extend credit.",
+      description:
+        "PetroTrade managed working capital. Seller does not extend credit.",
       benefitLabel: "Approval Required",
       eligible: creditEligible,
     },

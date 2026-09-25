@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   AlertCircle,
   Clock3,
   Info,
+  Loader2,
+  LocateFixed,
   MapPin,
   Plus,
   Truck,
@@ -30,9 +32,17 @@ import {
 } from "@/components/ui/sheet";
 import { formatInrPerMt } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { createCustomerAddress } from "@/services/addresses";
+import {
+  createCustomerAddress,
+  updateCustomerAddress,
+} from "@/services/addresses";
 import type { CartPriceChange, CheckoutAddress } from "@/services/checkout";
 import { checkoutErrorMessage } from "@/services/checkout";
+import {
+  fetchCurrentDeliveryAddress,
+  LocationAccessError,
+  lookupPincode,
+} from "@/services/location";
 import { INDIAN_PINCODE_REGEX } from "./constants";
 import { mapAddressLabel } from "./shipping-card";
 
@@ -266,11 +276,17 @@ export function AddressSelectSheet({
         <SheetHeader className="text-left">
           <SheetTitle>Select Shipping Address</SheetTitle>
           <SheetDescription>
-            Freight and total payable use the live PetroTrade quote for this
-            destination.
+            Addresses saved in the Customer APP or WEBAPP for your organization
+            appear here for freight and checkout.
           </SheetDescription>
         </SheetHeader>
         <div className="mt-4 flex-1 space-y-2 overflow-y-auto pr-1">
+          {addresses.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+              No saved addresses yet. Add one here or in the Customer APP — they
+              sync for the same login.
+            </p>
+          ) : null}
           {addresses.map((address) => {
             const selected = address.id === selectedId;
             return (
@@ -344,16 +360,122 @@ export function AddAddressDialog({
   open,
   onOpenChange,
   onCreated,
+  onSaved,
+  initial,
+  saveAddress,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated: (address: CheckoutAddress) => void;
+  /** @deprecated Prefer onSaved — kept for checkout / location selector callers. */
+  onCreated?: (address: CheckoutAddress) => void;
+  onSaved?: (address: CheckoutAddress) => void;
+  initial?: CheckoutAddress | null;
+  /** Prefer store-backed saves (create/update) when managing profile addresses. */
+  saveAddress?: (input: {
+    label: string;
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    landmark?: string;
+    latitude?: number;
+    longitude?: number;
+    type: "SHIPPING";
+  }) => Promise<CheckoutAddress>;
 }) {
+  const isEdit = Boolean(initial?.id);
   const [form, setForm] = useState(EMPTY_ADDRESS);
+  const [coords, setCoords] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [detecting, setDetecting] = useState(false);
+  const [lookingUpPin, setLookingUpPin] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setForm(EMPTY_ADDRESS);
+      setCoords(null);
+      setDetecting(false);
+      setLookingUpPin(false);
+      return;
+    }
+    if (initial) {
+      setForm({
+        label: initial.label ?? "",
+        line1: initial.line1 ?? "",
+        line2: initial.line2 ?? "",
+        city: initial.city ?? "",
+        state: initial.state ?? "",
+        postalCode: initial.postalCode ?? "",
+        landmark: initial.landmark ?? "",
+      });
+      setCoords(
+        initial.latitude != null && initial.longitude != null
+          ? { latitude: initial.latitude, longitude: initial.longitude }
+          : null,
+      );
+    } else {
+      setForm(EMPTY_ADDRESS);
+      setCoords(null);
+    }
+  }, [open, initial]);
 
   function setField(key: keyof typeof EMPTY_ADDRESS, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function handlePostalCodeChange(value: string) {
+    const pin = value.replace(/\D/g, "").slice(0, 6);
+    setField("postalCode", pin);
+    if (pin.length !== 6 || !INDIAN_PINCODE_REGEX.test(pin)) return;
+
+    setLookingUpPin(true);
+    try {
+      const hits = await lookupPincode(pin);
+      const first = hits[0];
+      if (!first) return;
+      setForm((prev) => ({
+        ...prev,
+        postalCode: pin,
+        city: prev.city.trim() || first.city,
+        state: prev.state.trim() || first.state,
+        line1: prev.line1.trim() || first.name || first.city,
+      }));
+    } finally {
+      setLookingUpPin(false);
+    }
+  }
+
+  async function handleUseCurrentLocation() {
+    setDetecting(true);
+    try {
+      const resolved = await fetchCurrentDeliveryAddress();
+      setForm((prev) => ({
+        label: prev.label.trim() || resolved.label || "Current location",
+        line1: prev.line1.trim() || resolved.line1,
+        line2: prev.line2.trim() || resolved.line2 || "",
+        city: resolved.city || prev.city,
+        state: resolved.state || prev.state,
+        postalCode: resolved.postalCode || prev.postalCode,
+        landmark: prev.landmark.trim() || resolved.landmark || "",
+      }));
+      setCoords({
+        latitude: resolved.latitude,
+        longitude: resolved.longitude,
+      });
+      toast.success("Location detected — review and save");
+    } catch (cause) {
+      toast.error(
+        cause instanceof LocationAccessError
+          ? cause.message
+          : "Unable to fetch current location. Enter the address manually.",
+      );
+    } finally {
+      setDetecting(false);
+    }
   }
 
   async function handleSave() {
@@ -367,7 +489,7 @@ export function AddAddressDialog({
     }
     setSaving(true);
     try {
-      const address = await createCustomerAddress({
+      const payload = {
         label: form.label.trim() || form.city.trim(),
         line1: form.line1.trim(),
         line2: form.line2.trim() || undefined,
@@ -375,14 +497,28 @@ export function AddAddressDialog({
         state: form.state.trim(),
         postalCode: form.postalCode.trim(),
         landmark: form.landmark.trim() || undefined,
-        type: "SHIPPING",
-      });
-      onCreated(address);
+        latitude: coords?.latitude,
+        longitude: coords?.longitude,
+        type: "SHIPPING" as const,
+      };
+      const address = saveAddress
+        ? await saveAddress(payload)
+        : isEdit && initial
+          ? await updateCustomerAddress(initial.id, payload)
+          : await createCustomerAddress(payload);
+      onSaved?.(address);
+      onCreated?.(address);
       setForm(EMPTY_ADDRESS);
+      setCoords(null);
       onOpenChange(false);
-      toast.success("Delivery address added");
+      toast.success(isEdit ? "Address updated" : "Delivery address added");
     } catch (cause) {
-      toast.error(checkoutErrorMessage(cause, "Unable to save address"));
+      toast.error(
+        checkoutErrorMessage(
+          cause,
+          isEdit ? "Unable to update address" : "Unable to save address",
+        ),
+      );
     } finally {
       setSaving(false);
     }
@@ -392,11 +528,38 @@ export function AddAddressDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md sm:rounded-2xl">
         <DialogHeader>
-          <DialogTitle>Add delivery address</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Edit delivery address" : "Add delivery address"}
+          </DialogTitle>
           <DialogDescription>
-            Saved to your PetroTrade organization for checkout and freight.
+            Saved to your PetroTrade organization for checkout and freight —
+            shared with the Customer APP for the same login.
           </DialogDescription>
         </DialogHeader>
+
+        <button
+          type="button"
+          disabled={detecting || saving}
+          onClick={() => void handleUseCurrentLocation()}
+          className="flex w-full items-center gap-3 rounded-xl border border-accent-blue/30 bg-accent-blue/5 px-4 py-3 text-left transition hover:bg-accent-blue/10 disabled:opacity-60"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-blue/10 text-accent-blue">
+            {detecting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LocateFixed className="h-4 w-4" />
+            )}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold text-accent-blue">
+              {detecting ? "Detecting location…" : "Use current location"}
+            </span>
+            <span className="mt-0.5 block text-xs text-slate-500">
+              Auto-fill from GPS — same as the Customer APP
+            </span>
+          </span>
+        </button>
+
         <div className="grid gap-3">
           {(
             [
@@ -410,10 +573,25 @@ export function AddAddressDialog({
             ] as const
           ).map(([key, label]) => (
             <div key={key} className="space-y-1">
-              <Label>{label}</Label>
+              <Label>
+                {label}
+                {key === "postalCode" && lookingUpPin ? (
+                  <span className="ml-2 text-[11px] font-normal text-slate-400">
+                    Looking up…
+                  </span>
+                ) : null}
+              </Label>
               <Input
                 value={form[key]}
-                onChange={(event) => setField(key, event.target.value)}
+                onChange={(event) => {
+                  if (key === "postalCode") {
+                    void handlePostalCodeChange(event.target.value);
+                    return;
+                  }
+                  setField(key, event.target.value);
+                }}
+                inputMode={key === "postalCode" ? "numeric" : undefined}
+                maxLength={key === "postalCode" ? 6 : undefined}
                 className="rounded-xl"
               />
             </div>
@@ -429,10 +607,10 @@ export function AddAddressDialog({
           </Button>
           <Button
             className="rounded-xl bg-brand hover:bg-brand-700"
-            disabled={saving}
+            disabled={saving || detecting}
             onClick={() => void handleSave()}
           >
-            {saving ? "Saving..." : "Save address"}
+            {saving ? "Saving..." : isEdit ? "Save changes" : "Save address"}
           </Button>
         </DialogFooter>
       </DialogContent>

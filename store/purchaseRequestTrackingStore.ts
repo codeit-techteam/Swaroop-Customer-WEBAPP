@@ -51,7 +51,9 @@ export const usePurchaseRequestTrackingStore =
               isLoading: false,
               isHydrated: true,
               loadError:
-                error instanceof Error ? error.message : "Unable to load purchase requests.",
+                error instanceof Error
+                  ? error.message
+                  : "Unable to load purchase requests.",
             });
           }
         },
@@ -89,18 +91,39 @@ export const usePurchaseRequestTrackingStore =
         },
 
         refreshPendingTimers: () => {
+          const now = Date.now();
           set((state) => ({
             items: state.items.map((item) => {
               if (
-                item.secondsRemaining == null ||
                 item.status === "expired" ||
                 item.status === "approved" ||
-                item.status === "rejected"
+                item.status === "rejected" ||
+                item.status === "cancelled" ||
+                item.status === "withdrawn"
               ) {
                 return item;
               }
-              const next = Math.max(0, item.secondsRemaining - 1);
-              if (next === 0 && item.requestStatus === "pending_approval") {
+
+              let next = item.secondsRemaining;
+              if (item.expectedExpiryAt) {
+                const ends = new Date(item.expectedExpiryAt).getTime();
+                if (Number.isFinite(ends)) {
+                  next = Math.max(0, Math.floor((ends - now) / 1000));
+                }
+              } else if (next != null) {
+                next = Math.max(0, next - 1);
+              }
+
+              if (next == null) return item;
+
+              const pending =
+                item.requestStatus === "pending_approval" ||
+                item.status === "seller_reviewing" ||
+                item.status === "pending_approval" ||
+                item.status === "submitted" ||
+                item.status === "review_pending";
+
+              if (next === 0 && pending) {
                 return {
                   ...item,
                   secondsRemaining: 0,

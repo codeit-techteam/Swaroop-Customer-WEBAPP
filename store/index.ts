@@ -4,6 +4,7 @@ export * from "./marketplaceStore";
 export * from "./productStore";
 export * from "./cartStore";
 export * from "./checkoutStore";
+export * from "./deliveryLocationStore";
 export * from "./ordersStore";
 export * from "./paymentStore";
 export * from "./paymentsCatalogStore";

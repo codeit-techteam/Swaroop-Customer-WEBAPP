@@ -20,7 +20,8 @@ export function mapBackendPaymentOptions(
         ? "on_loading"
         : option.paymentOption === "ON_DELIVERY"
           ? "on_delivery"
-          : option.paymentOption === "CREDIT_30" || option.paymentOption === "CREDIT"
+          : option.paymentOption === "CREDIT_30" ||
+              option.paymentOption === "CREDIT"
             ? "credit_30"
             : option.paymentOption === "CREDIT_15"
               ? "credit_15"
@@ -51,7 +52,12 @@ export function useCustomerQuote(args: {
   const requestSeq = useRef(0);
 
   const refresh = useCallback(async () => {
-    if (!enabled || !productId || !(quantity > 0)) return;
+    if (!enabled || !productId || !(quantity > 0)) {
+      setQuote(null);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     const seq = ++requestSeq.current;
     setLoading(true);
     setError(null);
@@ -84,7 +90,8 @@ export function useCustomerQuote(args: {
     let cancelled = false;
     void fetchCustomerPaymentOptions()
       .then((result) => {
-        if (!cancelled) setPaymentOptions(mapBackendPaymentOptions(result.options));
+        if (!cancelled)
+          setPaymentOptions(mapBackendPaymentOptions(result.options));
       })
       .catch(() => {
         if (!cancelled) setPaymentOptions([]);

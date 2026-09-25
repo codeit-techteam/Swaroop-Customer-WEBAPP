@@ -84,14 +84,23 @@ export function RaiseTicketDialog() {
   async function handleSubmit() {
     if (!validate() || !category) return;
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 450));
-    createTicket({
-      category,
-      subject,
-      description,
-      attachmentName,
-    });
-    resetForm();
+    try {
+      await createTicket({
+        category,
+        subject,
+        description,
+        attachmentName,
+      });
+      resetForm();
+    } catch (error) {
+      setSubmitting(false);
+      toast.error("Could not create ticket", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Please try again in a moment.",
+      });
+    }
   }
 
   const displayTicketId = useMemo(

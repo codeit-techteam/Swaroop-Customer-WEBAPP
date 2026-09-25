@@ -46,6 +46,10 @@ export function ActiveRequestsPage() {
     return unsub;
   }, []);
 
+  useEffect(() => {
+    void usePurchaseRequestTrackingStore.getState().fetchFromApi();
+  }, []);
+
   const rows = useMemo(() => {
     return items
       .filter((item) => ACTIVE_STATUSES.includes(item.status))

@@ -1,9 +1,6 @@
 import { categoriesMock } from "@/mock/categories";
 import { getProductById, productsMock } from "@/mock/products";
-import {
-  buildProductHighlights,
-  getFeaturesForMaterial,
-} from "./features";
+import { buildProductHighlights, getFeaturesForMaterial } from "./features";
 import { buildGalleryFromProduct, DEFAULT_QUALITY_ASSURANCE } from "./gallery";
 import {
   buildBulkPricing,
@@ -27,7 +24,8 @@ function mapDocType(type: string): ComplianceDocumentType {
   if (t === "ISO") return "iso";
   if (t.includes("TEST")) return "test_certificate";
   if (t.includes("QUALITY")) return "quality_report";
-  if (t.includes("TECHNICAL") || t.includes("SPEC")) return "technical_specification";
+  if (t.includes("TECHNICAL") || t.includes("SPEC"))
+    return "technical_specification";
   return "other";
 }
 
@@ -89,7 +87,9 @@ export function buildProductDetail(
               ? "MFI"
               : key === "iv"
                 ? "IV"
-                : key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+                : key
+                    .replace(/_/g, " ")
+                    .replace(/\b\w/g, (c) => c.toUpperCase()),
           value: value!,
           standard: "Grade Specification",
         }))
@@ -150,7 +150,7 @@ export function buildProductDetail(
           }))
         : [],
     spotPrice: buildSpotPrice(product.price),
-    bulkPricing: buildBulkPricing(product.price),
+    bulkPricing: buildBulkPricing(product.price, product.bulkPricing),
     paymentOptions: buildPaymentOptions(product.creditEligible),
     logistics: buildLogisticsEstimate({
       warehouseLabel: product.warehouseLabel,

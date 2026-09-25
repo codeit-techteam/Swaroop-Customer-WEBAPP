@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowLeft, Info, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import type { ReactNode } from "react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,6 +14,7 @@ import {
   parseCreditLimit,
 } from "@/lib/credit-application";
 import { formatInr } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { useCreditApplicationStore } from "@/store/creditApplicationStore";
 import type {
   CreditDocumentId,
@@ -25,12 +26,16 @@ interface CreditUploadStepProps {
   fieldErrors: Record<string, string>;
   onClearError: (key: string) => void;
   onBack: () => void;
-  onSaveDraft: () => void;
+  onSaveDraft: () => void | Promise<void>;
   onSubmit: () => void;
   submitting: boolean;
-  onboardingProvidedCount: number;
-  onboardingProvidedIds: CreditDocumentId[];
   onPreview: (doc: UploadedCreditDocument) => void;
+  /** Status banner rendered above the checklist (e.g. documents required). */
+  notice?: ReactNode;
+  submitLabel?: string;
+  showDeclaration?: boolean;
+  showBack?: boolean;
+  showSaveDraft?: boolean;
 }
 
 export function CreditUploadStep({
@@ -40,41 +45,38 @@ export function CreditUploadStep({
   onSaveDraft,
   onSubmit,
   submitting,
-  onboardingProvidedCount,
-  onboardingProvidedIds,
   onPreview,
+  notice,
+  submitLabel = "Submit credit application",
+  showDeclaration = true,
+  showBack = true,
+  showSaveDraft = true,
 }: CreditUploadStepProps) {
   const requestedLimit = useCreditApplicationStore((s) => s.requestedLimit);
   const creditTerm = useCreditApplicationStore((s) => s.creditTerm);
   const monthlyPurchase = useCreditApplicationStore((s) => s.monthlyPurchase);
   const documents = useCreditApplicationStore((s) => s.documents);
+  const documentErrors = useCreditApplicationStore((s) => s.documentErrors);
   const declarationAccepted = useCreditApplicationStore(
     (s) => s.declarationAccepted,
   );
   const setDeclarationAccepted = useCreditApplicationStore(
     (s) => s.setDeclarationAccepted,
   );
-  const setDocument = useCreditApplicationStore((s) => s.setDocument);
-  const removeDocument = useCreditApplicationStore((s) => s.removeDocument);
+  const uploadDocument = useCreditApplicationStore((s) => s.uploadDocument);
+  const clearDocumentSlot = useCreditApplicationStore(
+    (s) => s.clearDocumentSlot,
+  );
 
   const { uploaded, required } = countRequiredUploaded(documents);
   const parsedLimit = parseCreditLimit(requestedLimit);
 
-  const onboardingDocDefs = CREDIT_DOCUMENT_DEFINITIONS.filter((d) =>
-    onboardingProvidedIds.includes(d.id),
-  );
-  const remainingDocDefs = CREDIT_DOCUMENT_DEFINITIONS.filter(
-    (d) => !onboardingProvidedIds.includes(d.id),
-  );
-
-  function handleUpload(id: CreditDocumentId, file: File) {
-    setDocument({
-      id,
-      fileName: file.name,
-      fileSizeBytes: file.size,
-      uploadedAt: new Date().toISOString(),
-      source: "application",
-    });
+  async function handleUpload(
+    id: CreditDocumentId,
+    file: File,
+    onProgress: (percent: number) => void,
+  ) {
+    await uploadDocument(id, file, onProgress);
     onClearError(`doc_${id}`);
   }
 
@@ -128,121 +130,91 @@ export function CreditUploadStep({
         </span>
       </div>
 
-      {onboardingProvidedCount > 0 ? (
-        <div className="flex gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
-          <Info className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-          <div>
-            <p className="text-sm font-semibold text-emerald-900">
-              {onboardingProvidedCount}{" "}
-              {onboardingProvidedCount === 1 ? "document" : "documents"} already
-              on file from onboarding
-            </p>
-            <p className="mt-1 text-xs text-emerald-800/90">
-              Documents submitted during customer onboarding are reused. Upload
-              only the remaining items below.
-            </p>
-          </div>
-        </div>
-      ) : null}
+      {notice}
 
-      {onboardingDocDefs.length > 0 ? (
-        <>
-          <h3 className="text-sm font-semibold text-slate-900">
-            Documents on file
-          </h3>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {onboardingDocDefs.map((def) => (
-              <CreditDocumentUploadCard
-                key={def.id}
-                definition={def}
-                upload={documents[def.id]}
-                onUpload={(file) => handleUpload(def.id, file)}
-                onRemove={() => removeDocument(def.id)}
-                onPreview={onPreview}
-              />
-            ))}
-          </div>
-        </>
-      ) : null}
-
-      {remainingDocDefs.length > 0 ? (
-        <>
-          <h3 className="text-sm font-semibold text-slate-900">
-            {onboardingProvidedCount > 0
-              ? "Additional documents required"
-              : "Required documents"}
-          </h3>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {remainingDocDefs.map((def) => (
-              <CreditDocumentUploadCard
-                key={def.id}
-                definition={def}
-                upload={documents[def.id]}
-                error={fieldErrors[`doc_${def.id}`]}
-                onUpload={(file) => handleUpload(def.id, file)}
-                onRemove={() => removeDocument(def.id)}
-                onPreview={onPreview}
-              />
-            ))}
-          </div>
-        </>
-      ) : null}
+      <h3 className="text-sm font-semibold text-slate-900">
+        Required documents
+      </h3>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {CREDIT_DOCUMENT_DEFINITIONS.map((def) => (
+          <CreditDocumentUploadCard
+            key={def.id}
+            definition={def}
+            upload={documents[def.id]}
+            error={fieldErrors[`doc_${def.id}`] ?? documentErrors[def.id]}
+            onUpload={(file, onProgress) =>
+              handleUpload(def.id, file, onProgress)
+            }
+            onRemove={() => clearDocumentSlot(def.id)}
+            onPreview={onPreview}
+            disabled={submitting}
+          />
+        ))}
+      </div>
 
       <Card className="border-slate-200 shadow-card">
         <CardContent className="space-y-4 p-4 sm:p-6">
-          <div className="flex items-start gap-3">
-            <Checkbox
-              id="declaration"
-              checked={declarationAccepted}
-              onCheckedChange={(checked) => {
-                setDeclarationAccepted(checked === true);
-                onClearError("declaration");
-              }}
-              className="mt-0.5"
-            />
-            <div className="space-y-1">
-              <Label
-                htmlFor="declaration"
-                className="cursor-pointer text-sm leading-relaxed text-slate-700"
-              >
-                I confirm that all submitted documents are genuine and authorize
-                PetroTrade to verify my business details for credit assessment.{" "}
-                <span className="text-red-500">*</span>
-              </Label>
-              {fieldErrors.declaration ? (
-                <p className="text-xs text-red-600">
-                  {fieldErrors.declaration}
-                </p>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4">
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                className="rounded-xl"
-                onClick={onBack}
-                disabled={submitting}
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="lg"
-                className="rounded-xl"
-                onClick={() => {
-                  onSaveDraft();
-                  toast.success("Draft saved. You can continue later.");
+          {showDeclaration ? (
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="declaration"
+                checked={declarationAccepted}
+                onCheckedChange={(checked) => {
+                  setDeclarationAccepted(checked === true);
+                  onClearError("declaration");
                 }}
-                disabled={submitting}
-              >
-                Save draft
-              </Button>
+                className="mt-0.5"
+              />
+              <div className="space-y-1">
+                <Label
+                  htmlFor="declaration"
+                  className="cursor-pointer text-sm leading-relaxed text-slate-700"
+                >
+                  I confirm that all submitted documents are genuine and
+                  authorize PetroTrade to verify my business details for credit
+                  assessment. <span className="text-red-500">*</span>
+                </Label>
+                {fieldErrors.declaration ? (
+                  <p className="text-xs text-red-600">
+                    {fieldErrors.declaration}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          <div
+            className={cn(
+              "flex flex-wrap items-center justify-between gap-2",
+              showDeclaration && "border-t border-slate-100 pt-4",
+            )}
+          >
+            <div className="flex flex-wrap gap-2">
+              {showBack ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  className="rounded-xl"
+                  onClick={onBack}
+                  disabled={submitting}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </Button>
+              ) : null}
+              {showSaveDraft ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="lg"
+                  className="rounded-xl"
+                  onClick={onSaveDraft}
+                  disabled={submitting}
+                >
+                  Save draft
+                </Button>
+              ) : null}
             </div>
             <Button
               type="button"
@@ -257,7 +229,7 @@ export function CreditUploadStep({
                   Submitting…
                 </>
               ) : (
-                "Submit credit application"
+                submitLabel
               )}
             </Button>
           </div>

@@ -25,6 +25,9 @@ import {
   type CheckoutQuote,
 } from "@/services/checkout";
 import { useCartStore } from "@/store/cartStore";
+import { useDeliveryLocationStore } from "@/store/deliveryLocationStore";
+import { usePurchaseRequestTrackingStore } from "@/store/purchaseRequestTrackingStore";
+import { isPersistedAddressId } from "@/constants/locations";
 import { formatCheckoutPackaging } from "./constants";
 import { CheckoutSkeleton } from "./checkout-skeleton";
 import {
@@ -49,7 +52,10 @@ function money(value: string | number | null | undefined): number {
   return Number.isFinite(next) ? next : 0;
 }
 
-function quoteExpiryLabel(expiresAt: string | null | undefined, now: number): string | null {
+function quoteExpiryLabel(
+  expiresAt: string | null | undefined,
+  now: number,
+): string | null {
   if (!expiresAt) return null;
   const ends = new Date(expiresAt).getTime();
   if (!Number.isFinite(ends)) return null;
@@ -61,7 +67,12 @@ function quoteExpiryLabel(expiresAt: string | null | undefined, now: number): st
 }
 
 function purchaseRequestSuccessHref(input: {
-  pr: { id: string; referenceNumber: string; status: string; responseDeadline?: string | null };
+  pr: {
+    id: string;
+    referenceNumber: string;
+    status: string;
+    responseDeadline?: string | null;
+  };
   quote: CheckoutQuote;
 }): string {
   const params = new URLSearchParams({
@@ -85,10 +96,25 @@ export function CheckoutFlow() {
   const extraIds = searchParams.get("quoteIds");
   const placingRef = useRef(false);
   const fetchCart = useCartStore((state) => state.fetchCart);
+  const fetchPurchaseRequests = usePurchaseRequestTrackingStore(
+    (state) => state.fetchFromApi,
+  );
+  const globalShippingAddressId = useDeliveryLocationStore((state) => {
+    const id = state.selected?.addressId ?? state.selectedAddressId;
+    return isPersistedAddressId(id) ? id : undefined;
+  });
+  const selectSavedDeliveryAddress = useDeliveryLocationStore(
+    (state) => state.selectSavedAddress,
+  );
+  const refreshDeliveryAddresses = useDeliveryLocationStore(
+    (state) => state.fetchRemote,
+  );
 
   const [quotes, setQuotes] = useState<CheckoutQuote[]>([]);
   const [addresses, setAddresses] = useState<CheckoutAddress[]>([]);
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
@@ -108,6 +134,33 @@ export function CheckoutFlow() {
 
   const quote = quotes[0] ?? null;
 
+  const resolveInitialAddressId = useCallback(
+    (
+      nextAddresses: CheckoutAddress[],
+      quoteShippingId?: string | null,
+    ): string | null => {
+      if (
+        globalShippingAddressId &&
+        nextAddresses.some((row) => row.id === globalShippingAddressId)
+      ) {
+        return globalShippingAddressId;
+      }
+      if (
+        quoteShippingId &&
+        isPersistedAddressId(quoteShippingId) &&
+        nextAddresses.some((row) => row.id === quoteShippingId)
+      ) {
+        return quoteShippingId;
+      }
+      return (
+        nextAddresses.find((row) => row.isDefault)?.id ??
+        nextAddresses[0]?.id ??
+        null
+      );
+    },
+    [globalShippingAddressId],
+  );
+
   const load = useCallback(
     async (ids: string[]) => {
       setLoading(true);
@@ -117,7 +170,11 @@ export function CheckoutFlow() {
         let nextIds = ids;
         if (nextIds.length === 0) {
           const cartQuote = await quoteCartForCheckout();
-          if (cartQuote.status === "INVALID" || !cartQuote.valid || cartQuote.quotes.length === 0) {
+          if (
+            cartQuote.status === "INVALID" ||
+            !cartQuote.valid ||
+            cartQuote.quotes.length === 0
+          ) {
             const issue = cartQuote.issues[0];
             const copy = commerceErrorCopy(
               issue?.code ?? "CART_EMPTY",
@@ -131,7 +188,10 @@ export function CheckoutFlow() {
             }
             return;
           }
-          if (cartQuote.status === "PRICE_CHANGED" && cartQuote.changes.length > 0) {
+          if (
+            cartQuote.status === "PRICE_CHANGED" &&
+            cartQuote.changes.length > 0
+          ) {
             setPriceChanges(cartQuote.changes);
             setShowPriceModal(true);
           }
@@ -140,10 +200,11 @@ export function CheckoutFlow() {
           const nextAddresses = await fetchCustomerCheckoutAddresses();
           setAddresses(nextAddresses);
           setSelectedAddressId(
-            cartQuote.quotes[0]?.shippingAddressId ??
-              nextAddresses.find((row) => row.isDefault)?.id ??
-              nextAddresses[0]?.id ??
-              null,
+            resolveInitialAddressId(
+              nextAddresses,
+              cartQuote.quotes[0]?.shippingAddressId ??
+                cartQuote.shippingAddressId,
+            ),
           );
           if (nextIds[0]) {
             router.replace(checkoutHref(nextIds));
@@ -158,10 +219,10 @@ export function CheckoutFlow() {
         setQuotes(loadedQuotes);
         setAddresses(nextAddresses);
         setSelectedAddressId(
-          loadedQuotes[0]?.shippingAddressId ??
-            nextAddresses.find((row) => row.isDefault)?.id ??
-            nextAddresses[0]?.id ??
-            null,
+          resolveInitialAddressId(
+            nextAddresses,
+            loadedQuotes[0]?.shippingAddressId,
+          ),
         );
       } catch (cause) {
         const code = checkoutErrorCode(cause);
@@ -179,7 +240,7 @@ export function CheckoutFlow() {
         setLoading(false);
       }
     },
-    [router],
+    [resolveInitialAddressId, router],
   );
 
   useEffect(() => {
@@ -262,7 +323,12 @@ export function CheckoutFlow() {
         setShowExpiredModal(false);
         setError(null);
         setErrorCode(null);
-        router.replace(checkoutHref([next.quoteId, ...quotes.slice(1).map((entry) => entry.quoteId)]));
+        router.replace(
+          checkoutHref([
+            next.quoteId,
+            ...quotes.slice(1).map((entry) => entry.quoteId),
+          ]),
+        );
         return;
       }
       await load(uniqueQuoteIds(quoteIdParam, extraIds));
@@ -279,6 +345,16 @@ export function CheckoutFlow() {
 
   const handlePlaceOrder = useCallback(async () => {
     if (quotes.length === 0 || placingRef.current) return;
+    if (!selectedAddressId || !isPersistedAddressId(selectedAddressId)) {
+      setValidationIssue({
+        title: "Delivery address required",
+        message:
+          "Select a saved delivery address (or save your current location) before placing a purchase request.",
+      });
+      if (addresses.length === 0) setAddAddressOpen(true);
+      else setAddressSheetOpen(true);
+      return;
+    }
     placingRef.current = true;
     setSubmitting(true);
     try {
@@ -294,13 +370,14 @@ export function CheckoutFlow() {
       for (const entry of quotes) {
         const pr = await placeCustomerPurchaseRequest({
           quoteId: entry.quoteId,
-          shippingAddressId: selectedAddressId ?? undefined,
+          shippingAddressId: selectedAddressId,
           idempotencyKey: entry.quoteId,
         });
         results.push({ pr, quote: entry });
       }
       const first = results[0];
       void fetchCart();
+      void fetchPurchaseRequests();
       toast.success(`Purchase request ${first.pr.referenceNumber} submitted`);
       router.replace(purchaseRequestSuccessHref(first));
     } catch (cause) {
@@ -309,13 +386,17 @@ export function CheckoutFlow() {
       if (latest) {
         const previous = quotes[0];
         setQuotes([latest, ...quotes.slice(1)]);
-        if (previous && Number(previous.unitPrice) !== Number(latest.unitPrice)) {
+        if (
+          previous &&
+          Number(previous.unitPrice) !== Number(latest.unitPrice)
+        ) {
           setPriceChanges([
             {
               cartItemId: latest.quoteId,
               productId: latest.productId,
               productName: latest.product.name,
-              gradeName: latest.grade?.displayName ?? latest.grade?.name ?? null,
+              gradeName:
+                latest.grade?.displayName ?? latest.grade?.name ?? null,
               oldUnitPrice: Number(previous.unitPrice),
               newUnitPrice: Number(latest.unitPrice),
               quantity: Number(latest.quantity),
@@ -325,7 +406,10 @@ export function CheckoutFlow() {
           setShowPriceModal(true);
         }
         router.replace(
-          checkoutHref([latest.quoteId, ...quotes.slice(1).map((entry) => entry.quoteId)]),
+          checkoutHref([
+            latest.quoteId,
+            ...quotes.slice(1).map((entry) => entry.quoteId),
+          ]),
         );
       } else if (code === "QUOTE_EXPIRED") {
         setShowExpiredModal(true);
@@ -342,7 +426,14 @@ export function CheckoutFlow() {
       placingRef.current = false;
       setSubmitting(false);
     }
-  }, [fetchCart, quotes, router, selectedAddressId]);
+  }, [
+    addresses.length,
+    fetchCart,
+    fetchPurchaseRequests,
+    quotes,
+    router,
+    selectedAddressId,
+  ]);
 
   if (loading) return <CheckoutSkeleton />;
 
@@ -351,7 +442,10 @@ export function CheckoutFlow() {
       <PageContainer>
         <PageHeader
           title="Checkout"
-          description={error ?? "Return to cart or product details and generate a new quote."}
+          description={
+            error ??
+            "Return to cart or product details and generate a new quote."
+          }
           breadcrumbs={[
             { label: "Cart", href: ROUTES.cart },
             { label: "Checkout" },
@@ -386,7 +480,9 @@ export function CheckoutFlow() {
             ) : (
               <Button
                 className="rounded-xl bg-brand hover:bg-brand-700"
-                onClick={() => void load(uniqueQuoteIds(quoteIdParam, extraIds))}
+                onClick={() =>
+                  void load(uniqueQuoteIds(quoteIdParam, extraIds))
+                }
               >
                 Retry
               </Button>
@@ -446,7 +542,9 @@ export function CheckoutFlow() {
         <ShieldCheck className="h-4 w-4 text-brand" />
         <span>
           Blind marketplace checkout — supplier identity stays with{" "}
-          <strong className="font-semibold text-slate-800">PetroTrade Network</strong>
+          <strong className="font-semibold text-slate-800">
+            PetroTrade Network
+          </strong>
           {" · "}
           15-minute seller confirmation after placement
         </span>
@@ -508,6 +606,8 @@ export function CheckoutFlow() {
         onOpenChange={setAddressSheetOpen}
         onSelect={(addressId) => {
           setSelectedAddressId(addressId);
+          const address = addresses.find((row) => row.id === addressId);
+          if (address) selectSavedDeliveryAddress(address);
           setAddressSheetOpen(false);
         }}
         onAddAddress={() => {
@@ -524,6 +624,8 @@ export function CheckoutFlow() {
             return [address, ...without];
           });
           setSelectedAddressId(address.id);
+          selectSavedDeliveryAddress(address);
+          void refreshDeliveryAddresses();
         }}
       />
       <PriceUpdatedDialog

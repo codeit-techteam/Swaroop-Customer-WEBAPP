@@ -13,6 +13,7 @@ export function SupportModuleShell({ children }: { children: ReactNode }) {
     const finish = () => useSupportStore.getState().setHydrated(true);
     const unsub = useSupportStore.persist.onFinishHydration(finish);
     if (useSupportStore.persist.hasHydrated()) finish();
+    void useSupportStore.getState().loadTickets();
     return unsub;
   }, []);
 

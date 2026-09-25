@@ -54,10 +54,12 @@ export function ShippingCard({
 export function EmptyShippingCard({ onAddPress }: { onAddPress: () => void }) {
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
-      <h2 className="text-base font-semibold text-slate-900">Shipping address</h2>
+      <h2 className="text-base font-semibold text-slate-900">
+        Shipping address
+      </h2>
       <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
-        No saved address yet. Freight uses the platform estimate until a
-        destination is added.
+        No saved address yet for this organization. Addresses you save in the
+        Customer APP appear here automatically when you use the same login.
       </p>
       <Button
         type="button"

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Bell, Menu, ShoppingCart } from "lucide-react";
 import { ROUTES } from "@/constants";
 import { TopNavbar } from "@/components/layout/top-navbar";
+import { LocationSelector } from "@/components/location/location-selector";
 import { NotificationDrawer } from "@/components/notifications/NotificationDrawer";
 import { ProfileAvatarButton } from "@/components/profile/ProfileAvatarButton";
 import { GlobalGradeSearch } from "@/components/search/global-grade-search";
@@ -44,6 +45,8 @@ export function CustomerTopNav({ className }: CustomerTopNavProps) {
         }
         right={
           <div className="flex items-center gap-1.5 sm:gap-2.5">
+            <LocationSelector />
+
             <Button
               asChild
               className="hidden h-10 rounded-xl bg-brand px-3 text-sm font-semibold hover:bg-brand-700 sm:inline-flex sm:px-4"

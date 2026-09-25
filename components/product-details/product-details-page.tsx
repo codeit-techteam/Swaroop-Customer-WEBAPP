@@ -22,10 +22,7 @@ import { ProductApplications } from "./product-applications";
 import { DeliveryCard } from "./delivery-card";
 import { TechnicalSpecificationAccordion } from "./technical-specification-accordion";
 import { DocumentDownloads } from "./document-downloads";
-import {
-  MobileBuyBar,
-  StickyPurchasePanel,
-} from "./sticky-purchase-panel";
+import { MobileBuyBar, StickyPurchasePanel } from "./sticky-purchase-panel";
 import { RelatedProductsCarousel } from "./related-products-carousel";
 import { ProductDetailsPageSkeleton } from "./product-details-skeleton";
 
@@ -43,14 +40,18 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
   const isLoading = useProductStore((s) => s.isLoading);
   const loadError = useProductStore((s) => s.loadError);
 
-  const { quote, paymentOptions, loading: quoteLoading, error: quoteError } =
-    useCustomerQuote({
-      productId,
-      offerId: selectedProduct?.offerId,
-      quantity,
-      paymentId,
-      enabled: Boolean(selectedProduct),
-    });
+  const {
+    quote,
+    paymentOptions,
+    loading: quoteLoading,
+    error: quoteError,
+  } = useCustomerQuote({
+    productId,
+    offerId: selectedProduct?.offerId,
+    quantity,
+    paymentId,
+    enabled: Boolean(selectedProduct),
+  });
 
   useEffect(() => {
     void loadProduct(productId);
@@ -61,8 +62,13 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
 
   useEffect(() => {
     if (!product) return;
-    setQuantity(product.moq);
-  }, [product?.id, product?.moq]);
+    const stock = product.stock;
+    if (stock <= 0) {
+      setQuantity(0);
+      return;
+    }
+    setQuantity(Math.min(product.moq, stock));
+  }, [product?.id, product?.moq, product?.stock]);
 
   if (!ready) {
     return (
@@ -85,8 +91,7 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
           <MarketplaceEmptyState
             title={loadError ? "Unable to load product" : "Grade not found"}
             description={
-              loadError ??
-              "This grade is unavailable or the link is invalid."
+              loadError ?? "This grade is unavailable or the link is invalid."
             }
           />
         </div>
@@ -101,8 +106,15 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
     : detail.spotPrice;
 
   function handleSelectTier(tier: BulkPricingTier) {
-    const next = Math.min(detail.stock, Math.max(detail.moq, tier.minMt));
-    setQuantity(next);
+    if (detail.stock <= 0) {
+      setQuantity(0);
+      return;
+    }
+    const next = Math.min(
+      detail.stock,
+      Math.max(Math.min(detail.moq, detail.stock), tier.minMt),
+    );
+    setQuantity(Math.min(next, detail.stock));
   }
 
   function handleBuyNow() {
@@ -205,7 +217,7 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
               : "—"
         }
         onBuyNow={handleBuyNow}
-        disabled={!quote || quoteLoading}
+        disabled={!quote || quoteLoading || detail.stock <= 0}
       />
     </PageContainer>
   );

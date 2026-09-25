@@ -17,6 +17,12 @@ export type BlindListing = {
   moq?: number | string | null;
   quantityAvailable?: number | string | null;
   leadTime?: string | null;
+  priceTiers?: Array<{
+    minQty?: number | string | null;
+    maxQty?: number | string | null;
+    price?: number | string | null;
+    currency?: string;
+  }>;
 };
 
 export type BlindProduct = {
@@ -24,6 +30,7 @@ export type BlindProduct = {
   code: string;
   name: string;
   brand?: string | null;
+  manufacturer?: string | null;
   description?: string | null;
   technicalSpecs?: Record<string, unknown> | null;
   mfi?: string | null;
@@ -54,7 +61,9 @@ export type BlindProduct = {
   }>;
 };
 
-export type BlindProductDocument = NonNullable<BlindProduct["documents"]>[number];
+export type BlindProductDocument = NonNullable<
+  BlindProduct["documents"]
+>[number];
 
 const PARENT_FROM_GROUP: Record<string, MarketplaceParentCategoryId> = {
   POLYMERS: "polymers",
@@ -80,7 +89,9 @@ function specsOf(product: BlindProduct): Record<string, unknown> {
     : {};
 }
 
-export function parentCategoryIdOf(product: BlindProduct): MarketplaceParentCategoryId {
+export function parentCategoryIdOf(
+  product: BlindProduct,
+): MarketplaceParentCategoryId {
   const specs = specsOf(product);
   const fromSpecs = specs.parentCategoryId;
   if (
@@ -91,13 +102,16 @@ export function parentCategoryIdOf(product: BlindProduct): MarketplaceParentCate
   ) {
     return fromSpecs;
   }
-  const group = (product.grade as { category?: { parentGroup?: string } } | null)?.category
-    ?.parentGroup;
+  const group = (
+    product.grade as { category?: { parentGroup?: string } } | null
+  )?.category?.parentGroup;
   if (group && PARENT_FROM_GROUP[group]) return PARENT_FROM_GROUP[group];
   return "polymers";
 }
 
-export function toMarketplaceProduct(product: BlindProduct): MarketplaceProduct {
+export function toMarketplaceProduct(
+  product: BlindProduct,
+): MarketplaceProduct {
   const specs = specsOf(product);
   const listing = product.listing;
   const applications = Array.isArray(specs.applications)
@@ -107,7 +121,8 @@ export function toMarketplaceProduct(product: BlindProduct): MarketplaceProduct 
   if (product.mfi) technicalSpecs.mfi = product.mfi;
   if (product.density) technicalSpecs.density = product.density;
   if (typeof specs.form === "string") technicalSpecs.form = specs.form;
-  if (typeof specs.mfi === "string" && !technicalSpecs.mfi) technicalSpecs.mfi = specs.mfi;
+  if (typeof specs.mfi === "string" && !technicalSpecs.mfi)
+    technicalSpecs.mfi = specs.mfi;
   if (typeof specs.density === "string" && !technicalSpecs.density)
     technicalSpecs.density = specs.density;
 
@@ -115,27 +130,54 @@ export function toMarketplaceProduct(product: BlindProduct): MarketplaceProduct 
   const stockStatus =
     stock <= 0 ? "out_of_stock" : stock < 100 ? "limited" : "in_stock";
 
+  const warehouseLabel = String(specs.warehouseLabel ?? "Verified Hub");
+  const leadTime = String(listing?.leadTime ?? specs.eta ?? "").trim();
+  const eta = leadTime || estimateDeliveryFromWarehouse(warehouseLabel);
+
+  const priceTiers = listing?.priceTiers ?? [];
+  const bulkPricing =
+    priceTiers.length > 0
+      ? priceTiers.map((tier, index) => {
+          const minMt = num(tier.minQty);
+          const maxMt =
+            tier.maxQty == null || tier.maxQty === "" ? null : num(tier.maxQty);
+          return {
+            id: `tier-${index}-${minMt}`,
+            minMt,
+            maxMt,
+            pricePerMt: num(tier.price),
+            quantityLabel:
+              maxMt == null ? `${minMt}+ MT` : `${minMt} - ${maxMt} MT`,
+          };
+        })
+      : undefined;
+
   return {
     id: product.id,
     name: product.name,
     grade: product.grade?.code ?? String(specs.materialType ?? product.code),
     gradeCode: product.code,
     categoryId: parentCategoryIdOf(product),
-    materialType: String(specs.materialType ?? product.grade?.name ?? product.name),
-    subCategory: typeof specs.subCategory === "string" ? specs.subCategory : undefined,
+    materialType: String(
+      specs.materialType ?? product.grade?.name ?? product.name,
+    ),
+    subCategory:
+      typeof specs.subCategory === "string" ? specs.subCategory : undefined,
     brandId: "private",
-    brandName: product.brand || "PRIVATE",
+    brandName: product.manufacturer || product.brand || "Verified Supply",
     brandShortName: "PVT",
     description: product.description ?? "",
     price: num(listing?.price),
     unit: "MT",
     origin: String(specs.origin ?? product.countryOfOrigin ?? ""),
     warehouseId: String(specs.warehouseId ?? "wh-all"),
-    warehouseLabel: String(specs.warehouseLabel ?? "Verified Hub"),
+    warehouseLabel,
     stock,
     moq: num(listing?.moq),
-    eta: String(listing?.leadTime ?? specs.eta ?? ""),
-    badge: (typeof specs.badge === "string" ? specs.badge : "Best Value") as MarketplaceProduct["badge"],
+    eta,
+    badge: (typeof specs.badge === "string"
+      ? specs.badge
+      : "Best Value") as MarketplaceProduct["badge"],
     image: "",
     images: [],
     casNumber: String(specs.casNumber ?? ""),
@@ -144,15 +186,46 @@ export function toMarketplaceProduct(product: BlindProduct): MarketplaceProduct 
     stockStatus,
     createdAt: new Date().toISOString(),
     popularityScore: num(specs.popularityScore, 50),
-    supplyOrigin: (product.supplyOrigin === "imported" ? "imported" : "domestic") as ProductSupplyOrigin,
+    supplyOrigin: (product.supplyOrigin === "imported"
+      ? "imported"
+      : "domestic") as ProductSupplyOrigin,
     technicalSpecs,
     verified: true,
     availableQuantity: stock,
     sellerVisible: false,
     offerId: listing?.offerId,
     packaging: product.packaging ?? undefined,
+    bulkPricing,
     documents: product.documents ?? [],
   };
+}
+
+/** Client-side ETA when offer.deliveryTerms is missing (mirrors seller backend). */
+export function estimateDeliveryFromWarehouse(
+  locationHint?: string | null,
+): string {
+  const hint = (locationHint ?? "").toLowerCase();
+  if (
+    hint.includes("mumbai") ||
+    hint.includes("pune") ||
+    hint.includes("nashik") ||
+    hint.includes("gujarat") ||
+    hint.includes("ahmedabad")
+  ) {
+    return "2–3 Business Days";
+  }
+  if (
+    hint.includes("chennai") ||
+    hint.includes("kolkata") ||
+    hint.includes("howrah") ||
+    hint.includes("delhi") ||
+    hint.includes("hyderabad") ||
+    hint.includes("bangalore") ||
+    hint.includes("bengaluru")
+  ) {
+    return "3–5 Business Days";
+  }
+  return "4–6 Business Days";
 }
 
 const PARENT_CATEGORIES: Array<Omit<MarketplaceCategory, "productCount">> = [
@@ -190,7 +263,9 @@ const PARENT_CATEGORIES: Array<Omit<MarketplaceCategory, "productCount">> = [
   },
 ];
 
-export function getParentCategoryBySlug(slug: string): MarketplaceCategory | undefined {
+export function getParentCategoryBySlug(
+  slug: string,
+): MarketplaceCategory | undefined {
   const category = PARENT_CATEGORIES.find((item) => item.slug === slug);
   return category ? { ...category, productCount: 0 } : undefined;
 }
@@ -200,11 +275,14 @@ export function categoriesFromProducts(
 ): MarketplaceCategory[] {
   return PARENT_CATEGORIES.map((category) => ({
     ...category,
-    productCount: products.filter((item) => item.categoryId === category.id).length,
+    productCount: products.filter((item) => item.categoryId === category.id)
+      .length,
   }));
 }
 
-export function brandsFromProducts(products: MarketplaceProduct[]): MarketplaceBrand[] {
+export function brandsFromProducts(
+  products: MarketplaceProduct[],
+): MarketplaceBrand[] {
   const seen = new Map<string, MarketplaceBrand>();
   for (const product of products) {
     const id = product.brandId || "private";
@@ -251,9 +329,11 @@ export type BlindOffer = {
   price?: number | string | null;
   currency?: string;
   deliveryTerms?: string | null;
+  paymentTerms?: unknown;
   validFrom?: string | Date | null;
   validUntil?: string | Date | null;
   status?: string;
+  gstPercent?: number | string | null;
   region?: string | null;
   product?: { id: string; code: string; name: string; unit?: string } | null;
   grade?: {
@@ -298,7 +378,9 @@ export function toMarketplaceOffer(
   const tierPrices = (offer.priceTiers ?? [])
     .map((tier) => num(tier.price))
     .filter((price) => price > 0);
-  const offerPrice = tierPrices.length ? Math.min(basePrice || Infinity, ...tierPrices) : basePrice;
+  const offerPrice = tierPrices.length
+    ? Math.min(basePrice || Infinity, ...tierPrices)
+    : basePrice;
   const priceBefore = Math.max(basePrice, offerPrice);
   const discountPercent =
     priceBefore > 0 && offerPrice < priceBefore
@@ -311,18 +393,37 @@ export function toMarketplaceOffer(
     : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
   const paymentTypes = [
     ...new Set(
-      (offer.priceTiers ?? [])
-        .map((tier) => mapPaymentMethod(tier.paymentMethod))
-        .filter((item): item is OfferPaymentType => Boolean(item)),
+      [
+        ...(offer.priceTiers ?? []).map((tier) =>
+          mapPaymentMethod(tier.paymentMethod),
+        ),
+        mapPaymentMethod(
+          typeof offer.paymentTerms === "string"
+            ? offer.paymentTerms
+            : typeof offer.paymentTerms === "object" &&
+                offer.paymentTerms &&
+                "method" in (offer.paymentTerms as Record<string, unknown>)
+              ? String(
+                  (offer.paymentTerms as { method?: unknown }).method ?? "",
+                )
+              : null,
+        ),
+      ].filter((item): item is OfferPaymentType => Boolean(item)),
     ),
   ];
-  const title = product?.name ?? offer.product?.name ?? offer.grade?.name ?? "Marketplace offer";
+  const title =
+    product?.name ??
+    offer.product?.name ??
+    offer.grade?.name ??
+    "Marketplace offer";
+  const gstPercent = num(offer.gstPercent, 18);
 
   return {
     id: offer.id,
     slug: offer.referenceNumber ?? offer.id,
     title,
-    description: product?.description || `${title} available from verified supply.`,
+    description:
+      product?.description || `${title} available from verified supply.`,
     termsAndConditions: [],
     productId: product?.id ?? offer.product?.id ?? "",
     productName: title,
@@ -345,13 +446,18 @@ export function toMarketplaceOffer(
     availableQuantity: stock,
     remainingStock: stock,
     expiresAt,
-    validFrom: offer.validFrom ? new Date(offer.validFrom).toISOString() : undefined,
+    validFrom: offer.validFrom
+      ? new Date(offer.validFrom).toISOString()
+      : undefined,
     offerType: discountPercent >= 5 ? "bulk_discount" : "new_arrival",
     badge: discountPercent >= 5 ? `${discountPercent}% OFF` : "Live Offer",
     paymentTypes: paymentTypes.length ? paymentTypes : ["advance"],
-    creditEligible: Boolean(product?.creditEligible) || paymentTypes.includes("credit_15") || paymentTypes.includes("credit_30"),
+    creditEligible:
+      Boolean(product?.creditEligible) ||
+      paymentTypes.includes("credit_15") ||
+      paymentTypes.includes("credit_30"),
     estimatedFreight: 0,
-    gstPercent: 18,
+    gstPercent,
     brochureUrl: "",
     isLimitedTime: Boolean(offer.validUntil),
     isTrending: num(product?.popularityScore, 0) >= 70,
@@ -359,7 +465,10 @@ export function toMarketplaceOffer(
     bulkTiers: (offer.priceTiers ?? []).map((tier, index) => ({
       id: `${offer.id}-tier-${index}`,
       minMt: num(tier.minQty),
-      label: tier.maxQty != null ? `${num(tier.minQty)}–${num(tier.maxQty)} MT` : `${num(tier.minQty)}+ MT`,
+      label:
+        tier.maxQty != null
+          ? `${num(tier.minQty)}–${num(tier.maxQty)} MT`
+          : `${num(tier.minQty)}+ MT`,
       currentPrice: priceBefore,
       discountPrice: num(tier.price, offerPrice),
       savings: Math.max(0, priceBefore - num(tier.price, offerPrice)),

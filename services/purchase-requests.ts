@@ -18,8 +18,13 @@ export type BackendPurchaseRequest = {
   currency?: string;
   destinationRegion?: string | null;
   remainingSeconds?: number | null;
+  responseDeadline?: string | null;
+  expiresAt?: string | null;
   poNumber?: string | null;
-  purchaseOrder?: { referenceNumber?: string | null; status?: string | null } | null;
+  purchaseOrder?: {
+    referenceNumber?: string | null;
+    status?: string | null;
+  } | null;
   submittedAt?: string | null;
   createdAt?: string;
   rejectionReason?: string | null;
@@ -30,7 +35,11 @@ export type BackendPurchaseRequest = {
     unit?: string;
     targetUnitPrice?: unknown;
     product?: { id?: string; name?: string } | null;
-    grade?: { code?: string; name?: string; displayName?: string | null } | null;
+    grade?: {
+      code?: string;
+      name?: string;
+      displayName?: string | null;
+    } | null;
   }>;
 };
 
@@ -99,11 +108,16 @@ export function mapPurchaseRequest(
   const unitPrice = num(line?.targetUnitPrice ?? item.targetPrice);
   const status = mapTrackingStatus(item.status);
   const paymentMethodId = mapPaymentMethod(item.paymentMethod);
+  const deadlineIso = item.responseDeadline ?? item.expiresAt ?? null;
   return {
     id: item.id,
     displayId: item.referenceNumber,
     productId: line?.product?.id ?? item.id,
-    productName: line?.product?.name ?? line?.grade?.displayName ?? line?.grade?.name ?? "Grade",
+    productName:
+      line?.product?.name ??
+      line?.grade?.displayName ??
+      line?.grade?.name ??
+      "Grade",
     grade: line?.grade?.code ?? line?.grade?.name ?? "—",
     quantityMt: quantity,
     sellerName: item.supplier?.displayName ?? "ANONYMOUS SUPPLIER",
@@ -120,7 +134,7 @@ export function mapPurchaseRequest(
         : paymentMethodId.replaceAll("_", " "),
     status,
     requestStatus: mapRequestStatus(item.status),
-    expectedExpiryAt: null,
+    expectedExpiryAt: deadlineIso ? iso(deadlineIso) : null,
     secondsRemaining: item.remainingSeconds ?? null,
     orderId: item.purchaseOrder?.referenceNumber ?? item.poNumber ?? null,
     poNumber: item.poNumber ?? item.purchaseOrder?.referenceNumber ?? null,
@@ -128,11 +142,18 @@ export function mapPurchaseRequest(
     totalAmount: Math.round(quantity * unitPrice),
     rejectionReason: item.rejectionReason ?? null,
     rejectedBy: item.rejectionReason ? "Seller" : null,
-    canCancel: ["submitted", "seller_reviewing", "pending_approval", "draft"].includes(status),
+    canCancel: [
+      "submitted",
+      "seller_reviewing",
+      "pending_approval",
+      "draft",
+    ].includes(status),
   };
 }
 
-export async function fetchCustomerPurchaseRequests(): Promise<PurchaseRequestTrackingItem[]> {
+export async function fetchCustomerPurchaseRequests(): Promise<
+  PurchaseRequestTrackingItem[]
+> {
   const rows = await paginateAll(async (page) => {
     const payload = await apiClient.get<Envelope<BackendPurchaseRequest[]>>(
       `/customer/purchase-requests?page=${page}&limit=50`,
@@ -143,6 +164,28 @@ export async function fetchCustomerPurchaseRequests(): Promise<PurchaseRequestTr
     };
   });
   return rows.map(mapPurchaseRequest);
+}
+
+export type PurchaseRequestStatusPayload = {
+  id: string;
+  referenceNumber: string;
+  status: string;
+  expiresAt?: string | null;
+  responseDeadline?: string | null;
+  remainingSeconds?: number | null;
+  allowedActions?: string[];
+  submittedAt?: string | null;
+  rejectionReason?: string | null;
+};
+
+export async function fetchPurchaseRequestStatus(
+  id: string,
+): Promise<PurchaseRequestStatusPayload> {
+  const payload = await apiClient.get<Envelope<PurchaseRequestStatusPayload>>(
+    `/customer/purchase-requests/${id}/status`,
+  );
+  if (!payload.data) throw new Error("Purchase request status unavailable");
+  return payload.data;
 }
 
 export async function cancelCustomerPurchaseRequest(id: string) {
