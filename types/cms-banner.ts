@@ -3,6 +3,8 @@ export type CmsBannerPlacement =
 
 export type CmsBannerEvent = "IMPRESSION" | "CLICK";
 
+export type CmsBannerLayoutVariant = "IMAGE_OVERLAY" | "NAVY_GRID";
+
 export type CmsBanner = {
   id: string;
   title: string;
@@ -22,4 +24,10 @@ export type CmsBanner = {
   externalUrl?: string | null;
   targetId?: string | null;
   priority?: number;
+  /** NAVY_GRID = structured dual-CTA hero; IMAGE_OVERLAY = photo creative. */
+  layoutVariant?: CmsBannerLayoutVariant | null;
+  secondaryCtaText?: string | null;
+  secondaryCtaAction?: string | null;
+  secondaryExternalUrl?: string | null;
+  secondaryTargetId?: string | null;
 };

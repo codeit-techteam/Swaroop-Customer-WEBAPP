@@ -13,6 +13,10 @@ interface HeroBannerProps {
   className?: string;
 }
 
+/**
+ * Local fallback when CMS has no ACTIVE HOME_HERO banner.
+ * Production copy/CTAs should be managed via Admin → Content → Banners (NAVY_GRID).
+ */
 export function HeroBanner({ content, className }: HeroBannerProps) {
   return (
     <motion.section
@@ -25,7 +29,6 @@ export function HeroBanner({ content, className }: HeroBannerProps) {
       )}
       aria-label="Hero banner"
     >
-      {/* Abstract industrial atmosphere — no product photography */}
       <div
         className="absolute inset-0 opacity-40"
         style={{
@@ -57,7 +60,7 @@ export function HeroBanner({ content, className }: HeroBannerProps) {
               "Discover verified grades, compare market prices and procure through a secure blind marketplace."}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
           <Button
             asChild
             className="h-10 rounded-xl bg-white px-4 text-sm font-semibold text-brand hover:bg-slate-100"
@@ -72,7 +75,9 @@ export function HeroBanner({ content, className }: HeroBannerProps) {
             variant="outline"
             className="h-10 rounded-xl border-white/30 bg-transparent px-4 text-sm font-semibold text-white hover:bg-white/10 hover:text-white"
           >
-            <Link href={ROUTES.purchaseRequests}>Create Purchase Request</Link>
+            <Link href={ROUTES.purchaseRequestsCreate}>
+              Create Purchase Request
+            </Link>
           </Button>
         </div>
       </div>

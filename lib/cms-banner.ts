@@ -12,16 +12,22 @@ export function cmsBannerImage(
   return banner.mediaUrl || banner.mobileMediaUrl || banner.mediaKey || "";
 }
 
-export function cmsBannerHref(banner: CmsBanner): string | null {
-  const action = banner.ctaAction || "NO_ACTION";
-  const targetId = banner.targetId?.trim();
-  const targetRoute = banner.targetRoute?.trim();
-  const externalUrl = banner.externalUrl?.trim();
+function resolveCtaHref(options: {
+  action?: string | null;
+  targetId?: string | null;
+  targetRoute?: string | null;
+  externalUrl?: string | null;
+}): string | null {
+  const action = options.action || "NO_ACTION";
+  const targetId = options.targetId?.trim();
+  const targetRoute = options.targetRoute?.trim();
+  const externalUrl = options.externalUrl?.trim();
 
   if (action === "NO_ACTION" && !targetRoute && !externalUrl) return null;
 
   if (action === "OPEN_EXTERNAL_URL" && externalUrl) return externalUrl;
   if (action === "OPEN_MARKETPLACE") return ROUTES.marketplace;
+  if (action === "OPEN_PURCHASE_REQUEST") return ROUTES.purchaseRequestsCreate;
   if (action === "OPEN_ORDERS") return ROUTES.orders;
   if (action === "OPEN_PRODUCT" && targetId) {
     return `${ROUTES.marketplaceProduct}/${targetId}`;
@@ -39,6 +45,30 @@ export function cmsBannerHref(banner: CmsBanner): string | null {
   return null;
 }
 
+export function cmsBannerHref(banner: CmsBanner): string | null {
+  return resolveCtaHref({
+    action: banner.ctaAction,
+    targetId: banner.targetId,
+    targetRoute: banner.targetRoute,
+    externalUrl: banner.externalUrl,
+  });
+}
+
+export function cmsBannerSecondaryHref(banner: CmsBanner): string | null {
+  if (!banner.secondaryCtaText && !banner.secondaryCtaAction) return null;
+  return resolveCtaHref({
+    action: banner.secondaryCtaAction,
+    targetId: banner.secondaryTargetId,
+    externalUrl: banner.secondaryExternalUrl,
+  });
+}
+
 export function cmsBannerIsExternal(href: string | null): boolean {
   return Boolean(href && /^https?:\/\//i.test(href));
+}
+
+export function cmsBannerIsNavyGrid(banner: CmsBanner): boolean {
+  if (banner.layoutVariant === "NAVY_GRID") return true;
+  if (banner.layoutVariant === "IMAGE_OVERLAY") return false;
+  return !cmsBannerImage(banner);
 }
