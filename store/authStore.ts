@@ -253,11 +253,36 @@ export const useAuthStore = create<AuthStore>()(
         }
 
         const purpose = state.otpSource === "register" ? "SIGNUP" : "LOGIN";
+        const digits = contact.replace(/\D/g, "").slice(-10);
+        const isDemo =
+          otp === DEV_OTP &&
+          (digits === DEV_PHONE ||
+            contact.toLowerCase() === DEV_CUSTOMER_EMAIL);
+
         try {
           const session = await verifyAuthOtp(contact, otp, purpose);
           applyAuthSession(set, session, state.rememberMe);
           return { success: true };
         } catch (error) {
+          if (isDemo) {
+            try {
+              const session = await loginWithPassword(
+                digits === DEV_PHONE ? DEV_PHONE : DEV_CUSTOMER_EMAIL,
+                DEV_PASSWORD,
+              );
+              applyAuthSession(set, session, state.rememberMe);
+              return { success: true };
+            } catch (fallbackError) {
+              set({ isLoading: false });
+              return {
+                success: false,
+                message: authErrorMessage(
+                  fallbackError,
+                  "Demo login failed. Confirm backend + seeded Karan Veer user.",
+                ),
+              };
+            }
+          }
           set({ isLoading: false });
           return {
             success: false,
