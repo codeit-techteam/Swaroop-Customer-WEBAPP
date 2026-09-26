@@ -141,7 +141,8 @@ function toMarketplaceProduct(product: PublishedProduct): MarketplaceProduct {
     grade: product.grade,
     gradeCode: product.grade,
     categoryId: toParentCategory(product.categoryId),
-    materialType: MATERIAL_MAP[product.material] ?? product.material ?? "Polypropylene",
+    materialType:
+      MATERIAL_MAP[product.material] ?? product.material ?? "Polypropylene",
     brandId: "seller-private",
     brandName: "PRIVATE",
     brandShortName: "PRIVATE",
@@ -159,12 +160,11 @@ function toMarketplaceProduct(product: PublishedProduct): MarketplaceProduct {
     image: "",
     images: [],
     casNumber: product.casNumber ?? "",
-    applications:
-      product.applications?.length
-        ? product.applications
-        : product.application
-          ? [product.application]
-          : [product.packaging],
+    applications: product.applications?.length
+      ? product.applications
+      : product.application
+        ? [product.application]
+        : [product.packaging],
     creditEligible: product.creditEligible ?? true,
     stockStatus: product.stockIndicator,
     createdAt: new Date().toISOString(),
@@ -182,9 +182,7 @@ function tierLabel(tier: PublishedBulkPrice, unit: string) {
   return `${tier.minQty} - ${tier.maxQty} ${unit}`;
 }
 
-function mapBulkPricing(
-  product: PublishedProduct,
-): BulkPricingTier[] | null {
+function mapBulkPricing(product: PublishedProduct): BulkPricingTier[] | null {
   if (!product.bulkPrices?.length) return null;
   return [...product.bulkPrices]
     .sort((a, b) => a.minQty - b.minQty)
@@ -234,9 +232,7 @@ function isOptionalProductDownload(name: string, type?: string): boolean {
   return label.includes("TDS") || label.includes("MSDS");
 }
 
-function mapDocuments(
-  product: PublishedProduct,
-): ComplianceDocument[] | null {
+function mapDocuments(product: PublishedProduct): ComplianceDocument[] | null {
   if (!product.documents?.length) return null;
   const mapped = product.documents
     .filter((doc) => isOptionalProductDownload(doc.name, doc.type))
@@ -278,7 +274,8 @@ export function publishedProductToDetail(
   const categoryName = product.material || "Polymers";
   const moq = product.moq;
   const bulkPricing =
-    mapBulkPricing(product) ?? buildBulkPricing(product.sellingPrice);
+    mapBulkPricing(product) ??
+    buildBulkPricing(product.sellingPrice, undefined);
   const paymentOptions =
     mapPaymentOptions(product) ?? buildPaymentOptions(creditEligible);
   const specs = mapSpecs(product) ?? [];
@@ -303,20 +300,16 @@ export function publishedProductToDetail(
     casNumber: product.casNumber ?? "",
     hsnCode: product.hsnCode ?? "3902.10.00",
     application:
-      product.application ||
-      product.applications?.[0] ||
-      materialType,
-    applications:
-      product.applications?.length
-        ? product.applications
-        : product.application
-          ? [product.application]
-          : [product.packaging],
+      product.application || product.applications?.[0] || materialType,
+    applications: product.applications?.length
+      ? product.applications
+      : product.application
+        ? [product.application]
+        : [product.packaging],
     features: getFeaturesForMaterial(materialType),
-    highlights:
-      product.highlights?.length
-        ? product.highlights
-        : buildProductHighlights(creditEligible),
+    highlights: product.highlights?.length
+      ? product.highlights
+      : buildProductHighlights(creditEligible),
     industry: product.industry ?? "Petrochemicals & Packaging",
     packaging: product.packaging,
     origin: product.origin || product.location,

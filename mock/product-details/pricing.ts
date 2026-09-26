@@ -16,9 +16,9 @@ export function buildSpotPrice(pricePerMt: number): SpotPriceInfo {
   };
 }
 
-/** Bulk tiers — prefer seller-configured tiers from the offer. */
+/** Prefer seller-configured tiers from the offer. Never invent fake discounts. */
 export function buildBulkPricing(
-  spotPricePerMt: number,
+  _spotPricePerMt: number,
   configured?: Array<{
     id: string;
     minMt: number;
@@ -27,38 +27,14 @@ export function buildBulkPricing(
     quantityLabel: string;
   }>,
 ): BulkPricingTier[] {
-  if (configured && configured.length > 0) {
-    return configured.map((tier) => ({
-      id: tier.id,
-      quantityLabel: tier.quantityLabel,
-      pricePerMt: tier.pricePerMt,
-      minMt: tier.minMt,
-      maxMt: tier.maxMt,
-    }));
-  }
-  return [
-    {
-      id: "tier-25-99",
-      quantityLabel: "25 - 99 MT",
-      pricePerMt: spotPricePerMt,
-      minMt: 25,
-      maxMt: 99,
-    },
-    {
-      id: "tier-100-199",
-      quantityLabel: "100 - 199 MT",
-      pricePerMt: Math.round(spotPricePerMt * 0.987),
-      minMt: 100,
-      maxMt: 199,
-    },
-    {
-      id: "tier-200-plus",
-      quantityLabel: "200+ MT",
-      pricePerMt: Math.round(spotPricePerMt * 0.972),
-      minMt: 200,
-      maxMt: null,
-    },
-  ];
+  if (!configured || configured.length === 0) return [];
+  return configured.map((tier) => ({
+    id: tier.id,
+    quantityLabel: tier.quantityLabel,
+    pricePerMt: tier.pricePerMt,
+    minMt: tier.minMt,
+    maxMt: tier.maxMt,
+  }));
 }
 
 export function buildPaymentOptions(creditEligible: boolean): PaymentOption[] {

@@ -25,6 +25,8 @@ export function BulkPricingCard({
   onSelectTier,
   className,
 }: BulkPricingCardProps) {
+  if (!tiers.length) return null;
+
   const selectable = typeof onSelectTier === "function";
   const activeTierId =
     quantity != null
