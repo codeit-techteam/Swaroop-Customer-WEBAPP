@@ -4,7 +4,7 @@ services:
   - name: web
     github:
       repo: codeit-techteam/Swaroop-Customer-WEBAPP
-      branch: main
+      branch: skr-c0der
       deploy_on_push: true
     dockerfile_path: Dockerfile
     http_port: 3000

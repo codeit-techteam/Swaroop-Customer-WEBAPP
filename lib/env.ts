@@ -3,7 +3,8 @@ export const env = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001",
   appEnv: process.env.NEXT_PUBLIC_APP_ENV ?? "development",
   apiBaseUrl:
-    process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3000/api/v1",
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    "https://swaroop-backend-xzwkz.ondigitalocean.app/api/v1",
   refreshTokenStorageKey:
     process.env.NEXT_PUBLIC_REFRESH_TOKEN_KEY ?? "pt_customer_refresh",
   apiTimeout: Number(process.env.NEXT_PUBLIC_API_TIMEOUT ?? 30000),
@@ -13,7 +14,9 @@ export const env = {
   enableAnalytics: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === "true",
   enableWebSockets: process.env.NEXT_PUBLIC_ENABLE_WEBSOCKETS === "true",
   enablePayments: process.env.NEXT_PUBLIC_ENABLE_PAYMENTS === "true",
-  cxApiUrl: process.env.NEXT_PUBLIC_CX_API_URL ?? "http://localhost:3000",
+  cxApiUrl:
+    process.env.NEXT_PUBLIC_CX_API_URL ??
+    "https://swaroop-backend-xzwkz.ondigitalocean.app",
   adminApiUrl: process.env.NEXT_PUBLIC_ADMIN_API_URL ?? "http://localhost:3002",
   /** Optional — improves reverse geocode; OSM fallback is used when empty. */
   googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "",
