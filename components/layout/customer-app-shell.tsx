@@ -10,6 +10,7 @@ import {
 import { CustomerFooter } from "@/components/layout/customer-footer";
 import { CustomerSidebar } from "@/components/navigation/customer-sidebar";
 import { CustomerTopNav } from "@/components/navigation/customer-top-nav";
+import { KycAttentionBanner } from "@/components/kyc/KycAttentionBanner";
 import { OnboardingGate } from "@/components/onboarding/OnboardingGate";
 import { useUiStore } from "@/store/uiStore";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,7 @@ export function CustomerAppShell({
       >
         <div className="flex min-h-[calc(100dvh-4rem)] min-w-0 flex-1 flex-col">
           <div className="min-w-0 flex-1 px-4 py-5 md:px-6 md:py-6">
+            <KycAttentionBanner />
             {children}
           </div>
           <CustomerFooter />

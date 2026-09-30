@@ -1,4 +1,9 @@
-import { env } from "@/lib/env";
+import {
+  LOCATION_ERROR_MESSAGES,
+  reverseGeocodeLocation,
+  type AddressCaptureSource,
+  type NormalizedLocation,
+} from "@/services/location-search";
 
 const GPS_TIMEOUT_MS = 12_000;
 const GEOCODER_TIMEOUT_MS = 8_000;
@@ -16,7 +21,43 @@ export type ResolvedGeoAddress = {
   latitude: number;
   longitude: number;
   source: "google" | "osm" | "pincode";
+  locality?: string;
+  district?: string;
+  placeId?: string | null;
+  formattedAddress?: string;
+  /** Device-reported GPS accuracy radius, when the point came from GPS. */
+  accuracyMeters?: number | null;
+  captureSource?: AddressCaptureSource;
 };
+
+export function normalizedToResolved(
+  location: NormalizedLocation,
+  accuracyMeters?: number | null,
+): ResolvedGeoAddress {
+  return {
+    label: location.name || location.locality || location.city || undefined,
+    line1:
+      location.addressLine1 ||
+      location.name ||
+      location.locality ||
+      location.city,
+    line2: location.addressLine2 || undefined,
+    city: location.city,
+    state: location.state,
+    postalCode: location.postalCode,
+    country: location.countryCode || "IN",
+    landmark: location.landmark || undefined,
+    latitude: location.latitude,
+    longitude: location.longitude,
+    source: "google",
+    locality: location.locality || undefined,
+    district: location.district || undefined,
+    placeId: location.placeId,
+    formattedAddress: location.formattedAddress || undefined,
+    accuracyMeters: accuracyMeters ?? null,
+    captureSource: location.source,
+  };
+}
 
 export class LocationAccessError extends Error {
   code:
@@ -58,10 +99,6 @@ function preferEnglishName(
   if (a && isLatinPlaceName(a)) return a;
   if (b && isLatinPlaceName(b)) return b;
   return a || b;
-}
-
-function isPlaceholderMapsKey(key: string): boolean {
-  return !key || key.includes("placeholder");
 }
 
 async function withTimeout<T>(
@@ -128,78 +165,20 @@ export async function lookupPincode(
   }
 }
 
-async function reverseGeocodeGoogle(
+/** Google reverse geocoding through the backend proxy (server-side key). */
+async function reverseGeocodeBackend(
   latitude: number,
   longitude: number,
+  source: "GPS" | "MAP_PIN",
 ): Promise<ResolvedGeoAddress | null> {
-  const key = env.googleMapsApiKey;
-  if (isPlaceholderMapsKey(key)) return null;
-
   try {
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&language=en&key=${encodeURIComponent(key)}`;
-    const response = await withTimeout(
-      fetch(url),
+    const location = await withTimeout(
+      reverseGeocodeLocation(latitude, longitude, source),
       GEOCODER_TIMEOUT_MS,
       "Taking longer than expected to resolve your location.",
     );
-    if (!response.ok) return null;
-    const payload = (await response.json()) as {
-      results?: Array<{
-        formatted_address?: string;
-        address_components?: Array<{
-          long_name: string;
-          short_name: string;
-          types: string[];
-        }>;
-      }>;
-    };
-    const result = payload.results?.[0];
-    if (!result) return null;
-
-    const pick = (type: string, short = false) => {
-      const component = result.address_components?.find((entry) =>
-        entry.types.includes(type),
-      );
-      return short ? component?.short_name : component?.long_name;
-    };
-
-    const city = firstNonEmpty(
-      pick("locality"),
-      pick("administrative_area_level_2"),
-      pick("sublocality_level_1"),
-    );
-    const state = firstNonEmpty(pick("administrative_area_level_1"));
-    const postalCode = firstNonEmpty(pick("postal_code"))
-      .replace(/\D/g, "")
-      .slice(0, 6);
-    const area = firstNonEmpty(
-      pick("sublocality_level_1"),
-      pick("neighborhood"),
-      pick("sublocality"),
-    );
-    const line1 = firstNonEmpty(
-      [pick("street_number"), pick("route")].filter(Boolean).join(" "),
-      pick("premise"),
-      result.formatted_address?.split(",")[0],
-      area,
-      city,
-    );
-
-    if (!city && !postalCode) return null;
-
-    return {
-      label: area || "Current location",
-      line1,
-      line2: area && area !== city ? area : undefined,
-      city: city || "India",
-      state: state || "",
-      postalCode,
-      country: pick("country", true) ?? "IN",
-      landmark: area || undefined,
-      latitude,
-      longitude,
-      source: "google",
-    };
+    if (!location.city && !location.postalCode) return null;
+    return normalizedToResolved(location);
   } catch {
     return null;
   }
@@ -281,6 +260,10 @@ async function reverseGeocodeOsm(
       latitude,
       longitude,
       source: "osm",
+      locality: area || undefined,
+      district:
+        firstNonEmpty(address.state_district, address.county) || undefined,
+      formattedAddress: payload.display_name,
     };
   } catch {
     return null;
@@ -290,19 +273,25 @@ async function reverseGeocodeOsm(
 export async function reverseGeocodeCoords(
   latitude: number,
   longitude: number,
+  source: "GPS" | "MAP_PIN" = "GPS",
 ): Promise<ResolvedGeoAddress> {
-  const resolved =
-    (await reverseGeocodeGoogle(latitude, longitude)) ??
+  const geocoded =
+    (await reverseGeocodeBackend(latitude, longitude, source)) ??
     (await reverseGeocodeOsm(latitude, longitude));
 
-  if (!resolved) {
+  if (!geocoded) {
     throw new LocationAccessError(
       "GEOCODE_FAILED",
-      "Found your GPS point but could not resolve a delivery address. Enter the address manually.",
+      "We found your location but couldn't resolve an address. Search for your address instead.",
     );
   }
 
-  if (INDIAN_PINCODE_REGEX.test(resolved.postalCode)) {
+  const resolved: ResolvedGeoAddress = { ...geocoded, captureSource: source };
+
+  if (
+    resolved.source === "osm" &&
+    INDIAN_PINCODE_REGEX.test(resolved.postalCode)
+  ) {
     const localities = await lookupPincode(resolved.postalCode);
     const first = localities[0];
     if (first) {
@@ -328,7 +317,7 @@ function readBrowserPosition(): Promise<GeolocationPosition> {
       reject(
         new LocationAccessError(
           "UNSUPPORTED",
-          "Location is not supported in this browser.",
+          LOCATION_ERROR_MESSAGES.LOCATION_UNSUPPORTED,
         ),
       );
       return;
@@ -341,7 +330,7 @@ function readBrowserPosition(): Promise<GeolocationPosition> {
           reject(
             new LocationAccessError(
               "PERMISSION_DENIED",
-              "Allow location access to auto-detect your delivery address.",
+              LOCATION_ERROR_MESSAGES.LOCATION_PERMISSION_DENIED,
             ),
           );
           return;
@@ -350,7 +339,7 @@ function readBrowserPosition(): Promise<GeolocationPosition> {
           reject(
             new LocationAccessError(
               "TIMEOUT",
-              "Taking longer than expected to find your location.",
+              LOCATION_ERROR_MESSAGES.LOCATION_TIMEOUT,
             ),
           );
           return;
@@ -358,14 +347,14 @@ function readBrowserPosition(): Promise<GeolocationPosition> {
         reject(
           new LocationAccessError(
             "UNAVAILABLE",
-            "Unable to read GPS right now. Enter the address manually.",
+            LOCATION_ERROR_MESSAGES.LOCATION_UNAVAILABLE,
           ),
         );
       },
       {
         enableHighAccuracy: true,
         timeout: GPS_TIMEOUT_MS,
-        maximumAge: 5 * 60 * 1000,
+        maximumAge: 30_000,
       },
     );
   });
@@ -391,24 +380,49 @@ export async function resolvePincodeAddress(
     latitude: 0,
     longitude: 0,
     source: "pincode",
+    captureSource: "PINCODE",
+  };
+}
+
+export type DevicePosition = {
+  latitude: number;
+  longitude: number;
+  accuracyMeters: number | null;
+};
+
+/** One fresh high-accuracy browser GPS fix (prompts for permission if needed). */
+export async function getCurrentDevicePosition(): Promise<DevicePosition> {
+  const position = await withTimeout(
+    readBrowserPosition(),
+    GPS_TIMEOUT_MS + 500,
+    LOCATION_ERROR_MESSAGES.LOCATION_TIMEOUT,
+  );
+
+  const { latitude, longitude, accuracy } = position.coords;
+  if (
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude) ||
+    (latitude === 0 && longitude === 0)
+  ) {
+    throw new LocationAccessError(
+      "UNAVAILABLE",
+      LOCATION_ERROR_MESSAGES.LOCATION_UNAVAILABLE,
+    );
+  }
+  return {
+    latitude,
+    longitude,
+    accuracyMeters: Number.isFinite(accuracy) ? Math.round(accuracy) : null,
   };
 }
 
 /** Browser GPS + reverse geocode — same org address shape as the Customer APP. */
 export async function fetchCurrentDeliveryAddress(): Promise<ResolvedGeoAddress> {
-  const position = await withTimeout(
-    readBrowserPosition(),
-    GPS_TIMEOUT_MS + 500,
-    "Taking longer than expected to find your location.",
+  const position = await getCurrentDevicePosition();
+  const resolved = await reverseGeocodeCoords(
+    position.latitude,
+    position.longitude,
+    "GPS",
   );
-
-  const { latitude, longitude } = position.coords;
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-    throw new LocationAccessError(
-      "UNAVAILABLE",
-      "GPS coordinates were invalid.",
-    );
-  }
-
-  return reverseGeocodeCoords(latitude, longitude);
+  return { ...resolved, accuracyMeters: position.accuracyMeters };
 }

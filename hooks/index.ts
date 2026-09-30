@@ -7,3 +7,4 @@ export * from "./useMediaQuery";
 export * from "./useMounted";
 export * from "./useLocalStorage";
 export * from "./use-cms-banners";
+export * from "./use-nav-badge-counts";

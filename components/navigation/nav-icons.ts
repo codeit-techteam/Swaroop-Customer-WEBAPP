@@ -15,6 +15,7 @@ import {
   Settings,
   HelpCircle,
   ClipboardList,
+  ShieldCheck,
 } from "lucide-react";
 
 const NAV_ICON_MAP: Record<string, LucideIcon> = {
@@ -33,6 +34,7 @@ const NAV_ICON_MAP: Record<string, LucideIcon> = {
   Settings,
   HelpCircle,
   ClipboardList,
+  ShieldCheck,
 };
 
 export function getNavIcon(name?: string): LucideIcon | null {

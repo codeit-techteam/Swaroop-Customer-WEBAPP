@@ -1,6 +1,7 @@
 import apiClient from "@/lib/apiClient";
 import type { Envelope } from "@/lib/api-envelope";
 import type { CheckoutAddress } from "@/services/checkout";
+import type { AddressCaptureSource } from "@/services/location-search";
 
 export type CreateAddressInput = {
   type?: "SHIPPING" | "BILLING";
@@ -14,10 +15,43 @@ export type CreateAddressInput = {
   landmark?: string;
   latitude?: number | null;
   longitude?: number | null;
+  locality?: string;
+  district?: string;
+  placeId?: string | null;
+  formattedAddress?: string;
+  accuracyMeters?: number | null;
+  source?: AddressCaptureSource;
   isDefault?: boolean;
 };
 
 export type UpdateAddressInput = Partial<CreateAddressInput>;
+
+/** Geo metadata fields forwarded as-is; empty values are omitted. */
+function geoFields(input: UpdateAddressInput) {
+  return {
+    ...(input.locality !== undefined
+      ? { locality: input.locality || undefined }
+      : {}),
+    ...(input.district !== undefined
+      ? { district: input.district || undefined }
+      : {}),
+    ...(input.placeId !== undefined
+      ? { placeId: input.placeId || undefined }
+      : {}),
+    ...(input.formattedAddress !== undefined
+      ? { formattedAddress: input.formattedAddress?.slice(0, 500) || undefined }
+      : {}),
+    ...(input.accuracyMeters != null
+      ? {
+          accuracyMeters: Math.min(
+            100_000,
+            Math.max(0, Math.round(input.accuracyMeters)),
+          ),
+        }
+      : {}),
+    ...(input.source ? { source: input.source } : {}),
+  };
+}
 
 /** Same org-scoped list the Customer APP uses (`GET /customer/addresses`). */
 export async function fetchCustomerAddresses(): Promise<CheckoutAddress[]> {
@@ -44,6 +78,7 @@ export async function createCustomerAddress(
       landmark: input.landmark || undefined,
       ...(input.latitude != null ? { latitude: input.latitude } : {}),
       ...(input.longitude != null ? { longitude: input.longitude } : {}),
+      ...geoFields(input),
       isDefault: input.isDefault ?? false,
     },
   );
@@ -76,6 +111,7 @@ export async function updateCustomerAddress(
       ...(input.longitude !== undefined
         ? { longitude: input.longitude ?? undefined }
         : {}),
+      ...geoFields(input),
       ...(input.isDefault !== undefined ? { isDefault: input.isDefault } : {}),
     },
   );

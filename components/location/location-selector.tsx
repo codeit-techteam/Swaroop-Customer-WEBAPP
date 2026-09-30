@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import {
   fetchCurrentDeliveryAddress,
   LocationAccessError,
+  type ResolvedGeoAddress,
 } from "@/services/location";
 import type { CheckoutAddress } from "@/services/checkout";
 import { useAuthStore } from "@/store/authStore";
@@ -85,7 +86,10 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
     null,
   );
   const [permissionHint, setPermissionHint] = useState<string | null>(null);
-  const [savingGps, setSavingGps] = useState(false);
+  const [lastResolved, setLastResolved] = useState<ResolvedGeoAddress | null>(
+    null,
+  );
+  const [prefill, setPrefill] = useState<ResolvedGeoAddress | null>(null);
   const labelId = useId();
 
   useEffect(() => {
@@ -110,6 +114,7 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
     setLastError(null);
     try {
       const resolved = await fetchCurrentDeliveryAddress();
+      setLastResolved(resolved);
       const location = await applyResolvedLocation(resolved, {
         persistAddress: false,
       });
@@ -147,48 +152,39 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
     }
   }, [applyResolvedLocation, selectLocation, setDetecting, setLastError]);
 
-  const handleSaveCurrentAsAddress = useCallback(async () => {
+  /** Saving a detected location always goes through the confirm step. */
+  const handleSaveCurrentAsAddress = useCallback(() => {
     if (
-      !selectedLocation ||
-      (selectedLocation.source !== "gps" &&
-        selectedLocation.source !== "pincode")
+      !lastResolved &&
+      selectedLocation &&
+      (selectedLocation.source === "gps" ||
+        selectedLocation.source === "pincode")
     ) {
-      setAddOpen(true);
-      setOpen(false);
-      return;
+      setPrefill({
+        label: selectedLocation.landmark || undefined,
+        line1: selectedLocation.line1 || "",
+        line2: selectedLocation.line2 ?? undefined,
+        city: selectedLocation.city,
+        state: selectedLocation.state,
+        postalCode: selectedLocation.pincode,
+        country: "IN",
+        landmark: selectedLocation.landmark ?? undefined,
+        latitude: selectedLocation.latitude ?? 0,
+        longitude: selectedLocation.longitude ?? 0,
+        source: selectedLocation.source === "pincode" ? "pincode" : "google",
+      });
+    } else {
+      setPrefill(lastResolved);
     }
-    setSavingGps(true);
-    try {
-      await applyResolvedLocation(
-        {
-          label: selectedLocation.landmark || "Current location",
-          line1: selectedLocation.line1 || selectedLocation.label,
-          line2: selectedLocation.line2 ?? undefined,
-          city: selectedLocation.city,
-          state: selectedLocation.state,
-          postalCode: selectedLocation.pincode,
-          country: "IN",
-          landmark: selectedLocation.landmark ?? undefined,
-          latitude: selectedLocation.latitude ?? 0,
-          longitude: selectedLocation.longitude ?? 0,
-          source: selectedLocation.source === "pincode" ? "pincode" : "osm",
-        },
-        { persistAddress: true },
-      );
-      toast.success("Delivery address saved");
-      setOpen(false);
-    } catch (cause) {
-      toast.error(
-        cause instanceof Error
-          ? cause.message
-          : "Could not save address. Add it manually.",
-      );
-      setAddOpen(true);
-      setOpen(false);
-    } finally {
-      setSavingGps(false);
-    }
-  }, [applyResolvedLocation, selectedLocation]);
+    setAddOpen(true);
+    setOpen(false);
+  }, [lastResolved, selectedLocation]);
+
+  const openNewAddress = useCallback(() => {
+    setPrefill(null);
+    setAddOpen(true);
+    setOpen(false);
+  }, []);
 
   const handleSelectSaved = useCallback(
     (address: CheckoutAddress) => {
@@ -350,11 +346,10 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
                 <div className="mt-2 flex gap-2 pl-12">
                   <button
                     type="button"
-                    disabled={savingGps}
-                    onClick={() => void handleSaveCurrentAsAddress()}
+                    onClick={handleSaveCurrentAsAddress}
                     className="rounded-lg border border-accent-blue px-2.5 py-1 text-[11px] font-semibold text-accent-blue disabled:opacity-60"
                   >
-                    {savingGps ? "Saving…" : "Save address"}
+                    Save address
                   </button>
                 </div>
               ) : null}
@@ -368,10 +363,7 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
                 <button
                   type="button"
                   className="text-[12px] font-semibold text-accent-blue"
-                  onClick={() => {
-                    setAddOpen(true);
-                    setOpen(false);
-                  }}
+                  onClick={openNewAddress}
                 >
                   + Add new
                 </button>
@@ -386,10 +378,7 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
                     type="button"
                     variant="outline"
                     className="mt-3 h-8 rounded-lg"
-                    onClick={() => {
-                      setAddOpen(true);
-                      setOpen(false);
-                    }}
+                    onClick={openNewAddress}
                   >
                     <Plus className="h-3.5 w-3.5" />
                     Add Address
@@ -457,10 +446,7 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
               type="button"
               variant="outline"
               className="h-9 w-full rounded-xl border-dashed border-accent-blue text-accent-blue"
-              onClick={() => {
-                setAddOpen(true);
-                setOpen(false);
-              }}
+              onClick={openNewAddress}
             >
               <Plus className="h-4 w-4" />
               Add New Address
@@ -472,6 +458,7 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
       <AddAddressDialog
         open={addOpen}
         onOpenChange={setAddOpen}
+        prefill={prefill}
         onCreated={(address) => {
           selectSavedAddress(address);
           void refreshAddresses();

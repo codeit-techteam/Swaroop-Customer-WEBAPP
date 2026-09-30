@@ -93,6 +93,7 @@ export const ROUTES = {
   profileBusiness: "/profile",
   profileBank: "/profile",
   settings: "/profile",
+  kyc: "/kyc",
 
   support: "/support",
   supportTickets: "/support/tickets",
@@ -143,13 +144,14 @@ export const PROTECTED_ROUTE_PREFIXES = [
   ROUTES.shipmentDetail,
   ROUTES.documents,
   ROUTES.profile,
+  ROUTES.kyc,
   ROUTES.support,
   ROUTES.onboarding,
 ] as const;
 
 /**
  * Customer App sidebar — mirrors PetroTrade Customer Mobile workflow.
- * Mock badge counts only; no backend.
+ * Badge counts are applied at render time from live data (`useNavBadgeCounts`).
  */
 export const CUSTOMER_NAV: NavItem[] = [
   {
@@ -176,7 +178,6 @@ export const CUSTOMER_NAV: NavItem[] = [
     title: "Purchase Requests",
     href: ROUTES.purchaseRequests,
     icon: "Mail",
-    badge: 6,
     badgeVariant: "pending",
   },
   {
@@ -184,7 +185,6 @@ export const CUSTOMER_NAV: NavItem[] = [
     title: "Orders",
     href: ROUTES.orders,
     icon: "Package",
-    badge: 5,
     badgeVariant: "processing",
   },
   {
@@ -192,7 +192,6 @@ export const CUSTOMER_NAV: NavItem[] = [
     title: "Payments",
     href: ROUTES.payments,
     icon: "Wallet",
-    badge: 2,
     badgeVariant: "pending",
     children: [
       {
@@ -217,7 +216,6 @@ export const CUSTOMER_NAV: NavItem[] = [
     title: "Shipment Tracking",
     href: ROUTES.shipmentTracking,
     icon: "Truck",
-    badge: 2,
     badgeVariant: "dispatched",
     children: [
       {
@@ -254,6 +252,12 @@ export const CUSTOMER_NAV: NavItem[] = [
         href: ROUTES.documentsProforma,
       },
     ],
+  },
+  {
+    id: "kyc",
+    title: "Business KYC",
+    href: ROUTES.kyc,
+    icon: "ShieldCheck",
   },
   {
     id: "support",

@@ -256,6 +256,15 @@ export const useDeliveryLocationStore = create<DeliveryLocationStore>()(
             landmark: resolved.landmark,
             latitude: resolved.latitude || null,
             longitude: resolved.longitude || null,
+            locality: resolved.locality,
+            district: resolved.district,
+            placeId: resolved.placeId,
+            formattedAddress: resolved.formattedAddress,
+            accuracyMeters: resolved.accuracyMeters,
+            source:
+              resolved.latitude && resolved.longitude
+                ? (resolved.captureSource ?? "GPS")
+                : "MANUAL",
             isDefault: get().addresses.length === 0,
           });
           return toDeliveryLocation(saved);

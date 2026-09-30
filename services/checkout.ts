@@ -53,6 +53,12 @@ export type CheckoutAddress = {
   landmark?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  locality?: string | null;
+  district?: string | null;
+  placeId?: string | null;
+  formattedAddress?: string | null;
+  accuracyMeters?: number | null;
+  source?: string | null;
   isDefault: boolean;
 };
 

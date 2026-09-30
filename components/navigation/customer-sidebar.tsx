@@ -29,6 +29,7 @@ import { useUiStore } from "@/store/uiStore";
 import { useAuthStore } from "@/store/authStore";
 import { useOnboardingStore } from "@/store/onboardingStore";
 import { useProfileStore } from "@/store/profileStore";
+import { useNavBadgeCounts } from "@/hooks/use-nav-badge-counts";
 import { findActiveTopNavId } from "@/lib/nav-active";
 import { getInitials, resolveMvpProfile } from "@/lib/profile-display";
 import { cn } from "@/lib/utils";
@@ -88,13 +89,24 @@ export function CustomerSidebar({
   const collapsed = forceExpanded ? false : sidebarCollapsed;
   const profile = resolveMvpProfile(user, company);
 
+  const badgeCounts = useNavBadgeCounts();
+
   const onboardingIncomplete = hasStartedOnboarding && !isCompleted;
-  const primaryNav = useMemo(
+  const baseNav = useMemo(
     () =>
       onboardingIncomplete
         ? [ONBOARDING_ONLY_NAV]
         : CUSTOMER_NAV.filter((item) => !FOOTER_NAV_IDS.has(item.id)),
     [onboardingIncomplete],
+  );
+  const primaryNav = useMemo(
+    () =>
+      baseNav.map((item) =>
+        item.id in badgeCounts
+          ? { ...item, badge: badgeCounts[item.id] }
+          : item,
+      ),
+    [baseNav, badgeCounts],
   );
   const footerNav = CUSTOMER_NAV.filter((item) => FOOTER_NAV_IDS.has(item.id));
 
@@ -120,16 +132,10 @@ export function CustomerSidebar({
 
   useEffect(() => {
     if (onboardingIncomplete || collapsed) return;
-    const topLevelIds = primaryNav.map((item) => item.id);
-    const activeTopId = findActiveTopNavId(pathname, primaryNav);
+    const topLevelIds = baseNav.map((item) => item.id);
+    const activeTopId = findActiveTopNavId(pathname, baseNav);
     syncSidebarToPath(activeTopId, topLevelIds);
-  }, [
-    pathname,
-    onboardingIncomplete,
-    collapsed,
-    primaryNav,
-    syncSidebarToPath,
-  ]);
+  }, [pathname, onboardingIncomplete, collapsed, baseNav, syncSidebarToPath]);
 
   function handleNavigate() {
     setSidebarMobileOpen(false);
