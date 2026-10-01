@@ -27,6 +27,8 @@ import {
 import { useDeliveryLocation } from "@/hooks/use-delivery-location";
 import { cn } from "@/lib/utils";
 import {
+  CURRENT_LOCATION_PHASE_LABELS,
+  type CurrentLocationPhase,
   fetchCurrentDeliveryAddress,
   LocationAccessError,
   type ResolvedGeoAddress,
@@ -90,6 +92,7 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
     null,
   );
   const [prefill, setPrefill] = useState<ResolvedGeoAddress | null>(null);
+  const [gpsPhase, setGpsPhase] = useState<CurrentLocationPhase>("locating");
   const labelId = useId();
 
   useEffect(() => {
@@ -109,11 +112,12 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
 
   const handleUseCurrentLocation = useCallback(async () => {
     setDetecting(true);
+    setGpsPhase("locating");
     setPermissionHint(null);
     setDetectedFormatted(null);
     setLastError(null);
     try {
-      const resolved = await fetchCurrentDeliveryAddress();
+      const resolved = await fetchCurrentDeliveryAddress(setGpsPhase);
       setLastResolved(resolved);
       const location = await applyResolvedLocation(resolved, {
         persistAddress: false,
@@ -224,6 +228,10 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
   const currentSelected =
     selectedLocation?.id === GPS_LOCATION_ID ||
     selectedLocation?.source === "gps";
+  const currentLocationHint =
+    permissionHint ||
+    detectedFormatted ||
+    (currentSelected && selectedLocation ? selectedLocation.label : null);
 
   return (
     <>
@@ -326,17 +334,14 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold text-slate-900">
                     {detecting
-                      ? "Detecting your location…"
-                      : "Use Current Location"}
+                      ? CURRENT_LOCATION_PHASE_LABELS[gpsPhase]
+                      : "Use current location"}
                   </span>
-                  <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">
-                    {permissionHint
-                      ? permissionHint
-                      : detectedFormatted ||
-                        (currentSelected && selectedLocation
-                          ? selectedLocation.label
-                          : "Use your current location")}
-                  </span>
+                  {currentLocationHint ? (
+                    <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">
+                      {currentLocationHint}
+                    </span>
+                  ) : null}
                 </span>
                 {currentSelected ? (
                   <Check className="mt-1 h-4 w-4 shrink-0 text-accent-blue" />

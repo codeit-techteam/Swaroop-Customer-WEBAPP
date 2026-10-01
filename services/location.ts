@@ -417,8 +417,22 @@ export async function getCurrentDevicePosition(): Promise<DevicePosition> {
 }
 
 /** Browser GPS + reverse geocode — same org address shape as the Customer APP. */
-export async function fetchCurrentDeliveryAddress(): Promise<ResolvedGeoAddress> {
+export type CurrentLocationPhase = "locating" | "resolving";
+
+export const CURRENT_LOCATION_PHASE_LABELS: Record<
+  CurrentLocationPhase,
+  string
+> = {
+  locating: "Getting your location…",
+  resolving: "Resolving address…",
+};
+
+export async function fetchCurrentDeliveryAddress(
+  onPhase?: (phase: CurrentLocationPhase) => void,
+): Promise<ResolvedGeoAddress> {
+  onPhase?.("locating");
   const position = await getCurrentDevicePosition();
+  onPhase?.("resolving");
   const resolved = await reverseGeocodeCoords(
     position.latitude,
     position.longitude,

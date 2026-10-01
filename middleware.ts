@@ -133,6 +133,7 @@ export const config = {
     "/support/:path*",
     "/settings/:path*",
     "/purchase-requests/:path*",
+    "/import/:path*",
     "/customer/:path*",
   ],
 };

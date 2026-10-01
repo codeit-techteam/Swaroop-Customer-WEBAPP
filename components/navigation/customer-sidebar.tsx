@@ -30,6 +30,8 @@ import { useAuthStore } from "@/store/authStore";
 import { useOnboardingStore } from "@/store/onboardingStore";
 import { useProfileStore } from "@/store/profileStore";
 import { useNavBadgeCounts } from "@/hooks/use-nav-badge-counts";
+import { useImportEnabled, useImportSummary } from "@/hooks/use-import";
+import { IMPORT_OWN_SIDE } from "@/lib/import/config";
 import { findActiveTopNavId } from "@/lib/nav-active";
 import { getInitials, resolveMvpProfile } from "@/lib/profile-display";
 import { cn } from "@/lib/utils";
@@ -47,7 +49,13 @@ const NAV_SECTIONS: { id: string; title: string; ids: string[] }[] = [
   {
     id: "trade",
     title: "Trade",
-    ids: ["dashboard", "marketplace", "purchase-requests", "onboarding"],
+    ids: [
+      "dashboard",
+      "marketplace",
+      "purchase-requests",
+      "import",
+      "onboarding",
+    ],
   },
   {
     id: "fulfillment",
@@ -89,15 +97,32 @@ export function CustomerSidebar({
   const collapsed = forceExpanded ? false : sidebarCollapsed;
   const profile = resolveMvpProfile(user, company);
 
-  const badgeCounts = useNavBadgeCounts();
+  const navBadgeCounts = useNavBadgeCounts();
+  const importEnabled = useImportEnabled();
+  const importSummary = useImportSummary();
+  const importOwn =
+    IMPORT_OWN_SIDE === "BUY"
+      ? importSummary.data?.buy
+      : importSummary.data?.sell;
+  const importAttention =
+    (importOwn?.openNegotiations ?? 0) + (importOwn?.pendingDeals ?? 0);
+  const badgeCounts = useMemo<Record<string, number>>(
+    () => ({ ...navBadgeCounts, import: importAttention }),
+    [navBadgeCounts, importAttention],
+  );
 
   const onboardingIncomplete = hasStartedOnboarding && !isCompleted;
   const baseNav = useMemo(
     () =>
       onboardingIncomplete
         ? [ONBOARDING_ONLY_NAV]
-        : CUSTOMER_NAV.filter((item) => !FOOTER_NAV_IDS.has(item.id)),
-    [onboardingIncomplete],
+        : CUSTOMER_NAV.filter((item) => !FOOTER_NAV_IDS.has(item.id)).map(
+            (item) =>
+              item.id === "import" && !importEnabled
+                ? stripChildren(item)
+                : item,
+          ),
+    [onboardingIncomplete, importEnabled],
   );
   const primaryNav = useMemo(
     () =>

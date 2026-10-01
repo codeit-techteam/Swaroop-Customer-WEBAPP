@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
-  ChevronLeft,
   Loader2,
   LocateFixed,
   MapPin,
@@ -36,6 +35,8 @@ import {
 import type { CheckoutAddress } from "@/services/checkout";
 import { checkoutErrorMessage } from "@/services/checkout";
 import {
+  CURRENT_LOCATION_PHASE_LABELS,
+  type CurrentLocationPhase,
   fetchCurrentDeliveryAddress,
   LocationAccessError,
   lookupPincode,
@@ -194,7 +195,8 @@ export function AddAddressDialog({
   const [searchEnabled, setSearchEnabled] = useState(true);
   const [searchNotice, setSearchNotice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [detecting, setDetecting] = useState(false);
+  const [gpsPhase, setGpsPhase] = useState<CurrentLocationPhase | null>(null);
+  const detecting = gpsPhase != null;
   const [lookingUpPin, setLookingUpPin] = useState(false);
   const [refreshingPin, setRefreshingPin] = useState(false);
   const touchedRef = useRef(new Set<FormKey>());
@@ -206,7 +208,7 @@ export function AddAddressDialog({
       setForm(EMPTY_FORM);
       setGeo(null);
       setSearchNotice(null);
-      setDetecting(false);
+      setGpsPhase(null);
       setLookingUpPin(false);
       setRefreshingPin(false);
       touchedRef.current.clear();
@@ -293,9 +295,9 @@ export function AddAddressDialog({
   }, []);
 
   async function handleUseCurrentLocation() {
-    setDetecting(true);
+    setGpsPhase("locating");
     try {
-      const resolved = await fetchCurrentDeliveryAddress();
+      const resolved = await fetchCurrentDeliveryAddress(setGpsPhase);
       touchedRef.current.clear();
       applyResolved(resolved, "replace");
       setStep("confirm");
@@ -306,7 +308,7 @@ export function AddAddressDialog({
           : "Unable to fetch your current location. Search for your address instead.",
       );
     } finally {
-      setDetecting(false);
+      setGpsPhase(null);
     }
   }
 
@@ -389,6 +391,7 @@ export function AddAddressDialog({
   const showMap = Boolean(geo) && isMapPickerAvailable();
 
   async function handleSave() {
+    if (saving) return;
     if (!form.line1.trim() || !form.city.trim() || !form.state.trim()) {
       toast.error("Fill in address line 1, city and state");
       return;
@@ -509,15 +512,10 @@ export function AddAddressDialog({
                   <LocateFixed className="h-4 w-4" />
                 )}
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold text-accent-blue">
-                  {detecting
-                    ? "Detecting your location…"
-                    : "Use current location"}
-                </span>
-                <span className="mt-0.5 block text-xs text-slate-500">
-                  Uses your device GPS — you can adjust the pin before saving
-                </span>
+              <span className="min-w-0 flex-1 text-sm font-semibold text-accent-blue">
+                {gpsPhase
+                  ? CURRENT_LOCATION_PHASE_LABELS[gpsPhase]
+                  : "Use current location"}
               </span>
             </button>
 
@@ -532,7 +530,7 @@ export function AddAddressDialog({
           </div>
         ) : (
           <div className="space-y-4">
-            {geo || summaryText ? (
+            {geo ? (
               <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
                 <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
                   {refreshingPin ? (
@@ -559,16 +557,51 @@ export function AddAddressDialog({
                   Change
                 </button>
               </div>
-            ) : (
+            ) : null}
+
+            {searchEnabled ? (
+              <div className="space-y-1.5">
+                <Label>Search delivery location</Label>
+                <AddressAutocomplete
+                  autoFocus={!geo}
+                  near={nearPoint}
+                  placeholder="Search area, building, landmark or PIN"
+                  onSelect={handlePlaceSelected}
+                  onError={handleSearchError}
+                  disabled={saving || detecting}
+                />
+                <p className="text-[11px] leading-relaxed text-slate-500">
+                  Type a place name. Pick a Google suggestion to fill city,
+                  district, state and PIN. You can still edit every field.
+                </p>
+              </div>
+            ) : searchNotice ? (
+              <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                {searchNotice}
+              </p>
+            ) : null}
+
+            {!geo ? (
               <button
                 type="button"
-                onClick={() => setStep("search")}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-accent-blue"
+                disabled={detecting || saving}
+                onClick={() => void handleUseCurrentLocation()}
+                className="flex w-full items-center gap-3 rounded-xl border border-accent-blue/30 bg-accent-blue/5 px-4 py-3 text-left transition hover:bg-accent-blue/10 disabled:opacity-60"
               >
-                <ChevronLeft className="h-3.5 w-3.5" />
-                Search or use current location instead
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-blue/10 text-accent-blue">
+                  {detecting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <LocateFixed className="h-4 w-4" />
+                  )}
+                </span>
+                <span className="min-w-0 flex-1 text-sm font-semibold text-accent-blue">
+                  {gpsPhase
+                    ? CURRENT_LOCATION_PHASE_LABELS[gpsPhase]
+                    : "Use current location"}
+                </span>
               </button>
-            )}
+            ) : null}
 
             {showMap && geo ? (
               <LocationMapPicker
@@ -602,8 +635,8 @@ export function AddAddressDialog({
 
             <div className="grid gap-3">
               <AddressField
-                label="Location name"
-                hint="e.g. Main plant, Warehouse 2"
+                label="Save as"
+                hint="Optional nickname, e.g. Main plant"
                 value={form.label}
                 onChange={(value) => setField("label", value)}
               />
@@ -665,6 +698,7 @@ export function AddAddressDialog({
 
         <DialogFooter>
           <Button
+            type="button"
             variant="outline"
             className="rounded-xl"
             onClick={() => onOpenChange(false)}
@@ -673,6 +707,7 @@ export function AddAddressDialog({
           </Button>
           {step === "confirm" ? (
             <Button
+              type="button"
               className="rounded-xl bg-brand hover:bg-brand-700"
               disabled={saving || detecting || refreshingPin}
               onClick={() => void handleSave()}
@@ -727,7 +762,7 @@ function AddressField({
         onChange={(event) => onChange(event.target.value)}
         inputMode={inputMode}
         maxLength={maxLength}
-        required={required}
+        aria-required={required || undefined}
         aria-invalid={invalid || undefined}
         className={cn("rounded-xl", invalid && "border-red-300")}
       />

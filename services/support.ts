@@ -187,6 +187,7 @@ export async function createCustomerSupportTicket(
       subject: input.subject.trim(),
       description: input.description.trim(),
       attachmentName: input.attachmentName,
+      channel: "WEB",
     },
   );
   if (!payload.data) {

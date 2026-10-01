@@ -45,6 +45,12 @@ export const ROUTES = {
   purchaseRequestsExpired: "/purchase-requests/expired",
   purchaseRequestsHistory: "/purchase-requests/history",
 
+  importTrading: "/import",
+  importBuyRequests: "/import/buy",
+  importSellOffers: "/import/offers",
+  importNegotiations: "/import/negotiations",
+  importDeals: "/import/deals",
+
   orders: "/orders",
   orderDetail: "/orders",
   ordersActive: "/orders/active",
@@ -137,6 +143,7 @@ export const PROTECTED_ROUTE_PREFIXES = [
   ROUTES.cart,
   ROUTES.checkout,
   ROUTES.purchaseRequests,
+  ROUTES.importTrading,
   ROUTES.payments,
   ROUTES.orders,
   ROUTES.shipmentTracking,
@@ -179,6 +186,31 @@ export const CUSTOMER_NAV: NavItem[] = [
     href: ROUTES.purchaseRequests,
     icon: "Mail",
     badgeVariant: "pending",
+  },
+  {
+    id: "import",
+    title: "Import Trading",
+    href: ROUTES.importTrading,
+    icon: "Ship",
+    children: [
+      { id: "import-overview", title: "Overview", href: ROUTES.importTrading },
+      {
+        id: "import-buy",
+        title: "My Buy Requests",
+        href: ROUTES.importBuyRequests,
+      },
+      {
+        id: "import-offers",
+        title: "Sell Offers",
+        href: ROUTES.importSellOffers,
+      },
+      {
+        id: "import-negotiations",
+        title: "Negotiations",
+        href: ROUTES.importNegotiations,
+      },
+      { id: "import-deals", title: "Deals", href: ROUTES.importDeals },
+    ],
   },
   {
     id: "orders",
