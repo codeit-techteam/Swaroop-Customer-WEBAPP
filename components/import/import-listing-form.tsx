@@ -5,12 +5,20 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   AlertTriangle,
+  CalendarClock,
   Check,
   CheckCircle2,
   CloudOff,
   Loader2,
   Lock,
+  Pencil,
 } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -69,7 +77,7 @@ const STEPS: Array<{ id: StepId; title: string }> = [
   { id: "commercial", title: "Commercial" },
   { id: "shipping", title: "Shipping" },
   { id: "quality", title: "Quality & documents" },
-  { id: "review", title: "Validity & review" },
+  { id: "review", title: "Review & submit" },
 ];
 
 const FIELD_STEP: Record<string, StepId> = {
@@ -115,8 +123,6 @@ const FIELD_STEP: Record<string, StepId> = {
   inspectionType: "quality",
   documentRequirementIds: "quality",
   remarks: "quality",
-  validUntil: "review",
-  validFrom: "review",
 };
 
 /** Fields frozen once published (mirrors the backend LOCKED_AFTER_PUBLISH). */
@@ -187,7 +193,6 @@ function toValues(l?: ImportListing | null): Values {
     maximumQuantity: l?.sellTerms?.maximumQuantity ?? null,
     readyStockType: l?.sellTerms?.readyStockType ?? null,
     remarks: l?.remarks ?? null,
-    validUntil: l?.validity.validUntil ?? null,
   };
 }
 
@@ -235,14 +240,8 @@ function localDecimalError(key: string, value: unknown): string | undefined {
     : "Enter a number with up to 3 decimal places.";
 }
 
-/** `<input type="datetime-local">` value in the user's zone ↔ ISO instant. */
-function toLocalInput(iso?: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
+const filled = (v: unknown) =>
+  Array.isArray(v) ? v.length > 0 : v !== null && v !== undefined && v !== "";
 
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "error" | "conflict";
 
@@ -580,6 +579,68 @@ function ListingForm({
 
   const qtyUnit = importLabel(values.quantityUnit ?? "MT");
 
+  const optional = (keys: Array<keyof Values>): OptionalState => ({
+    filledCount: keys.filter((k) => filled(values[k])).length,
+    invalid: keys.some((k) => Boolean(err(k as string))),
+  });
+
+  // Mirrors the backend: container quantities need a size, and container
+  // count must match; FCL shipments are quoted per container.
+  const needsContainers =
+    values.quantityUnit === "CONTAINER" || values.shipmentType === "FCL";
+  const showOptionalContainers =
+    !needsContainers &&
+    (values.shipmentType !== "BULK" ||
+      filled(values.containerSize) ||
+      filled(values.containerCount));
+  const containerFields = (
+    <>
+      <Field
+        label="Container size"
+        required={values.quantityUnit === "CONTAINER"}
+        error={err("containerSize")}
+      >
+        {enumSelect("containerSize", bundle.enums.containerSizes)}
+      </Field>
+      <Field
+        label="Number of containers"
+        error={err("containerCount")}
+        hint={
+          values.quantityUnit === "CONTAINER"
+            ? "Must equal the quantity when quantity is in containers."
+            : undefined
+        }
+        htmlFor="f-containerCount"
+      >
+        {numberInput("containerCount")}
+      </Field>
+    </>
+  );
+
+  const productOptional: Array<keyof Values> = isBuy
+    ? [
+        "packagingId",
+        "acceptableQuantityMin",
+        "acceptableQuantityMax",
+        "requiredDeliveryDate",
+        "application",
+        "hsCode",
+        "casNumber",
+        "specialRequirements",
+      ]
+    : ["packagingId", "maximumQuantity", "application", "hsCode", "casNumber"];
+  const shippingOptional: Array<keyof Values> = [
+    "transitMinDays",
+    "transitMaxDays",
+    "partialShipment",
+    "transshipment",
+    "shipmentType",
+    ...(needsContainers ? [] : (["containerSize", "containerCount"] as const)),
+  ];
+  const termsName =
+    terms.data?.find((t) => t.id === values.paymentTermId)?.displayName ??
+    terms.data?.find((t) => t.id === values.paymentTermId)?.name;
+
   return (
     <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
       {/* Step rail */}
@@ -795,7 +856,7 @@ function ListingForm({
                   invalid={Boolean(err("originCountryId"))}
                 />
               </Field>
-              <div className="grid grid-cols-[minmax(0,1fr)_120px] gap-3 sm:col-span-2 sm:grid-cols-[minmax(0,1fr)_140px_minmax(0,1fr)]">
+              <div className="grid grid-cols-[minmax(0,1fr)_140px] gap-3">
                 <Field
                   label={isBuy ? "Required quantity" : "Available quantity"}
                   required
@@ -810,11 +871,29 @@ function ListingForm({
                 <Field label="Unit" required error={err("quantityUnit")}>
                   {enumSelect("quantityUnit", bundle.enums.quantityUnits)}
                 </Field>
-                <Field
-                  label="Packaging"
-                  error={err("packagingId")}
-                  className="col-span-2 sm:col-span-1"
-                >
+              </div>
+              {!isBuy ? (
+                <>
+                  <Field
+                    label={`Minimum order quantity (${qtyUnit})`}
+                    required
+                    error={err("moq")}
+                    htmlFor="f-moq"
+                  >
+                    {textInput("moq", { inputMode: "decimal" })}
+                  </Field>
+                  <Field
+                    label="Stock type"
+                    required
+                    error={err("readyStockType")}
+                  >
+                    {enumSelect("readyStockType", bundle.enums.readyStockTypes)}
+                  </Field>
+                </>
+              ) : null}
+
+              <MoreDetails state={optional(productOptional)}>
+                <Field label="Packaging" error={err("packagingId")}>
                   <Select
                     value={values.packagingId ?? ""}
                     onValueChange={(v) => set("packagingId", v || null)}
@@ -831,47 +910,36 @@ function ListingForm({
                     </SelectContent>
                   </Select>
                 </Field>
-              </div>
-
-              {isBuy ? (
-                <>
-                  <Field
-                    label={`Minimum acceptable quantity (${qtyUnit})`}
-                    error={err("acceptableQuantityMin")}
-                    hint="Optional — lets smaller offers match."
-                    htmlFor="f-acceptableQuantityMin"
-                  >
-                    {textInput("acceptableQuantityMin", {
-                      inputMode: "decimal",
-                    })}
-                  </Field>
-                  <Field
-                    label={`Maximum acceptable quantity (${qtyUnit})`}
-                    error={err("acceptableQuantityMax")}
-                    htmlFor="f-acceptableQuantityMax"
-                  >
-                    {textInput("acceptableQuantityMax", {
-                      inputMode: "decimal",
-                    })}
-                  </Field>
-                  <Field
-                    label="Required delivery date"
-                    error={err("requiredDeliveryDate")}
-                    htmlFor="f-requiredDeliveryDate"
-                  >
-                    {textInput("requiredDeliveryDate", { type: "date" })}
-                  </Field>
-                </>
-              ) : (
-                <>
-                  <Field
-                    label={`Minimum order quantity (${qtyUnit})`}
-                    required
-                    error={err("moq")}
-                    htmlFor="f-moq"
-                  >
-                    {textInput("moq", { inputMode: "decimal" })}
-                  </Field>
+                {isBuy ? (
+                  <>
+                    <Field
+                      label="Required delivery date"
+                      error={err("requiredDeliveryDate")}
+                      htmlFor="f-requiredDeliveryDate"
+                    >
+                      {textInput("requiredDeliveryDate", { type: "date" })}
+                    </Field>
+                    <Field
+                      label={`Minimum acceptable quantity (${qtyUnit})`}
+                      error={err("acceptableQuantityMin")}
+                      hint="Lets smaller offers match."
+                      htmlFor="f-acceptableQuantityMin"
+                    >
+                      {textInput("acceptableQuantityMin", {
+                        inputMode: "decimal",
+                      })}
+                    </Field>
+                    <Field
+                      label={`Maximum acceptable quantity (${qtyUnit})`}
+                      error={err("acceptableQuantityMax")}
+                      htmlFor="f-acceptableQuantityMax"
+                    >
+                      {textInput("acceptableQuantityMax", {
+                        inputMode: "decimal",
+                      })}
+                    </Field>
+                  </>
+                ) : (
                   <Field
                     label={`Maximum per buyer (${qtyUnit})`}
                     error={err("maximumQuantity")}
@@ -879,58 +947,52 @@ function ListingForm({
                   >
                     {textInput("maximumQuantity", { inputMode: "decimal" })}
                   </Field>
-                  <Field
-                    label="Stock type"
-                    required
-                    error={err("readyStockType")}
-                  >
-                    {enumSelect("readyStockType", bundle.enums.readyStockTypes)}
-                  </Field>
-                </>
-              )}
-
-              <Field
-                label="Application"
-                error={err("application")}
-                htmlFor="f-application"
-              >
-                {textInput("application", {
-                  placeholder: "e.g. Injection moulding",
-                  maxLength: 300,
-                })}
-              </Field>
-              <Field label="HS code" error={err("hsCode")} htmlFor="f-hsCode">
-                {textInput("hsCode", {
-                  placeholder: "e.g. 39021000",
-                  maxLength: 20,
-                })}
-              </Field>
-              <Field
-                label="CAS number"
-                error={err("casNumber")}
-                htmlFor="f-casNumber"
-              >
-                {textInput("casNumber", {
-                  placeholder: "e.g. 9003-07-0",
-                  maxLength: 20,
-                })}
-              </Field>
-              {isBuy ? (
+                )}
                 <Field
-                  label="Special requirements"
-                  error={err("specialRequirements")}
-                  className="sm:col-span-2"
-                  htmlFor="f-specialRequirements"
+                  label="Application"
+                  error={err("application")}
+                  htmlFor="f-application"
                 >
-                  <Textarea
-                    id="f-specialRequirements"
-                    rows={3}
-                    maxLength={3000}
-                    value={values.specialRequirements ?? ""}
-                    onChange={(e) => set("specialRequirements", e.target.value)}
-                  />
+                  {textInput("application", {
+                    placeholder: "e.g. Injection moulding",
+                    maxLength: 300,
+                  })}
                 </Field>
-              ) : null}
+                <Field label="HS code" error={err("hsCode")} htmlFor="f-hsCode">
+                  {textInput("hsCode", {
+                    placeholder: "e.g. 39021000",
+                    maxLength: 20,
+                  })}
+                </Field>
+                <Field
+                  label="CAS number"
+                  error={err("casNumber")}
+                  htmlFor="f-casNumber"
+                >
+                  {textInput("casNumber", {
+                    placeholder: "e.g. 9003-07-0",
+                    maxLength: 20,
+                  })}
+                </Field>
+                {isBuy ? (
+                  <Field
+                    label="Special requirements"
+                    error={err("specialRequirements")}
+                    className="sm:col-span-2"
+                    htmlFor="f-specialRequirements"
+                  >
+                    <Textarea
+                      id="f-specialRequirements"
+                      rows={3}
+                      maxLength={3000}
+                      value={values.specialRequirements ?? ""}
+                      onChange={(e) =>
+                        set("specialRequirements", e.target.value)
+                      }
+                    />
+                  </Field>
+                ) : null}
+              </MoreDetails>
             </CardContent>
           </Card>
         ) : null}
@@ -1122,60 +1184,54 @@ function ListingForm({
                   min: values.esd ?? undefined,
                 })}
               </Field>
-              <Field
-                label="Transit time — minimum days"
-                error={err("transitMinDays")}
-                htmlFor="f-transitMinDays"
-              >
-                {numberInput("transitMinDays")}
-              </Field>
-              <Field
-                label="Transit time — maximum days"
-                error={err("transitMaxDays")}
-                htmlFor="f-transitMaxDays"
-              >
-                {numberInput("transitMaxDays")}
-              </Field>
-              <div className="rounded-xl border border-dashed bg-slate-50 px-4 py-3 text-sm sm:col-span-2">
-                <p className="font-medium text-slate-700">
-                  Estimated arrival (ETA)
-                </p>
-                <p className="mt-0.5 text-slate-600">
-                  {listing?.shipping.estimatedEta
-                    ? `${formatDate(listing.shipping.estimatedEta.from)} – ${formatDate(listing.shipping.estimatedEta.to)}`
-                    : "Add shipment dates and transit days to see an estimate."}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Estimate only: shipment window plus transit days. Not a
-                  carrier schedule.
-                </p>
-              </div>
-              <Field label="Partial shipment" error={err("partialShipment")}>
-                {enumSelect(
-                  "partialShipment",
-                  bundle.enums.shipmentPermissions,
-                )}
-              </Field>
-              <Field label="Transshipment" error={err("transshipment")}>
-                {enumSelect("transshipment", bundle.enums.shipmentPermissions)}
-              </Field>
-              <Field label="Shipment type" error={err("shipmentType")}>
-                {enumSelect("shipmentType", bundle.enums.shipmentTypes)}
-              </Field>
-              <Field
-                label="Container size"
-                required={values.quantityUnit === "CONTAINER"}
-                error={err("containerSize")}
-              >
-                {enumSelect("containerSize", bundle.enums.containerSizes)}
-              </Field>
-              <Field
-                label="Number of containers"
-                error={err("containerCount")}
-                htmlFor="f-containerCount"
-              >
-                {numberInput("containerCount")}
-              </Field>
+              {needsContainers ? containerFields : null}
+
+              <MoreDetails state={optional(shippingOptional)}>
+                <Field
+                  label="Transit time — minimum days"
+                  error={err("transitMinDays")}
+                  htmlFor="f-transitMinDays"
+                >
+                  {numberInput("transitMinDays")}
+                </Field>
+                <Field
+                  label="Transit time — maximum days"
+                  error={err("transitMaxDays")}
+                  htmlFor="f-transitMaxDays"
+                >
+                  {numberInput("transitMaxDays")}
+                </Field>
+                <div className="rounded-xl border border-dashed bg-slate-50 px-4 py-3 text-sm sm:col-span-2">
+                  <p className="font-medium text-slate-700">
+                    Estimated arrival (ETA)
+                  </p>
+                  <p className="mt-0.5 text-slate-600">
+                    {listing?.shipping.estimatedEta
+                      ? `${formatDate(listing.shipping.estimatedEta.from)} – ${formatDate(listing.shipping.estimatedEta.to)}`
+                      : "Add shipment dates and transit days to see an estimate."}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Estimate only: shipment window plus transit days. Not a
+                    carrier schedule.
+                  </p>
+                </div>
+                <Field label="Partial shipment" error={err("partialShipment")}>
+                  {enumSelect(
+                    "partialShipment",
+                    bundle.enums.shipmentPermissions,
+                  )}
+                </Field>
+                <Field label="Transshipment" error={err("transshipment")}>
+                  {enumSelect(
+                    "transshipment",
+                    bundle.enums.shipmentPermissions,
+                  )}
+                </Field>
+                <Field label="Shipment type" error={err("shipmentType")}>
+                  {enumSelect("shipmentType", bundle.enums.shipmentTypes)}
+                </Field>
+                {showOptionalContainers ? containerFields : null}
+              </MoreDetails>
             </CardContent>
           </Card>
         ) : null}
@@ -1188,26 +1244,13 @@ function ListingForm({
               </CardHeader>
               <CardContent className="grid gap-5 sm:grid-cols-2">
                 <Field
-                  label="Specification"
-                  error={err("specification")}
-                  className="sm:col-span-2"
-                  htmlFor="f-specification"
-                >
-                  <Textarea
-                    id="f-specification"
-                    rows={4}
-                    maxLength={5000}
-                    placeholder="MFI, density, additives, moisture…"
-                    value={values.specification ?? ""}
-                    onChange={(e) => set("specification", e.target.value)}
-                  />
-                </Field>
-                <Field label="Inspection" error={err("inspectionType")}>
-                  {enumSelect("inspectionType", bundle.enums.inspectionTypes)}
-                </Field>
-                <Field
                   label={isBuy ? "Required documents" : "Documents offered"}
                   error={err("documentRequirementIds")}
+                  hint={
+                    isBuy
+                      ? "Optional. Sellers see which documents you expect with the shipment."
+                      : undefined
+                  }
                   className="sm:col-span-2"
                 >
                   <div className="grid gap-2 sm:grid-cols-2">
@@ -1246,20 +1289,46 @@ function ListingForm({
                     })}
                   </div>
                 </Field>
-                <Field
-                  label="Remarks"
-                  error={err("remarks")}
-                  className="sm:col-span-2"
-                  htmlFor="f-remarks"
+                <MoreDetails
+                  state={optional([
+                    "specification",
+                    "inspectionType",
+                    "remarks",
+                  ])}
                 >
-                  <Textarea
-                    id="f-remarks"
-                    rows={3}
-                    maxLength={3000}
-                    value={values.remarks ?? ""}
-                    onChange={(e) => set("remarks", e.target.value)}
-                  />
-                </Field>
+                  <Field
+                    label="Specification"
+                    error={err("specification")}
+                    className="sm:col-span-2"
+                    htmlFor="f-specification"
+                  >
+                    <Textarea
+                      id="f-specification"
+                      rows={4}
+                      maxLength={5000}
+                      placeholder="MFI, density, additives, moisture…"
+                      value={values.specification ?? ""}
+                      onChange={(e) => set("specification", e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Inspection" error={err("inspectionType")}>
+                    {enumSelect("inspectionType", bundle.enums.inspectionTypes)}
+                  </Field>
+                  <Field
+                    label="Remarks"
+                    error={err("remarks")}
+                    className="sm:col-span-2"
+                    htmlFor="f-remarks"
+                  >
+                    <Textarea
+                      id="f-remarks"
+                      rows={3}
+                      maxLength={3000}
+                      value={values.remarks ?? ""}
+                      onChange={(e) => set("remarks", e.target.value)}
+                    />
+                  </Field>
+                </MoreDetails>
               </CardContent>
             </Card>
             {listing ? (
@@ -1276,63 +1345,29 @@ function ListingForm({
         {step === "review" ? (
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Validity & review</CardTitle>
+              <CardTitle className="text-base">Review & submit</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
-              <Field
-                label="Valid until"
-                required
-                error={err("validUntil")}
-                hint="The listing expires automatically at this time (server clock)."
-                htmlFor="f-validUntil"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <Input
-                    id="f-validUntil"
-                    type="datetime-local"
-                    className={cn(
-                      "max-w-[260px]",
-                      err("validUntil") && "border-red-400",
-                    )}
-                    value={toLocalInput(values.validUntil)}
-                    onChange={(e) =>
-                      set(
-                        "validUntil",
-                        e.target.value
-                          ? new Date(e.target.value).toISOString()
-                          : null,
-                      )
-                    }
-                  />
-                  {[7, 15, 30].map((days) => (
-                    <Button
-                      key={days}
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        set(
-                          "validUntil",
-                          new Date(Date.now() + days * 86400000).toISOString(),
-                        )
-                      }
-                    >
-                      {days} days
-                    </Button>
-                  ))}
-                </div>
-              </Field>
+              <div className="flex items-start gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+                <CalendarClock className="mt-0.5 h-4 w-4 shrink-0" />
+                <p>
+                  {live && listing?.validity.validUntil
+                    ? `This request is open until ${formatDateTime(listing.validity.validUntil)}. You can cancel it any time.`
+                    : `Your request stays open ${
+                        bundle.buyRequestValidityDays
+                          ? `for ${bundle.buyRequestValidityDays} days`
+                          : "for a limited period set by Swaroop"
+                      } after you publish it. You can cancel it any time.`}
+                </p>
+              </div>
               <ReviewSummary
                 values={values}
                 labels={labels}
                 bundle={bundle}
                 currencyCode={currencyCode}
-                termsName={
-                  terms.data?.find((t) => t.id === values.paymentTermId)
-                    ?.displayName ??
-                  terms.data?.find((t) => t.id === values.paymentTermId)?.name
-                }
+                termsName={termsName}
                 side={side}
+                onEdit={setStep}
               />
               {Object.keys(fieldErrors).length ? (
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -1352,6 +1387,7 @@ function ListingForm({
                   </ul>
                 </div>
               ) : null}
+              {!live && isBuy ? <WhatHappensNext /> : null}
             </CardContent>
           </Card>
         ) : null}
@@ -1456,6 +1492,86 @@ function SaveIndicator({
   );
 }
 
+type OptionalState = { filledCount: number; invalid: boolean };
+
+/** Optional fields, collapsed unless something inside is filled or invalid. */
+function MoreDetails({
+  state,
+  children,
+}: {
+  state: OptionalState;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(state.filledCount > 0);
+  const expanded = open || state.invalid;
+  return (
+    <Accordion
+      type="single"
+      collapsible
+      value={expanded ? "more" : ""}
+      onValueChange={(v) => setOpen(v === "more")}
+      className="sm:col-span-2"
+    >
+      <AccordionItem
+        value="more"
+        className={cn(
+          "rounded-xl border px-4",
+          state.invalid && "border-red-200",
+        )}
+      >
+        <AccordionTrigger className="py-3 hover:no-underline">
+          <span className="flex items-center gap-2">
+            More details (optional)
+            {state.invalid ? (
+              <span className="rounded-md bg-red-50 px-1.5 py-0.5 text-xs font-medium text-red-700">
+                Needs attention
+              </span>
+            ) : state.filledCount ? (
+              <span className="text-xs font-normal text-muted-foreground">
+                {state.filledCount} filled
+              </span>
+            ) : null}
+          </span>
+        </AccordionTrigger>
+        <AccordionContent className="grid gap-5 pt-1 sm:grid-cols-2">
+          {children}
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
+}
+
+const NEXT_STEPS = [
+  "Verified sellers see your request without your company name.",
+  "You receive offers from sellers and compare them side by side.",
+  "You negotiate terms and confirm a deal when you are happy.",
+  "Once the seller books a shipment, tracking appears on the deal.",
+];
+
+function WhatHappensNext() {
+  return (
+    <div className="rounded-xl border bg-card px-4 py-3">
+      <p className="text-sm font-semibold">What happens next</p>
+      <ol className="mt-2 space-y-1.5 text-sm text-slate-600">
+        {NEXT_STEPS.map((text, i) => (
+          <li key={text} className="flex gap-2">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+              {i + 1}
+            </span>
+            {text}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+type SummaryRow = {
+  label: string;
+  value: string | null | undefined;
+  required?: boolean;
+};
+
 function ReviewSummary({
   values,
   labels,
@@ -1463,6 +1579,7 @@ function ReviewSummary({
   currencyCode,
   termsName,
   side,
+  onEdit,
 }: {
   values: Values;
   labels: Record<string, string>;
@@ -1470,64 +1587,243 @@ function ReviewSummary({
   currencyCode: string | null;
   termsName?: string | null;
   side: ImportSide;
+  onEdit: (step: StepId) => void;
 }) {
+  const isBuy = side === "BUY";
+  const unit = importLabel(values.quantityUnit ?? "MT");
+  const qty = (v?: string | null) => (v ? `${v} ${unit}` : null);
   const country = bundle.countries.find(
     (c) => c.id === values.originCountryId,
   )?.name;
   const incoterm = bundle.incoterms.find(
     (i) => i.id === values.incotermId,
   )?.code;
-  const rows: Array<[string, string | null | undefined]> = [
-    ["Product", labels.categoryId],
-    ["Grade", labels.gradeId ?? values.customGradeName],
-    ["Brand", labels.brandId],
-    ["Origin", country],
-    [
-      "Quantity",
-      values.quantity
-        ? `${values.quantity} ${importLabel(values.quantityUnit ?? "MT")}`
-        : null,
-    ],
-    [
-      side === "BUY" ? "Target price" : "Offer price",
-      values.price
-        ? `${currencyCode ?? ""} ${values.price} / ${importLabel(values.priceUnit ?? "MT")}`
-        : null,
-    ],
-    [
-      "Incoterm",
-      incoterm
-        ? `${incoterm} ${labels.priceBasisPortId ?? values.priceBasisLocation ?? ""}`
-        : null,
-    ],
-    ["Payment terms", termsName],
-    [
-      "POL → POD",
-      labels.polId && labels.podId ? `${labels.polId} → ${labels.podId}` : null,
-    ],
-    [
-      "Shipment window",
-      values.esd && values.lsd
-        ? `${formatDate(values.esd)} – ${formatDate(values.lsd)}`
-        : null,
-    ],
-    [
-      "Valid until",
-      values.validUntil ? formatDateTime(values.validUntil) : null,
-    ],
+  const packaging = bundle.packaging.find(
+    (p) => p.id === values.packagingId,
+  )?.name;
+  const documents = bundle.documentRequirements
+    .filter((d) => values.documentRequirementIds.includes(d.id))
+    .map((d) => d.name)
+    .join(", ");
+
+  const sections: Array<{ step: StepId; title: string; rows: SummaryRow[] }> = [
+    {
+      step: "product",
+      title: "Product",
+      rows: [
+        { label: "Product", value: labels.categoryId, required: true },
+        {
+          label: "Grade",
+          value: labels.gradeId ?? values.customGradeName,
+          required: true,
+        },
+        { label: "Brand", value: labels.brandId, required: true },
+        { label: "Origin", value: country, required: true },
+        {
+          label: "Quantity",
+          value: qty(values.quantity),
+          required: true,
+        },
+        ...(isBuy
+          ? [
+              {
+                label: "Acceptable range",
+                value:
+                  values.acceptableQuantityMin || values.acceptableQuantityMax
+                    ? `${values.acceptableQuantityMin ?? "—"} – ${values.acceptableQuantityMax ?? "—"} ${unit}`
+                    : null,
+              },
+              {
+                label: "Required delivery",
+                value: values.requiredDeliveryDate
+                  ? formatDate(values.requiredDeliveryDate)
+                  : null,
+              },
+            ]
+          : [
+              { label: "MOQ", value: qty(values.moq), required: true },
+              {
+                label: "Maximum per buyer",
+                value: qty(values.maximumQuantity),
+              },
+              {
+                label: "Stock type",
+                value: values.readyStockType
+                  ? importLabel(values.readyStockType)
+                  : null,
+                required: true,
+              },
+            ]),
+        { label: "Packaging", value: packaging },
+        { label: "Application", value: values.application },
+        { label: "HS code", value: values.hsCode },
+        { label: "CAS number", value: values.casNumber },
+        { label: "Special requirements", value: values.specialRequirements },
+      ],
+    },
+    {
+      step: "commercial",
+      title: "Commercial",
+      rows: [
+        {
+          label: isBuy ? "Target price" : "Offer price",
+          value: values.price
+            ? `${currencyCode ?? ""} ${values.price} / ${importLabel(values.priceUnit ?? "MT")}`
+            : null,
+          required: true,
+        },
+        {
+          label: "Price type",
+          value: values.priceType ? importLabel(values.priceType) : null,
+          required: true,
+        },
+        {
+          label: "Incoterm",
+          value: incoterm
+            ? `${incoterm} ${labels.priceBasisPortId ?? values.priceBasisLocation ?? ""}`
+            : null,
+          required: true,
+        },
+        { label: "Payment terms", value: termsName, required: true },
+        ...(currencyCode === "INR"
+          ? [
+              {
+                label: "GST",
+                value: values.gstTreatment
+                  ? importLabel(values.gstTreatment)
+                  : null,
+                required: true,
+              },
+            ]
+          : []),
+      ],
+    },
+    {
+      step: "shipping",
+      title: "Shipping",
+      rows: [
+        {
+          label: "POL → POD",
+          value:
+            labels.polId && labels.podId
+              ? `${labels.polId} → ${labels.podId}`
+              : null,
+          required: true,
+        },
+        {
+          label: "Shipment window",
+          value:
+            values.esd && values.lsd
+              ? `${formatDate(values.esd)} – ${formatDate(values.lsd)}`
+              : null,
+          required: true,
+        },
+        {
+          label: "Transit time",
+          value:
+            values.transitMinDays !== null &&
+            values.transitMinDays !== undefined &&
+            values.transitMaxDays !== null &&
+            values.transitMaxDays !== undefined
+              ? `${values.transitMinDays}–${values.transitMaxDays} days`
+              : null,
+        },
+        {
+          label: "Partial shipment",
+          value: values.partialShipment
+            ? importLabel(values.partialShipment)
+            : null,
+        },
+        {
+          label: "Transshipment",
+          value: values.transshipment
+            ? importLabel(values.transshipment)
+            : null,
+        },
+        {
+          label: "Shipment type",
+          value: values.shipmentType ? importLabel(values.shipmentType) : null,
+        },
+        {
+          label: "Containers",
+          value:
+            [
+              values.containerSize ? importLabel(values.containerSize) : null,
+              values.containerCount ? `× ${values.containerCount}` : null,
+            ]
+              .filter(Boolean)
+              .join(" ") || null,
+          required: values.quantityUnit === "CONTAINER",
+        },
+      ],
+    },
+    {
+      step: "quality",
+      title: "Quality & documents",
+      rows: [
+        {
+          label: isBuy ? "Required documents" : "Documents offered",
+          value: documents || null,
+        },
+        {
+          label: "Inspection",
+          value: values.inspectionType
+            ? importLabel(values.inspectionType)
+            : null,
+        },
+        { label: "Specification", value: values.specification },
+        { label: "Remarks", value: values.remarks },
+      ],
+    },
   ];
+
   return (
-    <dl className="grid gap-x-6 gap-y-3 rounded-xl border bg-slate-50/60 p-4 sm:grid-cols-2">
-      {rows.map(([label, value]) => (
-        <div key={label}>
-          <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-            {label}
-          </dt>
-          <dd className={cn("mt-0.5 text-sm", !value && "text-amber-700")}>
-            {value || "Not set"}
-          </dd>
-        </div>
-      ))}
-    </dl>
+    <div className="space-y-3">
+      {sections.map((section) => {
+        const rows = section.rows.filter((r) => r.required || r.value);
+        return (
+          <section
+            key={section.step}
+            className="rounded-xl border bg-slate-50/60 p-4"
+          >
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold">{section.title}</h3>
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                className="h-auto p-0"
+                onClick={() => onEdit(section.step)}
+              >
+                <Pencil className="h-3.5 w-3.5" /> Edit
+              </Button>
+            </div>
+            {rows.length ? (
+              <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+                {rows.map((row) => (
+                  <div key={row.label}>
+                    <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+                      {row.label}
+                    </dt>
+                    <dd
+                      className={cn(
+                        "mt-0.5 whitespace-pre-line text-sm",
+                        !row.value && "text-amber-700",
+                      )}
+                    >
+                      {row.value || "Not set"}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Nothing added. These details are optional.
+              </p>
+            )}
+          </section>
+        );
+      })}
+    </div>
   );
 }

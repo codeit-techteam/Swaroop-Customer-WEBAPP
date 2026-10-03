@@ -84,6 +84,22 @@ const LABELS: Record<string, string> = {
   BUYER: "Buyer",
   SELLER: "Seller",
   SYSTEM: "System",
+  ADMIN: "Swaroop",
+  // Shipment status
+  BOOKED: "Shipment booked",
+  SHIPPED: "Shipped / picked up",
+  IN_TRANSIT: "In transit",
+  ARRIVED: "Arrived at destination port",
+  CUSTOMS_CLEARANCE: "Customs clearance",
+  OUT_FOR_DELIVERY: "Out for delivery",
+  DELIVERED: "Delivered",
+  EXCEPTION: "Exception",
+  // Shipment mode
+  SEA: "Sea",
+  AIR: "Air",
+  ROAD: "Road",
+  RAIL: "Rail",
+  MULTIMODAL: "Multimodal",
 };
 
 export function importLabel(value?: string | null): string {
@@ -118,6 +134,14 @@ const TONES: Record<string, Tone> = {
   WITHDRAWN: "neutral",
   PENDING_CONFIRMATION: "warning",
   CONFIRMED: "success",
+  BOOKED: "info",
+  SHIPPED: "info",
+  IN_TRANSIT: "info",
+  ARRIVED: "info",
+  CUSTOMS_CLEARANCE: "warning",
+  OUT_FOR_DELIVERY: "info",
+  DELIVERED: "success",
+  EXCEPTION: "danger",
 };
 
 export const toneFor = (status: string): Tone => TONES[status] ?? "neutral";

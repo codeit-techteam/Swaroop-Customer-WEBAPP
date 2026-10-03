@@ -4,6 +4,7 @@ import { sidePath } from "@/lib/import/config";
 import type {
   ImportBrand,
   ImportDeal,
+  ImportDealDetail,
   ImportDocument,
   ImportGrade,
   ImportListing,
@@ -15,6 +16,8 @@ import type {
   ImportPaymentTerm,
   ImportPort,
   ImportProduct,
+  ImportShipment,
+  ImportShipmentStatus,
   ImportSide,
   ImportSummary,
   ImportTermsInput,
@@ -334,7 +337,7 @@ export const fetchDeals = (query: {
 }) => paged(apiClient.get<Envelope<ImportDeal[]>>(`/import/deals${qs(query)}`));
 
 export const fetchDeal = (id: string) =>
-  data(apiClient.get<Envelope<ImportDeal>>(`/import/deals/${id}`));
+  data(apiClient.get<Envelope<ImportDealDetail>>(`/import/deals/${id}`));
 
 export const confirmDeal = (id: string, idempotencyKey: string) =>
   data(
@@ -344,3 +347,22 @@ export const confirmDeal = (id: string, idempotencyKey: string) =>
       idem(idempotencyKey),
     ),
   );
+
+// Shipments (read-only for buyers) -------------------------------------------
+
+export type ShipmentQuery = {
+  status?: ImportShipmentStatus;
+  dealId?: string;
+  search?: string;
+  as?: "buyer" | "seller";
+  page?: number;
+  limit?: number;
+};
+
+export const listShipments = (query: ShipmentQuery) =>
+  paged(
+    apiClient.get<Envelope<ImportShipment[]>>(`/import/shipments${qs(query)}`),
+  );
+
+export const getShipment = (id: string) =>
+  data(apiClient.get<Envelope<ImportShipment>>(`/import/shipments/${id}`));

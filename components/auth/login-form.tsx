@@ -27,6 +27,8 @@ import { useAuthStore } from "@/store/authStore";
 import { ROUTES } from "@/constants";
 import { cn } from "@/lib/utils";
 
+const IS_DEV = process.env.NODE_ENV !== "production";
+
 const LOGIN_METHOD_OPTIONS: Array<{
   value: LoginMethod;
   label: string;
@@ -63,8 +65,8 @@ export function LoginForm() {
         options,
       ),
     defaultValues: {
-      identifier: "customer@test.local",
-      password: "Test@12345",
+      identifier: IS_DEV ? "customer@test.local" : "",
+      password: IS_DEV ? "Test@12345" : "",
       rememberMe: false,
     },
   });
@@ -75,7 +77,10 @@ export function LoginForm() {
   const switchLoginMethod = (method: LoginMethod) => {
     if (method === loginMethod) return;
     setLoginMethod(method);
-    setValue("identifier", method === "phone" ? "8240890242" : "customer@test.local");
+    setValue(
+      "identifier",
+      IS_DEV ? (method === "phone" ? "8240890242" : "customer@test.local") : "",
+    );
     clearErrors("identifier");
   };
 
@@ -242,15 +247,20 @@ export function LoginForm() {
             Continue with OTP
           </SecondaryButton>
 
-          <p className="text-center text-xs text-muted-foreground">
-            Same Customer APP account:{" "}
-            <span className="font-medium text-foreground">customer@test.local</span>{" "}
-            / <span className="font-medium text-foreground">8240890242</span>
-            <br />
-            Password <span className="font-medium text-foreground">Test@12345</span>
-            {" · "}
-            OTP <span className="font-medium text-foreground">123456</span>
-          </p>
+          {IS_DEV ? (
+            <p className="text-center text-xs text-muted-foreground">
+              Same Customer APP account:{" "}
+              <span className="font-medium text-foreground">
+                customer@test.local
+              </span>{" "}
+              / <span className="font-medium text-foreground">8240890242</span>
+              <br />
+              Password{" "}
+              <span className="font-medium text-foreground">Test@12345</span>
+              {" · "}
+              OTP <span className="font-medium text-foreground">123456</span>
+            </p>
+          ) : null}
 
           <p className="text-center text-sm text-muted-foreground">
             New to PetroTrade?{" "}

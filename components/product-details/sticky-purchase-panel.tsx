@@ -1,16 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState, type Ref } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Minus, Plus, ShoppingBag, ShoppingCart, Store } from "lucide-react";
-import { toast } from "sonner";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowRight,
+  Loader2,
+  Minus,
+  Plus,
+  ShoppingCart,
+  Store,
+  Truck,
+} from "lucide-react";
 import { ROUTES } from "@/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useCartStore } from "@/store/cartStore";
+import { formatInr } from "@/lib/format";
 import type { CheckoutQuote } from "@/services/checkout";
-import { checkoutHref, toBackendPaymentOption } from "@/services/checkout";
 import type {
   BulkPricingTier,
   PaymentMethodId,
@@ -23,10 +29,9 @@ import { BuyingSummary } from "./buying-summary";
 import { PaymentOptionsCard } from "./payment-options-card";
 import { SpotPriceCard } from "./spot-price-card";
 import { TrustBadges } from "./trust-badges";
+import type { PurchaseActions } from "./use-purchase-actions";
 
 interface StickyPurchasePanelProps {
-  productId: string;
-  offerId?: string;
   spotPrice: SpotPriceInfo;
   bulkPricing: BulkPricingTier[];
   paymentOptions: PaymentOption[];
@@ -37,18 +42,113 @@ interface StickyPurchasePanelProps {
   quoteError: string | null;
   moq: number;
   maxStock: number;
-  packaging: string;
   availabilityLabel: string;
   eta: string;
   quantity: number;
   onQuantityChange: (quantity: number) => void;
   onSelectTier: (tier: BulkPricingTier) => void;
+  actions: PurchaseActions;
+  /** Attached to the checkout footer so the page can tell when the CTAs are on screen */
+  actionsRef?: Ref<HTMLDivElement>;
   className?: string;
 }
 
+function AvailabilityChip({
+  label,
+  outOfStock,
+}: {
+  label: string;
+  outOfStock: boolean;
+}) {
+  const limited = /limited|low/i.test(label);
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white ring-1 ring-inset ring-white/20">
+      <span
+        className={cn(
+          "h-1.5 w-1.5 rounded-full",
+          outOfStock
+            ? "bg-rose-400"
+            : limited
+              ? "bg-amber-300"
+              : "bg-emerald-400",
+        )}
+        aria-hidden="true"
+      />
+      {outOfStock ? "Out of stock" : label}
+    </span>
+  );
+}
+
+function useScrollEndHint<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [hasMore, setHasMore] = useState(false);
+
+  const update = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    setHasMore(el.scrollHeight - el.scrollTop - el.clientHeight > 8);
+  }, []);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    for (const child of Array.from(el.children)) observer.observe(child);
+    return () => observer.disconnect();
+  }, [update]);
+
+  return { ref, hasMore, onScroll: update };
+}
+
+const STICKY_TOP_PX = 80;
+const VIEWPORT_GAP_PX = 16;
+const MIN_PANEL_HEIGHT_PX = 420;
+
+/**
+ * Caps the panel to the space between its current top edge and the viewport
+ * bottom, so the checkout footer is on screen both at rest and once stuck.
+ */
+function useFitToViewport<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const desktop = window.matchMedia("(min-width: 1280px)");
+    let frame = 0;
+
+    const fit = () => {
+      frame = 0;
+      if (!desktop.matches) {
+        el.style.maxHeight = "";
+        return;
+      }
+      const top = Math.max(el.getBoundingClientRect().top, STICKY_TOP_PX);
+      const available = window.innerHeight - top - VIEWPORT_GAP_PX;
+      el.style.maxHeight = `${Math.max(available, MIN_PANEL_HEIGHT_PX)}px`;
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(fit);
+    };
+
+    fit();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    desktop.addEventListener("change", schedule);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      desktop.removeEventListener("change", schedule);
+    };
+  }, []);
+
+  return ref;
+}
+
 export function StickyPurchasePanel({
-  productId,
-  offerId,
   spotPrice,
   bulkPricing,
   paymentOptions,
@@ -59,30 +159,26 @@ export function StickyPurchasePanel({
   quoteError,
   moq,
   maxStock,
-  packaging,
   availabilityLabel,
   eta,
   quantity,
   onQuantityChange,
   onSelectTier,
+  actions,
+  actionsRef,
   className,
 }: StickyPurchasePanelProps) {
-  const router = useRouter();
-  const addItem = useCartStore((s) => s.addItem);
   const [qtyError, setQtyError] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
-  const outOfStock = maxStock <= 0;
-  const canBuy =
-    Boolean(quote) &&
-    !quoteLoading &&
-    !quoteError &&
-    !outOfStock &&
-    quantity > 0;
+  const { adding, cartError, outOfStock, canAddToCart, canBuy } = actions;
+  const scroll = useScrollEndHint<HTMLDivElement>();
+  const cardRef = useFitToViewport<HTMLDivElement>();
+  const minQty = maxStock > 0 ? Math.min(moq, maxStock) : 0;
+  const discount = quote ? Number(quote.discountAmount) : 0;
+  const refreshing = quoteLoading && Boolean(quote);
 
   function clamp(next: number) {
     if (maxStock <= 0) return 0;
-    const floor = Math.min(moq, maxStock);
-    return Math.max(floor, Math.min(maxStock, Math.round(next)));
+    return Math.max(minQty, Math.min(maxStock, Math.round(next)));
   }
 
   function changeQty(next: number) {
@@ -105,229 +201,333 @@ export function StickyPurchasePanel({
     onQuantityChange(clamp(next));
   }
 
-  async function handleAddToCart() {
-    if (outOfStock || quantity <= 0) {
-      setQtyError("Out of stock — cannot add to cart");
-      toast.error("This grade is out of stock");
-      return;
-    }
-    if (quantity > maxStock) {
-      setQtyError(`Only ${maxStock} MT available`);
-      toast.error(`Quantity exceeds availability (${maxStock} MT)`);
-      return;
-    }
-    setAdding(true);
-    const result = await addItem(
-      productId,
-      quantity,
-      packaging,
-      quote?.offerId ?? offerId,
-      toBackendPaymentOption(paymentId),
-    );
-    setAdding(false);
-    if (!result.ok) {
-      setQtyError(result.message);
-      toast.error(result.message);
-      return;
-    }
-    toast.success(result.message);
-  }
-
-  function handleBuyNow() {
-    if (!quote) {
-      toast.error(quoteError ?? "Unable to load latest pricing");
-      return;
-    }
-    router.push(checkoutHref([quote.quoteId]));
-  }
+  const inlineError = qtyError ?? cartError;
 
   return (
     <aside
-      className={cn(
-        "space-y-3 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pb-2",
-        className,
-      )}
+      aria-label="Purchase options"
+      className={cn("xl:sticky xl:top-20", className)}
     >
-      <SpotPriceCard
-        spotPrice={
-          quote
-            ? { ...spotPrice, pricePerMt: Number(quote.unitPrice) }
-            : spotPrice
-        }
-      />
-      <BulkPricingCard
-        tiers={bulkPricing}
-        quantity={quantity}
-        onSelectTier={onSelectTier}
-      />
-
-      <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-card">
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Quantity (MT)
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-11 min-h-11 w-11 min-w-11 shrink-0 rounded-xl"
-              disabled={
-                outOfStock ||
-                quantity <= (maxStock > 0 ? Math.min(moq, maxStock) : 0)
-              }
-              onClick={() => changeQty(quantity - 1)}
-              aria-label="Decrease quantity"
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-            <Input
-              type="number"
-              min={outOfStock ? 0 : Math.min(moq, maxStock)}
-              max={maxStock}
-              step={1}
-              value={quantity}
-              disabled={outOfStock}
-              onChange={(e) => {
-                const parsed = Number(e.target.value);
-                if (Number.isFinite(parsed)) changeQty(parsed);
-              }}
-              className="h-11 rounded-xl text-center text-base font-semibold"
+      <div
+        ref={cardRef}
+        className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card xl:max-h-[calc(100dvh-6rem)]"
+      >
+        <SpotPriceCard
+          className="shrink-0 rounded-none border-0 !shadow-none"
+          spotPrice={
+            quote
+              ? { ...spotPrice, pricePerMt: Number(quote.unitPrice) }
+              : spotPrice
+          }
+          badge={
+            <AvailabilityChip
+              label={availabilityLabel}
+              outOfStock={outOfStock}
             />
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-11 min-h-11 w-11 min-w-11 shrink-0 rounded-xl"
-              disabled={outOfStock || quantity >= maxStock}
-              onClick={() => changeQty(quantity + 1)}
-              aria-label="Increase quantity"
+          }
+        />
+
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          <div
+            ref={scroll.ref}
+            onScroll={scroll.onScroll}
+            className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4 [scrollbar-width:thin]"
+          >
+            <section aria-labelledby="pdp-qty-label">
+              <div className="mb-2 flex items-baseline justify-between gap-2">
+                <p
+                  id="pdp-qty-label"
+                  className="text-xs font-semibold uppercase tracking-wide text-slate-500"
+                >
+                  Quantity (MT)
+                </p>
+                <p className="text-[11px] font-medium text-slate-400">
+                  MOQ {moq} · {maxStock} available
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-10 min-h-10 w-10 min-w-10 shrink-0 rounded-xl"
+                  disabled={outOfStock || quantity <= minQty}
+                  onClick={() => changeQty(quantity - 1)}
+                  aria-label="Decrease quantity"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min={minQty}
+                  max={maxStock}
+                  step={1}
+                  value={quantity}
+                  disabled={outOfStock}
+                  aria-labelledby="pdp-qty-label"
+                  aria-invalid={Boolean(inlineError)}
+                  onChange={(e) => {
+                    const parsed = Number(e.target.value);
+                    if (Number.isFinite(parsed)) changeQty(parsed);
+                  }}
+                  className="h-10 rounded-xl text-center text-base font-semibold tabular-nums"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-10 min-h-10 w-10 min-w-10 shrink-0 rounded-xl"
+                  disabled={outOfStock || quantity >= maxStock}
+                  onClick={() => changeQty(quantity + 1)}
+                  aria-label="Increase quantity"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              {outOfStock ? (
+                <p className="mt-1.5 text-xs font-medium text-red-600">
+                  Out of stock — ordering resumes once stock is replenished.
+                </p>
+              ) : inlineError ? (
+                <p className="mt-1.5 text-xs text-red-600" role="alert">
+                  {inlineError}
+                </p>
+              ) : null}
+            </section>
+
+            <BulkPricingCard
+              className="rounded-xl border-slate-100 p-3 !shadow-none"
+              tiers={bulkPricing}
+              quantity={quantity}
+              onSelectTier={onSelectTier}
+            />
+
+            <PaymentOptionsCard
+              options={paymentOptions}
+              selectedId={paymentId}
+              onSelect={onPaymentChange}
+              compact
+            />
+
+            <div className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5">
+              <Truck
+                className="h-4 w-4 shrink-0 text-brand"
+                aria-hidden="true"
+              />
+              <p className="text-xs text-slate-600">
+                Delivery in{" "}
+                <span className="font-semibold text-slate-900">
+                  {eta?.trim() || "4–6 Business Days"}
+                </span>
+              </p>
+            </div>
+
+            <BuyingSummary
+              quote={quote}
+              loading={quoteLoading}
+              error={quoteError}
+              hideTotal
+            />
+
+            <TrustBadges className="border-0 p-0 !shadow-none" />
+
+            <p className="text-[11px] leading-relaxed text-slate-400">
+              Totals come from the latest PetroTrade quote. Payment is collected
+              after seller response, commercial acceptance, and proforma
+              invoice.
+            </p>
+
+            <Link
+              href={ROUTES.marketplace}
+              className="flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-slate-500 transition-colors hover:text-brand"
             >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-          <p className="mt-1.5 text-xs text-slate-500">
-            MOQ {moq} MT · Available {maxStock} MT
-          </p>
-          {outOfStock ? (
-            <p className="mt-1 text-xs font-medium text-red-600">
-              Out of stock — update unavailable until stock is replenished.
-            </p>
-          ) : null}
-          {qtyError ? (
-            <p className="mt-1 text-xs text-red-600">{qtyError}</p>
-          ) : null}
-        </div>
-
-        <PaymentOptionsCard
-          options={paymentOptions}
-          selectedId={paymentId}
-          onSelect={onPaymentChange}
-          compact
-        />
-
-        <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-              Availability
-            </p>
-            <p className="mt-0.5 text-xs font-semibold text-emerald-700">
-              {availabilityLabel}
-            </p>
-          </div>
-          <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-              Delivery ETA
-            </p>
-            <p className="mt-0.5 text-xs font-semibold text-slate-800">
-              {eta?.trim() || "4–6 Business Days"}
-            </p>
-          </div>
-        </div>
-
-        <BuyingSummary
-          quote={quote}
-          loading={quoteLoading}
-          error={quoteError}
-        />
-
-        <div className="space-y-2">
-          <Button
-            type="button"
-            className="h-12 w-full rounded-xl bg-brand text-sm font-semibold hover:bg-brand-700"
-            onClick={handleAddToCart}
-            disabled={adding || outOfStock}
-          >
-            <ShoppingCart className="h-4 w-4" />
-            {outOfStock ? "Out Of Stock" : adding ? "Adding..." : "Add To Cart"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="h-11 w-full rounded-xl text-sm font-semibold"
-            onClick={handleBuyNow}
-            disabled={!canBuy}
-          >
-            <ShoppingBag className="h-4 w-4" />
-            {quoteLoading ? "Loading latest price..." : "Buy Now"}
-          </Button>
-          <Button
-            asChild
-            type="button"
-            variant="ghost"
-            className="h-10 w-full rounded-xl text-xs font-medium text-slate-500"
-          >
-            <Link href={ROUTES.marketplace}>
-              <Store className="h-3.5 w-3.5" />
+              <Store className="h-3.5 w-3.5" aria-hidden="true" />
               Continue Shopping
             </Link>
-          </Button>
+          </div>
+
+          <div
+            className={cn(
+              "pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white to-transparent transition-opacity duration-200",
+              scroll.hasMore ? "opacity-100" : "opacity-0",
+            )}
+            aria-hidden="true"
+          />
         </div>
 
-        <p className="text-[11px] leading-relaxed text-slate-400">
-          Totals come from the latest PetroTrade quote. Payment is collected
-          after seller response, commercial acceptance, and proforma invoice.
-        </p>
-      </div>
+        <div
+          ref={actionsRef}
+          className="shrink-0 border-t border-slate-200 bg-white px-4 pb-4 pt-3 shadow-[0_-10px_24px_-14px_rgba(15,23,42,0.22)]"
+        >
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                Grand Total
+              </p>
+              <p className="truncate text-[11px] text-slate-500">
+                {quantity} MT · incl. GST &amp; freight
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5" aria-live="polite">
+              {refreshing ? (
+                <Loader2
+                  className="h-3.5 w-3.5 animate-spin text-slate-400"
+                  aria-label="Updating price"
+                />
+              ) : null}
+              {quote ? (
+                <p
+                  className={cn(
+                    "text-xl font-bold tabular-nums leading-none text-brand transition-opacity",
+                    refreshing && "opacity-60",
+                  )}
+                >
+                  {formatInr(Number(quote.totalAmount), { compact: true })}
+                </p>
+              ) : quoteLoading ? (
+                <span className="h-5 w-24 animate-pulse rounded-md bg-slate-200" />
+              ) : (
+                <p className="text-xl font-bold leading-none text-slate-300">
+                  —
+                </p>
+              )}
+            </div>
+          </div>
 
-      <TrustBadges />
+          {discount > 0 ? (
+            <p className="mt-1 text-right text-[11px] font-semibold text-emerald-700">
+              You save {formatInr(discount, { compact: true })}
+            </p>
+          ) : null}
+
+          {outOfStock ? (
+            <Button
+              type="button"
+              disabled
+              className="mt-3 h-11 w-full rounded-xl text-sm font-semibold"
+            >
+              Out Of Stock
+            </Button>
+          ) : (
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 rounded-xl border-brand/30 px-2 text-sm font-semibold text-brand hover:bg-brand/5 hover:text-brand"
+                onClick={() => void actions.addToCart()}
+                disabled={!canAddToCart}
+              >
+                {adding ? (
+                  <Loader2
+                    className="h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+                )}
+                {adding ? "Adding…" : "Add to Cart"}
+              </Button>
+              <Button
+                type="button"
+                className="group h-11 rounded-xl bg-brand px-2 text-sm font-semibold hover:bg-brand-700"
+                onClick={actions.buyNow}
+                disabled={!canBuy}
+              >
+                {quoteLoading && !quote ? (
+                  <Loader2
+                    className="h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
+                ) : null}
+                Buy Now
+                {!quoteLoading ? (
+                  <ArrowRight
+                    className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                    aria-hidden="true"
+                  />
+                ) : null}
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
     </aside>
   );
 }
 
 interface MobileBuyBarProps {
+  visible: boolean;
   quantity: number;
   totalLabel: string;
-  onBuyNow: () => void;
-  disabled?: boolean;
+  actions: PurchaseActions;
 }
 
 export function MobileBuyBar({
+  visible,
   quantity,
   totalLabel,
-  onBuyNow,
-  disabled = false,
+  actions,
 }: MobileBuyBarProps) {
+  const { adding, outOfStock, canAddToCart, canBuy } = actions;
+
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
-      <div className="mx-auto flex max-w-lg items-center gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-            Est. total · {quantity} MT
-          </p>
-          <p className="truncate text-base font-bold tabular-nums text-brand">
-            {totalLabel}
-          </p>
-        </div>
-        <Button
-          type="button"
-          className="h-11 shrink-0 rounded-xl bg-brand px-5 text-sm font-semibold hover:bg-brand-700"
-          onClick={onBuyNow}
-          disabled={disabled}
+    <AnimatePresence>
+      {visible ? (
+        <motion.div
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
+          exit={{ y: "100%" }}
+          transition={{ type: "spring", stiffness: 420, damping: 38 }}
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur xl:hidden"
         >
-          Buy Now
-        </Button>
-      </div>
-    </div>
+          <div className="mx-auto flex max-w-lg items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                Total · {quantity} MT
+              </p>
+              <p className="truncate text-base font-bold tabular-nums text-brand">
+                {totalLabel}
+              </p>
+            </div>
+            {outOfStock ? (
+              <Button
+                type="button"
+                disabled
+                className="h-11 shrink-0 rounded-xl px-5 text-sm font-semibold"
+              >
+                Out Of Stock
+              </Button>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-11 min-h-11 w-11 min-w-11 shrink-0 rounded-xl border-brand/30 text-brand hover:bg-brand/5 hover:text-brand"
+                  onClick={() => void actions.addToCart()}
+                  disabled={!canAddToCart}
+                  aria-label="Add to cart"
+                >
+                  {adding ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <ShoppingCart className="h-4 w-4" />
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  className="h-11 shrink-0 rounded-xl bg-brand px-5 text-sm font-semibold hover:bg-brand-700"
+                  onClick={actions.buyNow}
+                  disabled={!canBuy}
+                >
+                  Buy Now
+                </Button>
+              </>
+            )}
+          </div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
   );
 }

@@ -109,7 +109,7 @@ function toAuthUser(
   const name =
     [user.firstName, user.lastName].filter(Boolean).join(" ") ||
     fallback?.name ||
-    DEV_USER_NAME;
+    "Customer";
   return {
     id: user.id,
     name,
@@ -255,6 +255,7 @@ export const useAuthStore = create<AuthStore>()(
         const purpose = state.otpSource === "register" ? "SIGNUP" : "LOGIN";
         const digits = contact.replace(/\D/g, "").slice(-10);
         const isDemo =
+          process.env.NODE_ENV !== "production" &&
           otp === DEV_OTP &&
           (digits === DEV_PHONE ||
             contact.toLowerCase() === DEV_CUSTOMER_EMAIL);
@@ -292,8 +293,13 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       resendOTP: async () => {
-        const contact =
-          get().pendingContact || get().forgotPasswordEmail || DEV_PHONE;
+        const contact = get().pendingContact || get().forgotPasswordEmail;
+        if (!contact) {
+          return {
+            ok: false,
+            message: "Start login again to receive a new OTP.",
+          };
+        }
         try {
           await sendAuthOtp(
             contact,

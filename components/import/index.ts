@@ -15,3 +15,4 @@ export {
   ImportDealsPage,
   ImportDealDetailPage,
 } from "./import-trade-pages";
+export { ImportShipmentsPage } from "./import-shipments";

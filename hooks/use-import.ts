@@ -19,8 +19,12 @@ import {
   fetchMatches,
   fetchNegotiation,
   fetchNegotiations,
+  getShipment,
+  listShipments,
   type ListingQuery,
+  type ShipmentQuery,
 } from "@/services/import";
+import { isShipmentTerminal } from "@/lib/import/shipment";
 import type { ImportSide } from "@/types/import";
 
 export const importKeys = {
@@ -41,7 +45,11 @@ export const importKeys = {
   negotiation: (id: string) => ["import", "negotiation", id] as const,
   deals: (query: object) => ["import", "deals", query] as const,
   deal: (id: string) => ["import", "deal", id] as const,
+  shipments: (query: object) => ["import", "shipments", "list", query] as const,
+  shipment: (id: string) => ["import", "shipments", "detail", id] as const,
 };
+
+const SHIPMENT_POLL_MS = 60 * 1000;
 
 export function useImportConfig() {
   return useQuery({
@@ -173,11 +181,41 @@ export function useImportDeals(query: Parameters<typeof fetchDeals>[0]) {
   });
 }
 
+/** Polls while a shipment is still moving so seller updates show up. */
 export function useImportDeal(id: string) {
   return useQuery({
     queryKey: importKeys.deal(id),
     queryFn: () => fetchDeal(id),
     staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchInterval: (query) =>
+      query.state.data?.shipments?.some((s) => !isShipmentTerminal(s.status))
+        ? SHIPMENT_POLL_MS
+        : false,
+  });
+}
+
+export function useImportShipments(query: ShipmentQuery) {
+  return useQuery({
+    queryKey: importKeys.shipments(query),
+    queryFn: () => listShipments(query),
+    placeholderData: keepPreviousData,
+    staleTime: 10 * 1000,
+    refetchOnWindowFocus: true,
+  });
+}
+
+export function useImportShipment(id: string | null) {
+  return useQuery({
+    queryKey: importKeys.shipment(id ?? ""),
+    queryFn: () => getShipment(id!),
+    enabled: Boolean(id),
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchInterval: (query) =>
+      query.state.data && !isShipmentTerminal(query.state.data.status)
+        ? SHIPMENT_POLL_MS
+        : false,
   });
 }
 

@@ -1,15 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { AppBreadcrumb } from "@/components/navigation/app-breadcrumb";
 import { ROUTES } from "@/constants";
 import { useCustomerQuote } from "@/hooks/use-customer-quote";
 import { formatInr } from "@/lib/format";
-import { checkoutHref } from "@/services/checkout";
 import { useProductStore } from "@/store/productStore";
 import { MarketplaceEmptyState } from "@/components/marketplace/empty-state";
 import { BlindSellerBadge } from "@/components/marketplace/blind-seller-badge";
@@ -25,13 +22,13 @@ import { DocumentDownloads } from "./document-downloads";
 import { MobileBuyBar, StickyPurchasePanel } from "./sticky-purchase-panel";
 import { RelatedProductsCarousel } from "./related-products-carousel";
 import { ProductDetailsPageSkeleton } from "./product-details-skeleton";
+import { usePurchaseActions } from "./use-purchase-actions";
 
 interface ProductDetailsPageProps {
   productId: string;
 }
 
 export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
-  const router = useRouter();
   const [quantity, setQuantity] = useState(25);
   const [paymentId, setPaymentId] = useState<PaymentMethodId>("advance");
   const loadProduct = useProductStore((s) => s.loadProduct);
@@ -39,6 +36,20 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
   const relatedProducts = useProductStore((s) => s.relatedProducts);
   const isLoading = useProductStore((s) => s.isLoading);
   const loadError = useProductStore((s) => s.loadError);
+  const [actionsEl, setActionsEl] = useState<HTMLDivElement | null>(null);
+  const [actionsInView, setActionsInView] = useState(false);
+
+  useEffect(() => {
+    if (!actionsEl) {
+      setActionsInView(false);
+      return;
+    }
+    const observer = new IntersectionObserver(([entry]) =>
+      setActionsInView(entry?.isIntersecting ?? false),
+    );
+    observer.observe(actionsEl);
+    return () => observer.disconnect();
+  }, [actionsEl]);
 
   const {
     quote,
@@ -51,6 +62,18 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
     quantity,
     paymentId,
     enabled: Boolean(selectedProduct),
+  });
+
+  const actions = usePurchaseActions({
+    productId: selectedProduct?.id ?? productId,
+    offerId: selectedProduct?.offerId,
+    packaging: selectedProduct?.packaging ?? "",
+    quantity,
+    maxStock: selectedProduct?.stock ?? 0,
+    paymentId,
+    quote,
+    quoteLoading,
+    quoteError,
   });
 
   useEffect(() => {
@@ -100,7 +123,6 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
   }
 
   const detail = product;
-  const livePaymentOptions = paymentOptions;
   const displaySpotPrice = quote
     ? { ...detail.spotPrice, pricePerMt: Number(quote.unitPrice) }
     : detail.spotPrice;
@@ -117,39 +139,32 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
     setQuantity(Math.min(next, detail.stock));
   }
 
-  function handleBuyNow() {
-    if (!quote) {
-      toast.error(quoteError ?? "Unable to load latest pricing");
-      return;
-    }
-    router.push(checkoutHref([quote.quoteId]));
-  }
-
   return (
-    <PageContainer className="space-y-6 pb-24 lg:pb-8">
-      <AppBreadcrumb
-        items={[
-          { label: "Marketplace", href: ROUTES.marketplace },
-          {
-            label: detail.categoryName,
-            href: `${ROUTES.marketplaceCategory}/${detail.categorySlug}`,
-          },
-          { label: detail.name },
-        ]}
-      />
-
+    // overflow-x-clip (not hidden) so the purchase panel can stay position: sticky
+    <PageContainer className="space-y-6 overflow-x-clip pb-28 xl:pb-8">
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]"
+        className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_380px]"
       >
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6 xl:col-start-1 xl:row-start-1">
+          <AppBreadcrumb
+            items={[
+              { label: "Marketplace", href: ROUTES.marketplace },
+              {
+                label: detail.categoryName,
+                href: `${ROUTES.marketplaceCategory}/${detail.categorySlug}`,
+              },
+              { label: detail.name },
+            ]}
+          />
+
           <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-card">
             <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-base font-bold text-brand">
               {detail.grade.slice(0, 4).toUpperCase()}
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-[12rem] flex-1">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Blind Marketplace Offer
               </p>
@@ -163,6 +178,31 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
 
           <ProductHeader product={detail} />
           <ProductHighlights highlights={detail.highlights} />
+        </div>
+
+        <div className="min-w-0 xl:col-start-2 xl:row-span-2 xl:row-start-1">
+          <StickyPurchasePanel
+            spotPrice={displaySpotPrice}
+            bulkPricing={detail.bulkPricing}
+            paymentOptions={paymentOptions}
+            paymentId={paymentId}
+            onPaymentChange={setPaymentId}
+            quote={quote}
+            quoteLoading={quoteLoading}
+            quoteError={quoteError}
+            moq={detail.moq}
+            maxStock={detail.stock}
+            availabilityLabel={detail.availabilityLabel}
+            eta={detail.eta}
+            quantity={quantity}
+            onQuantityChange={setQuantity}
+            onSelectTier={handleSelectTier}
+            actions={actions}
+            actionsRef={setActionsEl}
+          />
+        </div>
+
+        <div className="min-w-0 space-y-6 xl:col-start-1 xl:row-start-2">
           <ProductInfoCard product={detail} />
           <DeliveryCard
             origin={detail.origin}
@@ -180,44 +220,21 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
             productId={detail.id}
           />
         </div>
-
-        <div>
-          <StickyPurchasePanel
-            productId={detail.id}
-            offerId={quote?.offerId ?? selectedProduct?.offerId}
-            spotPrice={displaySpotPrice}
-            bulkPricing={detail.bulkPricing}
-            paymentOptions={livePaymentOptions}
-            paymentId={paymentId}
-            onPaymentChange={setPaymentId}
-            quote={quote}
-            quoteLoading={quoteLoading}
-            quoteError={quoteError}
-            moq={detail.moq}
-            maxStock={detail.stock}
-            packaging={detail.packaging}
-            availabilityLabel={detail.availabilityLabel}
-            eta={detail.eta}
-            quantity={quantity}
-            onQuantityChange={setQuantity}
-            onSelectTier={handleSelectTier}
-          />
-        </div>
       </motion.div>
 
       <RelatedProductsCarousel products={relatedProducts} />
 
       <MobileBuyBar
+        visible={!actionsInView}
         quantity={quantity}
         totalLabel={
           quote
             ? formatInr(Number(quote.totalAmount), { compact: true })
             : quoteLoading
-              ? "Calculating..."
+              ? "Calculating…"
               : "—"
         }
-        onBuyNow={handleBuyNow}
-        disabled={!quote || quoteLoading || detail.stock <= 0}
+        actions={actions}
       />
     </PageContainer>
   );

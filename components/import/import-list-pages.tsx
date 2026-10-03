@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   FilePlus2,
   Handshake,
-  Inbox,
   PackageSearch,
   Search,
   SlidersHorizontal,
@@ -46,45 +45,14 @@ import {
 } from "@/services/import";
 import { ImportListingRow } from "./import-listing-details";
 import {
+  EmptyList,
   ErrorPanel,
   Field,
   ImportPage,
+  ListSkeleton,
   Pager,
   SearchSelect,
 } from "./import-ui";
-
-function ListSkeleton() {
-  return (
-    <div className="space-y-3">
-      {[0, 1, 2].map((i) => (
-        <Skeleton key={i} className="h-[92px] rounded-2xl" />
-      ))}
-    </div>
-  );
-}
-
-function EmptyList({
-  title,
-  description,
-  action,
-}: {
-  title: string;
-  description: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col items-center rounded-2xl border border-dashed bg-card px-6 py-14 text-center">
-      <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-        <Inbox className="h-5 w-5" />
-      </div>
-      <h3 className="text-base font-semibold">{title}</h3>
-      <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-        {description}
-      </p>
-      {action ? <div className="mt-5">{action}</div> : null}
-    </div>
-  );
-}
 
 const CreateButton = () => (
   <Button asChild>

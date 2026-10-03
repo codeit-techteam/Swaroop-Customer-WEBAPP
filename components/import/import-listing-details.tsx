@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, MapPin } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { validityLabel } from "@/lib/import/config";
 import {
   formatDate,
   formatPrice,
@@ -269,6 +270,7 @@ export function ImportListingRow({
               validUntil={l.validity.validUntil}
               secondsRemaining={l.validity.secondsRemaining}
               fetchedAt={fetchedAt}
+              label={validityLabel(l.side)}
             />
           ) : null}
           <ImportStatusBadge status={l.status} />

@@ -34,6 +34,7 @@ import {
   IMPORT_MARKET_SIDE,
   IMPORT_OWN_SIDE,
   IMPORT_ROUTES,
+  validityLabel,
 } from "@/lib/import/config";
 import {
   OPEN_STATUSES,
@@ -113,7 +114,14 @@ function ListingHeader({
               validUntil={listing.validity.validUntil}
               secondsRemaining={listing.validity.secondsRemaining}
               fetchedAt={fetchedAt}
+              label={validityLabel(listing.side)}
             />
+          ) : null}
+          {listing.status !== "DRAFT" && listing.validity.validUntil ? (
+            <span className="text-xs text-muted-foreground">
+              {validityLabel(listing.side)}{" "}
+              {formatDateTime(listing.validity.validUntil)}
+            </span>
           ) : null}
         </div>
       </CardContent>

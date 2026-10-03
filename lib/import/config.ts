@@ -31,11 +31,16 @@ export const IMPORT_ROUTES = {
   negotiationDetail: (id: string) => `/import/negotiations/${id}`,
   deals: "/import/deals",
   dealDetail: (id: string) => `/import/deals/${id}`,
+  shipments: "/import/shipments",
 } as const;
 
 /** API path segment for a listing side. */
 export const sidePath = (side: ImportSide) =>
   side === "BUY" ? "/import/buy" : "/import/sell";
+
+/** BUY requests close on a server-set date; SELL offers carry seller validity. */
+export const validityLabel = (side: ImportSide) =>
+  side === "BUY" ? "Open until" : "Valid until";
 
 /** Link to a listing of either side as seen from this app. */
 export function listingHref(side: ImportSide, id: string): string {

@@ -66,6 +66,7 @@ export type ImportMasterBundle = {
   countries: Named[];
   paymentTerms: ImportPaymentTerm[];
   allowCustomGrade: boolean;
+  buyRequestValidityDays?: number;
   enums: {
     quantityUnits: ImportQuantityUnit[];
     priceTypes: string[];
@@ -76,6 +77,8 @@ export type ImportMasterBundle = {
     inspectionTypes: string[];
     readyStockTypes: string[];
     portTypes: string[];
+    shipmentModes?: ImportShipmentMode[];
+    shipmentStatuses?: ImportShipmentStatus[];
   };
 };
 
@@ -326,6 +329,74 @@ export type ImportDeal = {
   createdAt: string;
 };
 
+export type ImportShipmentStatus =
+  | "BOOKED"
+  | "SHIPPED"
+  | "IN_TRANSIT"
+  | "ARRIVED"
+  | "CUSTOMS_CLEARANCE"
+  | "OUT_FOR_DELIVERY"
+  | "DELIVERED"
+  | "EXCEPTION"
+  | "CANCELLED";
+
+export type ImportShipmentMode = "SEA" | "AIR" | "ROAD" | "RAIL" | "MULTIMODAL";
+
+export type ImportShipmentEvent = {
+  id: string;
+  status: ImportShipmentStatus;
+  /** null = note / location update without a status change. */
+  previousStatus: ImportShipmentStatus | null;
+  location: string | null;
+  description: string | null;
+  occurredAt: string;
+  actorParty: ImportParty | "ADMIN" | "SYSTEM";
+  source: string;
+};
+
+/** Read-only for buyers; carrier data is entered by the seller or Admin. */
+export type ImportShipment = {
+  id: string;
+  referenceNumber: string;
+  status: ImportShipmentStatus;
+  mode: ImportShipmentMode;
+  myParty: ImportParty | "ADMIN";
+  canManage: boolean;
+  deal: {
+    id: string;
+    referenceNumber: string;
+    status: ImportDealStatus;
+    quantity: string;
+    quantityUnit: ImportQuantityUnit;
+    product: string | null;
+  };
+  buyerRef: string;
+  sellerRef: string;
+  quantity: string;
+  quantityUnit: ImportQuantityUnit;
+  carrierName: string | null;
+  trackingNumber: string | null;
+  vesselName: string | null;
+  voyageNumber: string | null;
+  containerNumbers: string[];
+  originLocation: string | null;
+  destinationLocation: string | null;
+  etd: string | null;
+  eta: string | null;
+  departedAt: string | null;
+  arrivedAt: string | null;
+  deliveredAt: string | null;
+  cancelledAt: string | null;
+  exceptionReason: string | null;
+  remarks: string | null;
+  version: number;
+  events: ImportShipmentEvent[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ImportDealDetail = ImportDeal & { shipments: ImportShipment[] };
+
 export type ImportDocument = {
   id: string;
   category: string;
@@ -355,7 +426,10 @@ export type Paged<T> = {
   meta: { page: number; limit: number; total: number; totalPages: number };
 };
 
-/** Every editable listing field, as sent to POST/PATCH. */
+/**
+ * Every editable BUY request field, as sent to POST/PATCH. Validity is not
+ * here: the server opens BUY requests for `buyRequestValidityDays` on publish.
+ */
 export type ImportListingInput = {
   categoryId?: string | null;
   gradeId?: string | null;
@@ -399,7 +473,6 @@ export type ImportListingInput = {
   maximumQuantity?: string | null;
   readyStockType?: string | null;
   remarks?: string | null;
-  validUntil?: string | null;
 };
 
 export type ImportTermsInput = {

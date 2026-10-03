@@ -37,8 +37,51 @@ export type CustomerKycSlot = {
   document: CustomerKycDocument | null;
 };
 
+export type KycVerificationStatus =
+  "VERIFYING" | "VERIFIED" | "FAILED" | "MANUAL_REVIEW";
+
+export type KycVerificationDetails = {
+  legalName?: string | null;
+  tradeName?: string | null;
+  gstStatus?: string | null;
+  registrationDate?: string | null;
+  taxpayerType?: string | null;
+  constitution?: string | null;
+  address?: string | null;
+  state?: string | null;
+  pincode?: string | null;
+  nameOnPan?: string | null;
+  panStatus?: string | null;
+  panCategory?: string | null;
+};
+
+export type KycVerification = {
+  id: string;
+  type: "PAN" | "GST";
+  status: KycVerificationStatus;
+  method: "PROVIDER" | "MANUAL" | null;
+  identifierMasked: string;
+  provider: string;
+  details: KycVerificationDetails;
+  failureCode: string | null;
+  message: string;
+  verifiedAt: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+};
+
+export type KycVerifyResult = KycVerification & { warning: string | null };
+
+export type KycChecklistItem = {
+  key: "pan" | "gst" | "documents" | "review";
+  label: string;
+  state: "done" | "pending" | "attention" | "todo";
+  detail: string;
+};
+
 export type CustomerKycOverview = {
   status: CustomerKycStatus;
+  kycVerified: boolean;
   submittedAt: string | null;
   reviewedAt: string | null;
   reviewNotes: string | null;
@@ -47,6 +90,11 @@ export type CustomerKycOverview = {
   locked: boolean;
   canSubmit: boolean;
   missingRequired: string[];
+  verifications: {
+    pan: KycVerification | null;
+    gst: KycVerification | null;
+  };
+  checklist: KycChecklistItem[];
   organization: {
     name: string | null;
     legalName: string | null;
@@ -59,8 +107,6 @@ export type CustomerKycOverview = {
 
 export type CustomerKycSubmitInput = {
   businessName?: string;
-  gstin?: string;
-  pan?: string;
 };
 
 /** Must match the backend document MIME allow-list. */
@@ -189,8 +235,6 @@ export async function submitCustomerKyc(
 ): Promise<CustomerKycOverview> {
   const body: CustomerKycSubmitInput = {};
   if (input.businessName?.trim()) body.businessName = input.businessName.trim();
-  if (input.gstin?.trim()) body.gstin = input.gstin.trim().toUpperCase();
-  if (input.pan?.trim()) body.pan = input.pan.trim().toUpperCase();
   const res = await apiClient.post<Envelope<CustomerKycOverview>>(
     "/customer/kyc/submit",
     body,
@@ -198,8 +242,45 @@ export async function submitCustomerKyc(
   return res.data;
 }
 
+/** PAN / GSTIN are checked server-side; provider credentials never reach the browser. */
+export async function verifyCustomerPan(pan: string): Promise<KycVerifyResult> {
+  const res = await apiClient.post<Envelope<KycVerifyResult>>(
+    "/customer/kyc/pan/verify",
+    { pan: normalizeIdentifier(pan) },
+  );
+  return res.data;
+}
+
+export async function verifyCustomerGst(
+  gstin: string,
+): Promise<KycVerifyResult> {
+  const res = await apiClient.post<Envelope<KycVerifyResult>>(
+    "/customer/kyc/gst/verify",
+    { gstin: normalizeIdentifier(gstin) },
+  );
+  return res.data;
+}
+
+export function normalizeIdentifier(value: string): string {
+  return value.toUpperCase().replace(/[\s-]/g, "");
+}
+
+/** VERIFIED, or accepted for manual confirmation by the compliance team. */
+export function verificationAccepted(
+  verification: KycVerification | null | undefined,
+): boolean {
+  return (
+    verification?.status === "VERIFIED" ||
+    verification?.status === "MANUAL_REVIEW"
+  );
+}
+
 export function customerKycError(error: unknown, fallback: string): string {
   if (isAxiosError<{ message?: string | string[] }>(error)) {
+    if (error.response?.status === 429) {
+      return "Too many attempts. Please wait a few minutes and try again.";
+    }
+    if (error.response && error.response.status >= 500) return fallback;
     const message = error.response?.data?.message;
     if (typeof message === "string" && message) return message;
     if (Array.isArray(message) && message[0]) return String(message[0]);

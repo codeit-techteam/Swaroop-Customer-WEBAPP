@@ -54,6 +54,7 @@ import {
   counterNegotiation,
 } from "@/services/import";
 import type { ImportNegotiationEvent } from "@/types/import";
+import { ImportShipmentTracking } from "./import-shipments";
 import { ImportTermsDialog } from "./import-terms-dialog";
 import {
   ErrorPanel,
@@ -787,6 +788,13 @@ export function ImportDealDetailPage({ id }: { id: string }) {
               ) : null}
             </CardContent>
           </Card>
+          {d.shipments?.length ||
+          (d.status !== "PENDING_CONFIRMATION" && d.status !== "CANCELLED") ? (
+            <ImportShipmentTracking
+              shipments={d.shipments ?? []}
+              dealConfirmedAt={d.confirmedAt}
+            />
+          ) : null}
         </div>
       )}
     </ImportPage>

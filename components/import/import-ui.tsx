@@ -10,12 +10,14 @@ import {
   Clock,
   FilePlus2,
   Gauge,
+  Inbox,
   LifeBuoy,
   Loader2,
   RefreshCw,
   ShieldCheck,
   Ship,
   Store,
+  type LucideIcon,
 } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
@@ -57,6 +59,7 @@ const SUB_NAV = [
   { href: IMPORT_ROUTES.market, label: IMPORT_COPY.marketPlural },
   { href: IMPORT_ROUTES.negotiations, label: "Negotiations" },
   { href: IMPORT_ROUTES.deals, label: "Deals" },
+  { href: IMPORT_ROUTES.shipments, label: "Shipments" },
 ];
 
 export function ImportPage({
@@ -253,11 +256,13 @@ export function ImportValidity({
   validUntil,
   secondsRemaining,
   fetchedAt,
+  label = "Valid until",
   className,
 }: {
   validUntil: string | null;
   secondsRemaining: number | null;
   fetchedAt: number;
+  label?: string;
   className?: string;
 }) {
   const left = useServerCountdown(secondsRemaining, fetchedAt);
@@ -273,9 +278,7 @@ export function ImportValidity({
             : "text-muted-foreground",
         className,
       )}
-      title={
-        validUntil ? `Valid until ${formatDateTime(validUntil)}` : undefined
-      }
+      title={validUntil ? `${label} ${formatDateTime(validUntil)}` : undefined}
     >
       <Clock className="h-3.5 w-3.5" />
       {formatRemaining(left)}
@@ -488,6 +491,41 @@ export function KeyValueGrid({
         </div>
       ))}
     </dl>
+  );
+}
+
+export function ListSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[0, 1, 2].map((i) => (
+        <Skeleton key={i} className="h-[92px] rounded-2xl" />
+      ))}
+    </div>
+  );
+}
+
+export function EmptyList({
+  title,
+  description,
+  action,
+  icon: Icon = Inbox,
+}: {
+  title: string;
+  description: string;
+  action?: ReactNode;
+  icon?: LucideIcon;
+}) {
+  return (
+    <div className="flex flex-col items-center rounded-2xl border border-dashed bg-card px-6 py-14 text-center">
+      <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+        <Icon className="h-5 w-5" />
+      </div>
+      <h3 className="text-base font-semibold">{title}</h3>
+      <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+        {description}
+      </p>
+      {action ? <div className="mt-5">{action}</div> : null}
+    </div>
   );
 }
 
