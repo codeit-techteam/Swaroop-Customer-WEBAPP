@@ -15,6 +15,7 @@ import { ROUTES } from "@/constants";
 import { formatMemberSince, resolveMvpProfile } from "@/lib/profile-display";
 import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
+import { useKycIdentitySync } from "@/hooks/use-kyc-identity-sync";
 import { ProfilePageSkeleton } from "@/components/profile/profile-page-skeleton";
 
 export function ProfilePage() {
@@ -24,6 +25,7 @@ export function ProfilePage() {
   const isHydrated = useProfileStore((s) => s.isHydrated);
   const setHydrated = useProfileStore((s) => s.setHydrated);
   const [editOpen, setEditOpen] = useState(false);
+  useKycIdentitySync();
   const [logoutOpen, setLogoutOpen] = useState(false);
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
@@ -22,6 +22,50 @@ import { Label } from "@/components/ui/label";
 import { ONBOARDING_ROUTES } from "@/constants/onboarding";
 import { useOnboardingStore } from "@/store/onboardingStore";
 import { cn } from "@/lib/utils";
+import {
+  customerKycError,
+  fetchCustomerKyc,
+  type KycVerification,
+  removeCustomerKycDocument,
+  uploadCustomerKycDocument,
+  verificationAccepted,
+  verifyCustomerGst,
+} from "@/services/customer-kyc";
+import type { GstVerificationResult } from "@/types/onboarding";
+
+const REVERIFY_NOTICE = "Changing this information requires re-verification.";
+
+function toGstResult(verification: KycVerification): GstVerificationResult {
+  const d = verification.details;
+  return {
+    status:
+      verification.status === "VERIFYING"
+        ? "MANUAL_REVIEW"
+        : verification.status,
+    message: verification.message,
+    companyName: d.legalName ?? null,
+    tradeName: d.tradeName ?? null,
+    entityStatus: d.gstStatus ?? null,
+    registeredOn: d.registrationDate ?? null,
+    state: d.state ?? null,
+    stateCode: d.stateCode ?? null,
+    pan: d.panMasked ?? null,
+  };
+}
+
+function resultDescription(result: GstVerificationResult): string {
+  return [
+    result.tradeName ? `Trade name: ${result.tradeName}` : null,
+    result.entityStatus ? `Entity status: ${result.entityStatus}` : null,
+    result.registeredOn ? `Registered on: ${result.registeredOn}` : null,
+    result.state
+      ? `State: ${result.state}${result.stateCode ? ` (${result.stateCode})` : ""}`
+      : null,
+    result.pan ? `PAN: ${result.pan}` : null,
+  ]
+    .filter(Boolean)
+    .join(" | ");
+}
 
 const GSTIN_REGEX =
   /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i;
@@ -43,7 +87,7 @@ export default function GstVerificationPage() {
 function GstVerificationForm() {
   const router = useRouter();
   const gstInfo = useOnboardingStore((s) => s.gstInfo);
-  const verifyGST = useOnboardingStore((s) => s.verifyGST);
+  const setGstVerification = useOnboardingStore((s) => s.setGstVerification);
   const setGstCertificate = useOnboardingStore((s) => s.setGstCertificate);
   const saveGstInfo = useOnboardingStore((s) => s.saveGstInfo);
 
@@ -51,30 +95,82 @@ function GstVerificationForm() {
   const [verifying, setVerifying] = useState(false);
   const [gstError, setGstError] = useState<string | null>(null);
   const [certError, setCertError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
+  const [kycLocked, setKycLocked] = useState(false);
+
+  // The backend record is shared with the mobile app; reflect what it holds.
+  useEffect(() => {
+    let active = true;
+    fetchCustomerKyc()
+      .then((overview) => {
+        if (!active) return;
+        setKycLocked(overview.locked || overview.kycVerified);
+        const saved = overview.organization.gstin;
+        const gst = overview.verifications.gst;
+        if (saved && gst && verificationAccepted(gst)) {
+          setGstin(saved);
+          setGstVerification(saved, toGstResult(gst));
+        } else if (useOnboardingStore.getState().gstInfo.isVerified) {
+          setGstVerification(useOnboardingStore.getState().gstInfo.gstin, null);
+        }
+        if (overview.verifications.mismatch) {
+          setWarning(
+            "GST/PAN mismatch: the PAN associated with the GSTIN does not match the entered PAN.",
+          );
+        }
+        const certificate = overview.slots.find(
+          (slot) => slot.slot === "gst",
+        )?.document;
+        setGstCertificate(
+          certificate?.r2Confirmed && certificate.status !== "REJECTED"
+            ? certificate.fileName
+            : null,
+          certificate?.r2Confirmed ? certificate.id : null,
+        );
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [setGstCertificate, setGstVerification]);
 
   const isFormatValid = GSTIN_REGEX.test(gstin);
+  const verifiedForInput = gstInfo.isVerified && gstInfo.gstin === gstin;
+  const inputLocked = kycLocked || verifiedForInput;
   const canContinue =
-    gstInfo.isVerified && Boolean(gstInfo.certificateFileName);
+    verifiedForInput && Boolean(gstInfo.certificateFileName) && !warning;
 
-  function handleVerify() {
+  async function handleVerify() {
     const normalized = gstin.trim().toUpperCase();
     if (normalized.length !== 15 || !GSTIN_REGEX.test(normalized)) {
       setGstError("Enter a valid 15-character GSTIN");
       return;
     }
     setGstError(null);
+    setWarning(null);
     setVerifying(true);
-    window.setTimeout(() => {
-      verifyGST(normalized);
+    try {
+      const result = await verifyCustomerGst(normalized);
       setGstin(normalized);
+      setGstVerification(normalized, toGstResult(result));
+      setWarning(result.warning);
+      if (result.status === "VERIFIED") toast.success("GSTIN verified");
+      else if (result.status === "FAILED") setGstError(result.message);
+      else toast.info(result.message);
+    } catch (error) {
+      setGstError(customerKycError(error, "GST verification failed."));
+    } finally {
       setVerifying(false);
-      toast.success("GSTIN verified successfully");
-    }, 600);
+    }
   }
 
   function handleContinue() {
-    if (!gstInfo.isVerified) {
+    if (!verifiedForInput) {
       setGstError("Please verify your GSTIN");
+      return;
+    }
+    if (warning) {
+      setGstError(warning);
       return;
     }
     if (!gstInfo.certificateFileName) {
@@ -111,14 +207,15 @@ function GstVerificationForm() {
                   }}
                   placeholder="27AAAAA0000A1Z5"
                   maxLength={15}
+                  disabled={inputLocked || verifying}
                   className={cn(
                     "pr-10 font-mono uppercase",
-                    gstInfo.isVerified && isFormatValid && "border-emerald-300",
+                    verifiedForInput && "border-emerald-300",
                   )}
                   aria-invalid={Boolean(gstError)}
                   aria-describedby={gstError ? "gstin-error" : undefined}
                 />
-                {isFormatValid ? (
+                {verifiedForInput && isFormatValid ? (
                   <CheckCircle2
                     className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-500"
                     aria-hidden="true"
@@ -127,13 +224,54 @@ function GstVerificationForm() {
               </div>
               <Button
                 type="button"
-                onClick={handleVerify}
-                disabled={verifying || gstin.length !== 15}
-                className="h-10 bg-slate-900 hover:bg-slate-800 sm:px-6"
+                onClick={() => void handleVerify()}
+                disabled={verifying || inputLocked || gstin.length !== 15}
+                className={cn(
+                  "h-10 sm:px-6",
+                  verifiedForInput &&
+                    gstInfo.verification?.status === "VERIFIED"
+                    ? "bg-emerald-600 hover:bg-emerald-600 disabled:opacity-100"
+                    : gstInfo.verification?.status === "FAILED" &&
+                        gstInfo.gstin === gstin &&
+                        !verifying
+                      ? "bg-red-600 hover:bg-red-700"
+                      : "bg-slate-900 hover:bg-slate-800",
+                )}
               >
-                {verifying ? "Verifying…" : "Verify"}
+                {verifying
+                  ? "Verifying…"
+                  : verifiedForInput
+                    ? gstInfo.verification?.status === "VERIFIED"
+                      ? "✓ Verified"
+                      : "In review"
+                    : gstInfo.verification?.status === "FAILED" &&
+                        gstInfo.gstin === gstin
+                      ? "✕ Failed"
+                      : "Verify"}
               </Button>
             </div>
+            {inputLocked ? (
+              <p className="mt-2 flex items-center justify-between gap-2 text-xs text-slate-500">
+                <span>{REVERIFY_NOTICE}</span>
+                {!kycLocked ? (
+                  <button
+                    type="button"
+                    className="font-semibold text-slate-900 hover:underline"
+                    onClick={() => {
+                      setGstVerification(gstin, null);
+                      setWarning(null);
+                    }}
+                  >
+                    Change
+                  </button>
+                ) : null}
+              </p>
+            ) : null}
+            {warning ? (
+              <p className="mt-2 text-xs text-amber-700" role="alert">
+                {warning}
+              </p>
+            ) : null}
             {gstError ? (
               <p
                 id="gstin-error"
@@ -144,12 +282,22 @@ function GstVerificationForm() {
               </p>
             ) : null}
 
-            {gstInfo.isVerified && gstInfo.verification ? (
+            {verifiedForInput && gstInfo.verification ? (
               <div className="mt-4">
-                <SuccessCard
-                  title={`Valid GSTIN — ${gstInfo.verification.companyName}`}
-                  description={`Entity status: ${gstInfo.verification.entityStatus} | Registered on: ${gstInfo.verification.registeredOn}`}
-                />
+                {gstInfo.verification.status === "VERIFIED" ? (
+                  <SuccessCard
+                    title={
+                      gstInfo.verification.companyName
+                        ? `Valid GSTIN — ${gstInfo.verification.companyName}`
+                        : "Valid GSTIN"
+                    }
+                    description={resultDescription(gstInfo.verification)}
+                  />
+                ) : (
+                  <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                    {gstInfo.verification.message}
+                  </p>
+                )}
               </div>
             ) : null}
           </SectionCard>
@@ -164,15 +312,32 @@ function GstVerificationForm() {
                 "image/jpeg": [".jpg", ".jpeg"],
                 "image/png": [".png"],
               }}
-              maxSizeMb={5}
+              maxSizeMb={10}
               fileName={gstInfo.certificateFileName}
-              onUpload={(name) => {
-                setGstCertificate(name);
-                setCertError(null);
+              uploadFile={async (file, onProgress) => {
+                const stored = await uploadCustomerKycDocument("gst", file, {
+                  onProgress,
+                });
+                setGstCertificate(stored.fileName, stored.id);
               }}
-              onRemove={() => setGstCertificate(null)}
+              uploadErrorMessage={(error) =>
+                customerKycError(error, "Could not upload the certificate.")
+              }
+              onUpload={() => setCertError(null)}
+              onRemove={() => {
+                const documentId = gstInfo.certificateDocumentId;
+                if (kycLocked) return;
+                setGstCertificate(null);
+                if (documentId) {
+                  void removeCustomerKycDocument(documentId).catch((error) =>
+                    toast.error(
+                      customerKycError(error, "Could not remove the file."),
+                    ),
+                  );
+                }
+              }}
               dropLabel="Click to upload or drag & drop"
-              helperText="PDF, JPG, or PNG (Max 5MB)"
+              helperText="PDF, JPG, or PNG (Max 10MB)"
               compact
             />
             {certError ? (

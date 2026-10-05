@@ -93,10 +93,17 @@ export function generateOnboardingPdf(state: OnboardingState): void {
     "2. GST Details",
     [
       `GSTIN: ${state.gstInfo.gstin || "—"}`,
-      `Verified: ${state.gstInfo.isVerified ? "Yes" : "No"}`,
+      `Verified: ${
+        state.gstInfo.verification?.status === "VERIFIED"
+          ? "Yes"
+          : state.gstInfo.verification?.status === "MANUAL_REVIEW"
+            ? "Pending manual review"
+            : "No"
+      }`,
       `Registered Entity: ${state.gstInfo.verification?.companyName || "—"}`,
       `Entity Status: ${state.gstInfo.verification?.entityStatus || "—"}`,
       `Registered On: ${state.gstInfo.verification?.registeredOn || "—"}`,
+      `State: ${state.gstInfo.verification?.state || "—"}`,
       `Certificate: ${state.gstInfo.certificateFileName || "—"}`,
     ],
     y,

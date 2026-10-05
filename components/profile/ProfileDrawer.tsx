@@ -36,6 +36,7 @@ import { formatMemberSince, resolveMvpProfile } from "@/lib/profile-display";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
+import { useKycIdentitySync } from "@/hooks/use-kyc-identity-sync";
 
 interface ProfileDrawerProps {
   open: boolean;
@@ -94,6 +95,7 @@ export function ProfileDrawer({ open, onOpenChange }: ProfileDrawerProps) {
   const company = useProfileStore((s) => s.company);
   const setHydrated = useProfileStore((s) => s.setHydrated);
   const [logoutOpen, setLogoutOpen] = useState(false);
+  useKycIdentitySync(open);
 
   useEffect(() => {
     const finish = () => setHydrated(true);

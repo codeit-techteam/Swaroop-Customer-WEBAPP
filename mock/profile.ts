@@ -25,8 +25,8 @@ export const customerProfileMock: CustomerProfileState = {
     registeredState: "Gujarat",
     customerSince: "2022-06-14",
     membership: "gold",
-    gstVerified: true,
-    panVerified: true,
+    gstVerified: false,
+    panVerified: false,
     creditEligible: true,
   },
   contacts: [

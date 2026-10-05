@@ -76,22 +76,19 @@ function markStepComplete(
   return [...completed, step];
 }
 
-function mockVerifyGst(gstin: string): GstVerificationResult {
-  const pan = gstin.slice(2, 12).toUpperCase();
-  return {
-    companyName: "PetroChem Solutions Ltd.",
-    entityStatus: "Active",
-    registeredOn: "12 Oct 2018",
-    pan,
-  };
-}
-
 export interface OnboardingStoreActions {
   setCurrentStep: (step: OnboardingStepId) => void;
   seedCompanyLegalName: (legalName: string) => void;
   saveCompany: (data: CompanyInfo) => void;
-  verifyGST: (gstin: string) => GstVerificationResult;
-  setGstCertificate: (fileName: string | null) => void;
+  /** Applies a backend GST verification result; the server decides validity. */
+  setGstVerification: (
+    gstin: string,
+    verification: GstVerificationResult | null,
+  ) => void;
+  setGstCertificate: (
+    fileName: string | null,
+    documentId?: string | null,
+  ) => void;
   saveGstInfo: (data: Partial<GstInfo>) => void;
   saveBusinessAddress: (data: BusinessAddress) => void;
   addShipping: (data: Omit<ShippingAddress, "id">) => void;
@@ -141,24 +138,25 @@ export const useOnboardingStore = create<OnboardingStore>()(
         });
       },
 
-      verifyGST: (gstin) => {
-        const verification = mockVerifyGst(gstin);
+      setGstVerification: (gstin, verification) => {
         set({
           gstInfo: {
             ...get().gstInfo,
             gstin: gstin.toUpperCase(),
-            isVerified: true,
+            isVerified:
+              verification?.status === "VERIFIED" ||
+              verification?.status === "MANUAL_REVIEW",
             verification,
           },
         });
-        return verification;
       },
 
-      setGstCertificate: (fileName) => {
+      setGstCertificate: (fileName, documentId = null) => {
         set({
           gstInfo: {
             ...get().gstInfo,
             certificateFileName: fileName,
+            certificateDocumentId: documentId,
           },
         });
       },

@@ -24,6 +24,11 @@ function isOnboardingRoute(pathname: string): boolean {
   );
 }
 
+/** KYC is part of onboarding, so it stays reachable before onboarding completes. */
+function isKycRoute(pathname: string): boolean {
+  return pathname === ROUTES.kyc || pathname.startsWith(`${ROUTES.kyc}/`);
+}
+
 function postAuthDestination(request: NextRequest): string {
   const flag = request.cookies.get(ONBOARDING_COMPLETE_COOKIE)?.value;
   // Explicit incomplete only — missing cookie means legacy / unrestricted
@@ -81,7 +86,8 @@ export function middleware(request: NextRequest) {
     isAuthenticated &&
     onboardingIncomplete &&
     isProtectedRoute(pathname) &&
-    !isOnboardingRoute(pathname)
+    !isOnboardingRoute(pathname) &&
+    !isKycRoute(pathname)
   ) {
     return NextResponse.redirect(new URL(ROUTES.onboarding, request.url));
   }
@@ -135,5 +141,7 @@ export const config = {
     "/purchase-requests/:path*",
     "/import/:path*",
     "/customer/:path*",
+    "/kyc",
+    "/kyc/:path*",
   ],
 };

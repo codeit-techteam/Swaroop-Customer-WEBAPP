@@ -21,6 +21,13 @@ interface UploadCardProps {
   fileName?: string | null;
   onUpload: (fileName: string) => void;
   onRemove: () => void;
+  /** Stores the file (e.g. signed R2 upload); `onUpload` runs only after it resolves. */
+  uploadFile?: (
+    file: File,
+    onProgress: (percent: number) => void,
+  ) => Promise<void>;
+  /** Maps an upload failure to a user-facing message. */
+  uploadErrorMessage?: (error: unknown) => string;
   required?: boolean;
   compact?: boolean;
   className?: string;
@@ -40,6 +47,8 @@ export function UploadCard({
   fileName,
   onUpload,
   onRemove,
+  uploadFile,
+  uploadErrorMessage,
   required = false,
   compact = false,
   className,
@@ -89,9 +98,27 @@ export function UploadCard({
         setError(`File exceeds ${maxSizeMb}MB limit.`);
         return;
       }
-      simulateUpload(file.name);
+      if (!uploadFile) {
+        simulateUpload(file.name);
+        return;
+      }
+      setUploading(true);
+      setProgress(0);
+      setError(null);
+      uploadFile(file, (percent) => setProgress(Math.min(percent, 100)))
+        .then(() => onUpload(file.name))
+        .catch((uploadError: unknown) => {
+          setError(
+            uploadErrorMessage?.(uploadError) ??
+              "Upload failed. Please try again.",
+          );
+        })
+        .finally(() => {
+          setUploading(false);
+          setProgress(0);
+        });
     },
-    [maxSizeMb, simulateUpload],
+    [maxSizeMb, onUpload, simulateUpload, uploadErrorMessage, uploadFile],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

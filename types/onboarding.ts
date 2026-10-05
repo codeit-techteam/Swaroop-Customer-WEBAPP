@@ -31,17 +31,26 @@ export interface CompanyInfo {
   dateOfIncorporation: string;
 }
 
+/** Normalized GST details returned by the backend verification. */
 export interface GstVerificationResult {
-  companyName: string;
-  entityStatus: string;
-  registeredOn: string;
-  pan: string;
+  status: "VERIFIED" | "MANUAL_REVIEW" | "FAILED";
+  message: string;
+  companyName: string | null;
+  tradeName?: string | null;
+  entityStatus: string | null;
+  registeredOn: string | null;
+  state?: string | null;
+  stateCode?: string | null;
+  /** Masked PAN linked to the GSTIN (never the full PAN). */
+  pan: string | null;
 }
 
 export interface GstInfo {
   gstin: string;
   isVerified: boolean;
   certificateFileName: string | null;
+  /** Stored KYC document id for the GST certificate. */
+  certificateDocumentId?: string | null;
   verification: GstVerificationResult | null;
 }
 

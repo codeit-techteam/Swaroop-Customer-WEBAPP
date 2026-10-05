@@ -45,11 +45,14 @@ export type KycVerificationDetails = {
   tradeName?: string | null;
   gstStatus?: string | null;
   registrationDate?: string | null;
+  cancellationDate?: string | null;
   taxpayerType?: string | null;
   constitution?: string | null;
   address?: string | null;
   state?: string | null;
+  stateCode?: string | null;
   pincode?: string | null;
+  panMasked?: string | null;
   nameOnPan?: string | null;
   panStatus?: string | null;
   panCategory?: string | null;
@@ -70,7 +73,10 @@ export type KycVerification = {
   createdAt: string;
 };
 
-export type KycVerifyResult = KycVerification & { warning: string | null };
+export type KycVerifyResult = KycVerification & {
+  mismatch?: boolean;
+  warning: string | null;
+};
 
 export type KycChecklistItem = {
   key: "pan" | "gst" | "documents" | "review";
@@ -93,6 +99,7 @@ export type CustomerKycOverview = {
   verifications: {
     pan: KycVerification | null;
     gst: KycVerification | null;
+    mismatch?: boolean;
   };
   checklist: KycChecklistItem[];
   organization: {
@@ -246,7 +253,7 @@ export async function submitCustomerKyc(
 export async function verifyCustomerPan(pan: string): Promise<KycVerifyResult> {
   const res = await apiClient.post<Envelope<KycVerifyResult>>(
     "/customer/kyc/pan/verify",
-    { pan: normalizeIdentifier(pan) },
+    { pan: normalizeIdentifier(pan), source: "CUSTOMER_WEB" },
   );
   return res.data;
 }
@@ -256,7 +263,7 @@ export async function verifyCustomerGst(
 ): Promise<KycVerifyResult> {
   const res = await apiClient.post<Envelope<KycVerifyResult>>(
     "/customer/kyc/gst/verify",
-    { gstin: normalizeIdentifier(gstin) },
+    { gstin: normalizeIdentifier(gstin), source: "CUSTOMER_WEB" },
   );
   return res.data;
 }

@@ -235,9 +235,14 @@ type IdentityCardProps = {
   locked: boolean;
   verifying: boolean;
   disabled: boolean;
+  /** Backend flagged that the GSTIN is registered to a different PAN. */
+  mismatch?: boolean;
   onChange: (value: string) => void;
   onVerify: () => void;
 };
+
+const PAN_GST_MISMATCH =
+  "GST/PAN mismatch: the PAN associated with the GSTIN does not match the entered PAN.";
 
 function verificationFacts(
   kind: "PAN" | "GST",
@@ -256,6 +261,15 @@ function verificationFacts(
           ["Trade name", d.tradeName],
           ["GST status", d.gstStatus],
           ["Registered", d.registrationDate],
+          [
+            "State",
+            d.state
+              ? d.stateCode
+                ? `${d.state} (${d.stateCode})`
+                : d.state
+              : null,
+          ],
+          ["PAN", d.panMasked],
           ["Address", d.address],
         ];
   return facts.filter((fact): fact is [string, string] => Boolean(fact[1]));
@@ -270,6 +284,7 @@ function IdentityCard({
   locked,
   verifying,
   disabled,
+  mismatch = false,
   onChange,
   onVerify,
 }: IdentityCardProps) {
@@ -285,7 +300,9 @@ function IdentityCard({
   const warning =
     lastAttempt && lastAttempt.value === value
       ? lastAttempt.result.warning
-      : null;
+      : mismatch && value === savedValue
+        ? PAN_GST_MISMATCH
+        : null;
   const formatError =
     value && !pattern.test(value)
       ? kind === "PAN"
@@ -371,6 +388,11 @@ function IdentityCard({
         </div>
       )}
 
+      {!locked && accepted ? (
+        <p className="mt-1.5 text-xs text-slate-500">
+          Changing this information requires re-verification.
+        </p>
+      ) : null}
       {!locked && formatError ? (
         <p className="mt-1.5 text-xs text-destructive">{formatError}</p>
       ) : null}
@@ -827,6 +849,7 @@ export function CustomerKycPage() {
             verification={overview.verifications.gst}
             lastAttempt={attempts.GST ?? null}
             locked={locked}
+            mismatch={Boolean(overview.verifications.mismatch)}
             verifying={verifying === "GST"}
             disabled={busy && verifying !== "GST"}
             onChange={setGstin}
