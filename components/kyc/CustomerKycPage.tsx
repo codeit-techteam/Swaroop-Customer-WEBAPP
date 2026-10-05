@@ -47,6 +47,7 @@ import {
   type KycChecklistItem,
   type KycVerification,
   type KycVerifyResult,
+  type PanHolderDetails,
 } from "@/services/customer-kyc";
 
 const ACCEPT = Object.entries(CUSTOMER_KYC_MIME_TYPES)
@@ -237,9 +238,32 @@ type IdentityCardProps = {
   disabled: boolean;
   /** Backend flagged that the GSTIN is registered to a different PAN. */
   mismatch?: boolean;
+  /** PAN Verify also matches the holder's name and date of birth / incorporation. */
+  holder?: PanHolderDetails;
+  onHolderChange?: (holder: PanHolderDetails) => void;
   onChange: (value: string) => void;
   onVerify: () => void;
 };
+
+const PAN_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9 .&'()/,-]*$/;
+
+function todayIso() {
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60_000)
+    .toISOString()
+    .slice(0, 10);
+}
+
+function panHolderError(holder: PanHolderDetails): string | null {
+  const name = holder.fullName.trim();
+  if (name && (name.length < 2 || !PAN_NAME_PATTERN.test(name))) {
+    return "Enter the name exactly as printed on the PAN card";
+  }
+  if (holder.dob && holder.dob > todayIso()) {
+    return "The date of birth / incorporation cannot be in the future";
+  }
+  return null;
+}
 
 const PAN_GST_MISMATCH =
   "GST/PAN mismatch: the PAN associated with the GSTIN does not match the entered PAN.";
@@ -285,6 +309,8 @@ function IdentityCard({
   verifying,
   disabled,
   mismatch = false,
+  holder,
+  onHolderChange,
   onChange,
   onVerify,
 }: IdentityCardProps) {
@@ -310,8 +336,21 @@ function IdentityCard({
         : "Enter a valid 15-character GSTIN"
       : null;
   const accepted = verificationAccepted(shown) && value === savedValue;
+  const holderError = holder ? panHolderError(holder) : null;
+  const holderReady =
+    !holder ||
+    (holder.fullName.trim().length >= 2 && Boolean(holder.dob) && !holderError);
   const canVerify =
-    !locked && !disabled && !verifying && Boolean(value) && !formatError;
+    !locked &&
+    !disabled &&
+    !verifying &&
+    Boolean(value) &&
+    !formatError &&
+    holderReady;
+  const showHolder =
+    Boolean(holder && onHolderChange) &&
+    !locked &&
+    !(accepted && shown?.status === "VERIFIED");
   const badge = shown ? VERIFICATION_BADGE[shown.status] : null;
   const facts = shown ? verificationFacts(kind, shown) : [];
   const inputId = `kyc-${kind.toLowerCase()}`;
@@ -387,6 +426,45 @@ function IdentityCard({
           </Button>
         </div>
       )}
+
+      {showHolder && holder && onHolderChange ? (
+        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          <div className="space-y-1">
+            <Label htmlFor="kyc-pan-name" className="text-xs text-slate-600">
+              Name as per PAN
+            </Label>
+            <Input
+              id="kyc-pan-name"
+              value={holder.fullName}
+              maxLength={150}
+              autoComplete="off"
+              placeholder="As printed on the PAN card"
+              disabled={disabled || verifying}
+              onChange={(event) =>
+                onHolderChange({ ...holder, fullName: event.target.value })
+              }
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="kyc-pan-dob" className="text-xs text-slate-600">
+              Date of birth / incorporation
+            </Label>
+            <Input
+              id="kyc-pan-dob"
+              type="date"
+              value={holder.dob}
+              max={todayIso()}
+              disabled={disabled || verifying}
+              onChange={(event) =>
+                onHolderChange({ ...holder, dob: event.target.value })
+              }
+            />
+          </div>
+        </div>
+      ) : null}
+      {showHolder && holderError ? (
+        <p className="mt-1.5 text-xs text-destructive">{holderError}</p>
+      ) : null}
 
       {!locked && accepted ? (
         <p className="mt-1.5 text-xs text-slate-500">
@@ -606,6 +684,10 @@ export function CustomerKycPage() {
   const [businessName, setBusinessName] = useState("");
   const [pan, setPan] = useState("");
   const [gstin, setGstin] = useState("");
+  const [panHolder, setPanHolder] = useState<PanHolderDetails>({
+    fullName: "",
+    dob: "",
+  });
   const [attempts, setAttempts] = useState<
     Partial<Record<IdentityKind, Attempt>>
   >({});
@@ -663,7 +745,7 @@ export function CustomerKycPage() {
     try {
       const result =
         kind === "PAN"
-          ? await verifyCustomerPan(value)
+          ? await verifyCustomerPan(value, panHolder)
           : await verifyCustomerGst(value);
       setAttempts((prev) => ({ ...prev, [kind]: { value, result } }));
       const next = await reload();
@@ -839,6 +921,8 @@ export function CustomerKycPage() {
             locked={locked}
             verifying={verifying === "PAN"}
             disabled={busy && verifying !== "PAN"}
+            holder={panHolder}
+            onHolderChange={setPanHolder}
             onChange={setPan}
             onVerify={() => void verify("PAN")}
           />

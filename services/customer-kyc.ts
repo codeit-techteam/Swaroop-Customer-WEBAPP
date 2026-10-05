@@ -249,11 +249,22 @@ export async function submitCustomerKyc(
   return res.data;
 }
 
+/** Name and date of birth / incorporation (YYYY-MM-DD) exactly as printed on the PAN card. */
+export type PanHolderDetails = { fullName: string; dob: string };
+
 /** PAN / GSTIN are checked server-side; provider credentials never reach the browser. */
-export async function verifyCustomerPan(pan: string): Promise<KycVerifyResult> {
+export async function verifyCustomerPan(
+  pan: string,
+  holder: PanHolderDetails,
+): Promise<KycVerifyResult> {
   const res = await apiClient.post<Envelope<KycVerifyResult>>(
     "/customer/kyc/pan/verify",
-    { pan: normalizeIdentifier(pan), source: "CUSTOMER_WEB" },
+    {
+      pan: normalizeIdentifier(pan),
+      fullName: holder.fullName.trim().replace(/\s+/g, " "),
+      dob: holder.dob,
+      source: "CUSTOMER_WEB",
+    },
   );
   return res.data;
 }
