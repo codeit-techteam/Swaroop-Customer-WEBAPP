@@ -8,7 +8,9 @@ import {
   getAccessToken,
   getJwtExpiryMs,
   isUsableJwt,
+  notifySessionExpired,
 } from "@/lib/auth-session";
+import { env } from "@/lib/env";
 import { ROUTES } from "@/constants";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
@@ -109,8 +111,18 @@ export function SessionHydrator() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const sync = () => {
+    const sync = (event: StorageEvent) => {
       const state = useAuthStore.getState();
+      if (
+        event.key === env.refreshTokenStorageKey &&
+        !event.newValue &&
+        state.isAuthenticated
+      ) {
+        // Signed out (or session expired) in another tab.
+        state.logout();
+        notifySessionExpired();
+        return;
+      }
       if (!state.isAuthenticated) {
         resetLocalCart();
         useDeliveryLocationStore.getState().clearForLogout();

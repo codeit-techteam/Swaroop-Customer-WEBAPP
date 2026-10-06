@@ -43,9 +43,10 @@ export function isAccessTokenExpired(
   return Date.now() >= exp - skewMs;
 }
 
+// localStorage is read first so a token rotated by another tab is picked up;
+// the memory copies only cover environments where storage is unavailable.
 export function getAccessToken(): string | null {
-  if (isUsableJwt(memoryAccessToken)) return memoryAccessToken;
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined") return memoryAccessToken;
   try {
     for (const key of ACCESS_KEYS) {
       const value = window.localStorage.getItem(key);
@@ -57,12 +58,11 @@ export function getAccessToken(): string | null {
   } catch {
     /* ignore */
   }
-  return null;
+  return isUsableJwt(memoryAccessToken) ? memoryAccessToken : null;
 }
 
 export function getRefreshToken(): string | null {
-  if (memoryRefreshToken) return memoryRefreshToken;
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined") return memoryRefreshToken;
   try {
     const value = window.localStorage.getItem(env.refreshTokenStorageKey);
     if (value) {
@@ -85,9 +85,21 @@ export function getRefreshToken(): string | null {
       return memoryRefreshToken;
     }
   } catch {
-    return null;
+    return memoryRefreshToken;
   }
   return null;
+}
+
+function persistedRememberMe(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw) as { state?: { rememberMe?: unknown } };
+    return parsed?.state?.rememberMe === true;
+  } catch {
+    return false;
+  }
 }
 
 /** Keep Zustand persist in sync so rehydration cannot overwrite rotated tokens. */
@@ -118,7 +130,7 @@ function syncZustandPersistTokens(
 export function persistSessionTokens(
   accessToken: string,
   refreshToken?: string | null,
-  rememberMe = false,
+  rememberMe: boolean = persistedRememberMe(),
 ): void {
   memoryAccessToken = accessToken;
   if (refreshToken) memoryRefreshToken = refreshToken;

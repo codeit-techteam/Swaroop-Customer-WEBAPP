@@ -95,63 +95,96 @@ async function forceSessionExpiry(): Promise<void> {
   notifySessionExpired();
 }
 
+const REFRESH_LOCK_NAME = "pt-customer-token-refresh";
+
+/** Serialize refreshes across tabs: the backend revokes the session family on refresh-token reuse. */
+async function withRefreshLock<T>(fn: () => Promise<T>): Promise<T> {
+  if (typeof navigator !== "undefined" && navigator.locks?.request) {
+    return navigator.locks.request(REFRESH_LOCK_NAME, fn);
+  }
+  return fn();
+}
+
+type RefreshOutcome =
+  { token: string } | { expired: true } | { transient: true };
+
+async function performRefresh(
+  staleRefreshToken: string | null,
+): Promise<RefreshOutcome> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return { expired: true };
+
+  // Another tab rotated while we waited for the lock.
+  if (staleRefreshToken && refreshToken !== staleRefreshToken) {
+    const access = getAccessToken();
+    if (access && !isAccessTokenExpired(access, 0)) {
+      await syncAuthStoreTokens(access, refreshToken);
+      return { token: access };
+    }
+  }
+
+  try {
+    // Bare client — never recurse through the 401 interceptor.
+    const response = await axios.post(
+      `${env.apiBaseUrl}/auth/refresh`,
+      { refreshToken },
+      {
+        timeout: env.apiTimeout,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      },
+    );
+    const payload = unwrapTokenPayload(response.data);
+    const accessToken = payload.accessToken;
+    if (!accessToken) return { expired: true };
+
+    const nextRefresh = payload.refreshToken ?? refreshToken;
+    persistSessionTokens(accessToken, nextRefresh);
+    await syncAuthStoreTokens(accessToken, nextRefresh);
+    return { token: accessToken };
+  } catch (error) {
+    const status = axios.isAxiosError(error)
+      ? error.response?.status
+      : undefined;
+    // Only a rejected refresh token ends the session; network/5xx errors are retried later.
+    if (status && status >= 400 && status < 500) return { expired: true };
+    return { transient: true };
+  }
+}
+
 /** Single-flight refresh so concurrent 401s share one rotation. */
 let refreshInFlight: Promise<string | null> | null = null;
 
-async function refreshAccessToken(): Promise<string | null> {
+function refreshAccessToken(): Promise<string | null> {
   if (refreshInFlight) return refreshInFlight;
-
-  refreshInFlight = (async () => {
-    const refreshToken = getRefreshToken();
-    if (!refreshToken) return null;
-
-    try {
-      // Bare client — never recurse through the 401 interceptor.
-      const response = await axios.post(
-        `${env.apiBaseUrl}/auth/refresh`,
-        { refreshToken },
-        {
-          timeout: env.apiTimeout,
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        },
-      );
-      const payload = unwrapTokenPayload(response.data);
-      const accessToken = payload.accessToken;
-      if (!accessToken) return null;
-
-      const nextRefresh = payload.refreshToken ?? refreshToken;
-      persistSessionTokens(accessToken, nextRefresh);
-      await syncAuthStoreTokens(accessToken, nextRefresh);
-      return accessToken;
-    } catch {
+  const staleRefreshToken = getRefreshToken();
+  refreshInFlight = withRefreshLock(() => performRefresh(staleRefreshToken))
+    .then(async (outcome) => {
+      if ("token" in outcome) return outcome.token;
+      if ("expired" in outcome) await forceSessionExpiry();
       return null;
-    } finally {
+    })
+    .finally(() => {
       refreshInFlight = null;
-    }
-  })();
-
+    });
   return refreshInFlight;
 }
 
 /**
  * Ensure a non-expired access token is available (proactive refresh).
- * Returns the token to use, or null if the session cannot be recovered.
+ * Returns the token to use, or null if the session cannot be recovered right now.
  */
 export async function ensureFreshAccessToken(): Promise<string | null> {
   const current = getAccessToken();
   if (current && !isAccessTokenExpired(current)) {
     return current;
   }
-  if (!getRefreshToken()) {
-    return current && !isAccessTokenExpired(current, 0) ? current : null;
-  }
-  const refreshed = await refreshAccessToken();
-  if (refreshed) return refreshed;
-  await forceSessionExpiry();
-  return null;
+  const stillValid =
+    current && !isAccessTokenExpired(current, 0) ? current : null;
+  if (!getRefreshToken()) return stillValid;
+  return (await refreshAccessToken()) ?? stillValid;
 }
 
 function shouldAttemptRefresh(
@@ -221,10 +254,7 @@ axiosInstance.interceptors.response.use(
 
     original._retry = true;
     const token = await refreshAccessToken();
-    if (!token) {
-      await forceSessionExpiry();
-      return Promise.reject(error);
-    }
+    if (!token) return Promise.reject(error);
 
     original.headers.Authorization = `Bearer ${token}`;
     return axiosInstance(original);
