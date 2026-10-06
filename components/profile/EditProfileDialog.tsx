@@ -40,7 +40,6 @@ export function EditProfileDialog({
   const user = useAuthStore((s) => s.user);
   const updateUser = useAuthStore((s) => s.updateUser);
   const company = useProfileStore((s) => s.company);
-  const updateCompany = useProfileStore((s) => s.updateCompany);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState<FormState>({
@@ -58,7 +57,7 @@ export function EditProfileDialog({
       fullName: user?.name ?? "",
       phone: user?.phone ?? company.phone,
       designation: user?.designation ?? user?.role ?? "Procurement Manager",
-      companyName: user?.companyName ?? company.legalName,
+      companyName: company.legalName || user?.companyName || "",
       email: user?.email ?? company.email,
       avatarUrl: user?.avatarUrl ?? null,
     });
@@ -99,13 +98,7 @@ export function EditProfileDialog({
       phone: form.phone.trim(),
       designation: form.designation.trim() || "Procurement Manager",
       role: form.designation.trim() || "Procurement Manager",
-      companyName: form.companyName.trim() || company.legalName,
       avatarUrl: form.avatarUrl,
-    });
-
-    updateCompany({
-      legalName: form.companyName.trim() || company.legalName,
-      phone: form.phone.trim() || company.phone,
     });
 
     toast.success("Profile updated");
@@ -173,9 +166,10 @@ export function EditProfileDialog({
             />
             <Field
               id="edit-company"
-              label="Company Name"
+              label="Company Name (from GST registration)"
               value={form.companyName}
-              onChange={(v) => setForm((p) => ({ ...p, companyName: v }))}
+              disabled
+              onChange={() => undefined}
             />
             <Field
               id="edit-email"

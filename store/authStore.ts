@@ -8,6 +8,10 @@ import {
   clearSessionTokens,
   persistSessionTokens,
 } from "@/lib/auth-session";
+import {
+  claimCustomerDataOwner,
+  clearCustomerData,
+} from "@/lib/customer-data-reset";
 import { env } from "@/lib/env";
 import { isOtpPasscode, looksLikeEmail } from "@/lib/phone";
 import {
@@ -129,6 +133,7 @@ function applyAuthSession(
   extra?: Partial<AuthStoreState>,
 ): void {
   persistSessionTokens(session.accessToken, session.refreshToken, rememberMe);
+  claimCustomerDataOwner(session.user.id);
   set({
     isAuthenticated: true,
     user: toAuthUser(session.user),
@@ -386,6 +391,7 @@ export const useAuthStore = create<AuthStore>()(
 
       logout: () => {
         clearSessionTokens();
+        clearCustomerData();
         set({ ...initialState });
         // Clear customer-scoped delivery selection so the next login cannot
         // inherit another user's address (lazy import avoids store cycles).

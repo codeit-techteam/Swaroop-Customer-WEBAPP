@@ -36,7 +36,7 @@ export function resolveMvpProfile(
 ): MvpProfileView {
   const fullName = user?.name?.trim() || "Swaroop";
   const companyName =
-    user?.companyName?.trim() || company.legalName || company.tradeName;
+    company.legalName || company.tradeName || user?.companyName?.trim() || "";
   const designation =
     user?.designation?.trim() || user?.role?.trim() || "Procurement Manager";
 

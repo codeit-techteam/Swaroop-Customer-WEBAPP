@@ -3,34 +3,48 @@
 import { useEffect } from "react";
 
 import { fetchCustomerKyc } from "@/services/customer-kyc";
+import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
 
 /**
- * Syncs GST / PAN verification badges on the profile from the backend KYC
- * record, so the web shows the same verification state as the mobile app.
+ * Loads the company profile (organization + verified GST / PAN) from the backend
+ * KYC record, the same source the mobile app reads. Refreshes when the tab
+ * regains focus so an admin decision or a change made on another device shows up.
  */
 export function useKycIdentitySync(enabled = true) {
-  const updateCompany = useProfileStore((s) => s.updateCompany);
+  const userId = useAuthStore((s) => s.user?.id ?? null);
+  const applyKycOverview = useProfileStore((s) => s.applyKycOverview);
+  const setSyncStatus = useProfileStore((s) => s.setSyncStatus);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !userId) return;
     let active = true;
-    fetchCustomerKyc()
-      .then((overview) => {
-        if (!active) return;
-        const { gstin, pan } = overview.organization;
-        updateCompany({
-          gstVerified: overview.verifications.gst?.status === "VERIFIED",
-          panVerified: overview.verifications.pan?.status === "VERIFIED",
-          ...(gstin ? { gstNumber: gstin } : {}),
-          ...(pan ? { pan } : {}),
+
+    const load = () => {
+      if (useProfileStore.getState().syncStatus !== "ready")
+        setSyncStatus("loading");
+      fetchCustomerKyc()
+        .then((overview) => {
+          if (active && useAuthStore.getState().user?.id === userId) {
+            applyKycOverview(overview);
+          }
+        })
+        .catch(() => {
+          if (active) setSyncStatus("error");
         });
-      })
-      .catch(() => {
-        if (active) updateCompany({ gstVerified: false, panVerified: false });
-      });
+    };
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") load();
+    };
+
+    load();
+    window.addEventListener("focus", load);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       active = false;
+      window.removeEventListener("focus", load);
+      document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [enabled, updateCompany]);
+  }, [enabled, userId, applyKycOverview, setSyncStatus]);
 }

@@ -12,6 +12,7 @@ import { CustomerSidebar } from "@/components/navigation/customer-sidebar";
 import { CustomerTopNav } from "@/components/navigation/customer-top-nav";
 import { KycAttentionBanner } from "@/components/kyc/KycAttentionBanner";
 import { OnboardingGate } from "@/components/onboarding/OnboardingGate";
+import { useKycIdentitySync } from "@/hooks/use-kyc-identity-sync";
 import { useUiStore } from "@/store/uiStore";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,7 @@ export function CustomerAppShell({
   const sidebarCollapsed = useUiStore((s) => s.sidebarCollapsed);
   const sidebarMobileOpen = useUiStore((s) => s.sidebarMobileOpen);
   const setSidebarMobileOpen = useUiStore((s) => s.setSidebarMobileOpen);
+  useKycIdentitySync();
 
   return (
     <OnboardingGate>

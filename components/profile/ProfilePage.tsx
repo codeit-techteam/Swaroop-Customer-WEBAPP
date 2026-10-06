@@ -15,7 +15,6 @@ import { ROUTES } from "@/constants";
 import { formatMemberSince, resolveMvpProfile } from "@/lib/profile-display";
 import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
-import { useKycIdentitySync } from "@/hooks/use-kyc-identity-sync";
 import { ProfilePageSkeleton } from "@/components/profile/profile-page-skeleton";
 
 export function ProfilePage() {
@@ -24,8 +23,8 @@ export function ProfilePage() {
   const company = useProfileStore((s) => s.company);
   const isHydrated = useProfileStore((s) => s.isHydrated);
   const setHydrated = useProfileStore((s) => s.setHydrated);
+  const syncStatus = useProfileStore((s) => s.syncStatus);
   const [editOpen, setEditOpen] = useState(false);
-  useKycIdentitySync();
   const [logoutOpen, setLogoutOpen] = useState(false);
 
   useEffect(() => {
@@ -129,6 +128,15 @@ export function ProfilePage() {
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
               Company Information
             </h2>
+            {syncStatus === "loading" && !company.legalName ? (
+              <p className="text-sm text-slate-500">Loading company details…</p>
+            ) : null}
+            {syncStatus === "error" && !company.legalName ? (
+              <p role="alert" className="text-sm text-red-600">
+                Couldn&apos;t load company details. Check your connection and
+                refresh the page.
+              </p>
+            ) : null}
             <dl className="grid gap-3 sm:grid-cols-2">
               <InfoItem label="Company Name" value={company.legalName} />
               <InfoItem label="Industry" value={company.industry} />

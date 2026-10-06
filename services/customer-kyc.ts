@@ -109,6 +109,12 @@ export type CustomerKycOverview = {
     legalName: string | null;
     gstin: string | null;
     pan: string | null;
+    businessType?: string | null;
+    constitutionType?: string | null;
+    natureOfBusiness?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    memberSince?: string | null;
     verificationStatus: string | null;
   };
   slots: CustomerKycSlot[];

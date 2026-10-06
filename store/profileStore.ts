@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { customerProfileMock } from "@/mock/profile";
+import type { CustomerKycOverview } from "@/services/customer-kyc";
 import type {
   BankAccountProfile,
   BusinessAddressProfile,
@@ -16,7 +17,142 @@ import type {
   ShippingAddressProfile,
 } from "@/types/profile";
 
-const STORAGE_KEY = "petrotrade.customer-profile.v1";
+const STORAGE_KEY = "petrotrade.customer-profile.v2";
+/** v1 persisted a demo company; it must not be shown to real customers. */
+const LEGACY_STORAGE_KEY = "petrotrade.customer-profile.v1";
+
+if (typeof window !== "undefined") {
+  window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+}
+
+const EMPTY_COMPANY: CompanyProfile = {
+  legalName: "",
+  tradeName: "",
+  businessType: "",
+  industry: "",
+  gstNumber: "",
+  pan: "",
+  cin: "",
+  dateOfIncorporation: "",
+  website: "",
+  email: "",
+  phone: "",
+  description: "",
+  logoInitials: "",
+  customerId: "",
+  customerCode: "",
+  registeredState: "",
+  customerSince: "",
+  membership: "standard",
+  gstVerified: false,
+  panVerified: false,
+  creditEligible: false,
+};
+
+/**
+ * Account data starts empty and is filled from the backend KYC overview. Only
+ * UI preferences come from the template; nothing identifies a business.
+ */
+const EMPTY_PROFILE: CustomerProfileState = {
+  ...customerProfileMock,
+  company: EMPTY_COMPANY,
+  contacts: [],
+  businessAddress: {
+    id: "",
+    label: "Registered Office",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    pincode: "",
+    country: "India",
+    mapLabel: "",
+    lat: 0,
+    lng: 0,
+  },
+  shippingAddresses: [],
+  bankAccounts: [],
+  gstPan: {
+    gstNumber: "",
+    gstStatus: "not_started",
+    gstRegistrationDate: "",
+    gstLegalName: "",
+    panNumber: "",
+    panLinked: false,
+    panStatus: "not_started",
+    gstCertificateFile: "",
+    panCardFile: "",
+  },
+  credit: {
+    ...customerProfileMock.credit,
+    creditLimit: 0,
+    usedCredit: 0,
+    availableCredit: 0,
+    paymentScore: 0,
+    averagePaymentDays: 0,
+    history: [],
+  },
+  security: { ...customerProfileMock.security, sessions: [] },
+  activity: [],
+  documents: [],
+  lastLogin: "",
+  verificationStatus: "not_started",
+};
+
+const toVerificationStatus = (
+  status: string | undefined,
+): CustomerProfileState["verificationStatus"] => {
+  if (status === "VERIFIED") return "verified";
+  if (status === "FAILED") return "rejected";
+  if (status) return "pending";
+  return "not_started";
+};
+
+/** Maps the backend KYC overview (organization + verified GST) onto the profile. */
+export function profileFromKycOverview(
+  overview: CustomerKycOverview,
+): Pick<CustomerProfileState, "company" | "gstPan" | "businessAddress"> {
+  const org = overview.organization;
+  const gst = overview.verifications.gst;
+  const pan = overview.verifications.pan;
+  const legalName = org.legalName ?? org.name ?? gst?.details.legalName ?? "";
+  return {
+    company: {
+      ...EMPTY_COMPANY,
+      legalName,
+      tradeName: gst?.details.tradeName ?? org.name ?? "",
+      businessType:
+        org.businessType ??
+        org.constitutionType ??
+        gst?.details.constitution ??
+        "",
+      industry: org.natureOfBusiness ?? "",
+      gstNumber: org.gstin ?? "",
+      pan: org.pan ?? "",
+      email: org.email ?? "",
+      phone: org.phone ?? "",
+      registeredState: gst?.details.state ?? "",
+      customerSince: org.memberSince ?? "",
+      gstVerified: gst?.status === "VERIFIED",
+      panVerified: pan?.status === "VERIFIED",
+    },
+    gstPan: {
+      ...EMPTY_PROFILE.gstPan,
+      gstNumber: org.gstin ?? "",
+      gstStatus: toVerificationStatus(gst?.status),
+      gstRegistrationDate: gst?.details.registrationDate ?? "",
+      gstLegalName: gst?.details.legalName ?? "",
+      panNumber: org.pan ?? "",
+      panStatus: toVerificationStatus(pan?.status),
+    },
+    businessAddress: {
+      ...EMPTY_PROFILE.businessAddress,
+      addressLine1: gst?.details.address ?? "",
+      state: gst?.details.state ?? "",
+      pincode: gst?.details.pincode ?? "",
+    },
+  };
+}
 
 export interface ProfilePreviewState {
   open: boolean;
@@ -27,6 +163,8 @@ export interface ProfileStoreState extends CustomerProfileState {
   activeTab: ProfileTabId;
   isHydrated: boolean;
   isLoading: boolean;
+  /** Backend sync state for the company profile. */
+  syncStatus: "idle" | "loading" | "ready" | "error";
   isEditingCompany: boolean;
   contactSearch: string;
   addressSearch: string;
@@ -34,6 +172,8 @@ export interface ProfileStoreState extends CustomerProfileState {
   preview: ProfilePreviewState;
 
   setHydrated: (v: boolean) => void;
+  setSyncStatus: (status: ProfileStoreState["syncStatus"]) => void;
+  applyKycOverview: (overview: CustomerKycOverview) => void;
   setActiveTab: (tab: ProfileTabId) => void;
   setContactSearch: (q: string) => void;
   setAddressSearch: (q: string) => void;
@@ -108,8 +248,9 @@ export function computeProfileCompletion(state: CustomerProfileState): number {
 export const useProfileStore = create<ProfileStoreState>()(
   persist(
     (set) => ({
-      ...customerProfileMock,
+      ...EMPTY_PROFILE,
       activeTab: "company",
+      syncStatus: "idle",
       isHydrated: false,
       isLoading: false,
       isEditingCompany: false,
@@ -119,6 +260,9 @@ export const useProfileStore = create<ProfileStoreState>()(
       preview: { open: false, document: null },
 
       setHydrated: (v) => set({ isHydrated: v }),
+      setSyncStatus: (syncStatus) => set({ syncStatus }),
+      applyKycOverview: (overview) =>
+        set({ ...profileFromKycOverview(overview), syncStatus: "ready" }),
       setActiveTab: (tab) => set({ activeTab: tab }),
       setContactSearch: (q) => set({ contactSearch: q }),
       setAddressSearch: (q) => set({ addressSearch: q }),
@@ -266,23 +410,8 @@ export const useProfileStore = create<ProfileStoreState>()(
     }),
     {
       name: STORAGE_KEY,
-      partialize: (s) => ({
-        company: s.company,
-        contacts: s.contacts,
-        businessAddress: s.businessAddress,
-        shippingAddresses: s.shippingAddresses,
-        bankAccounts: s.bankAccounts,
-        gstPan: s.gstPan,
-        credit: s.credit,
-        security: s.security,
-        preferences: s.preferences,
-        activity: s.activity,
-        documents: s.documents,
-        stats: s.stats,
-        lastLogin: s.lastLogin,
-        verificationStatus: s.verificationStatus,
-        creditStatus: s.creditStatus,
-      }),
+      // Company / KYC data is never persisted; it is fetched per session.
+      partialize: (s) => ({ preferences: s.preferences }),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true);
       },
