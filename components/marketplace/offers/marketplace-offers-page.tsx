@@ -85,12 +85,30 @@ export function MarketplaceOffersPage() {
   );
 
   const stats = getSummaryStats();
-  const featuredOffer =
-    offers.find((o) => o.id === "offer-pp-week") ?? offers[0];
+  const featuredOffer = offers[0];
+
+  const brandOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const offer of offers) {
+      if (!seen.has(offer.brandId)) seen.set(offer.brandId, offer.brandName);
+    }
+    return [...seen].map(([id, name]) => ({ id, name }));
+  }, [offers]);
+  const warehouseOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const offer of offers) {
+      if (offer.warehouseId === "wh-all" || seen.has(offer.warehouseId))
+        continue;
+      seen.set(offer.warehouseId, offer.warehouseLabel);
+    }
+    return [...seen].map(([id, name]) => ({ id, name }));
+  }, [offers]);
 
   const filterPanelProps = {
     draftFilters,
     priceBounds,
+    brands: brandOptions,
+    warehouses: warehouseOptions,
     resultCount: visibleOffers.length,
     onToggleCategory: toggleDraftCategory,
     onToggleBrand: toggleDraftBrand,
@@ -127,9 +145,7 @@ export function MarketplaceOffersPage() {
         <MarketplaceEmptyState
           title="Unable to load offers"
           description={loadError}
-          action={
-            <Button onClick={() => void fetchOffers()}>Retry</Button>
-          }
+          action={<Button onClick={() => void fetchOffers()}>Retry</Button>}
         />
       </PageContainer>
     );
@@ -262,9 +278,7 @@ export function MarketplaceOffersPage() {
             {visibleOffers.length === 0 ? (
               <OfferEmptyState
                 variant={offers.length === 0 ? "no-active" : "no-results"}
-                onClearFilters={
-                  offers.length === 0 ? undefined : resetFilters
-                }
+                onClearFilters={offers.length === 0 ? undefined : resetFilters}
               />
             ) : (
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">

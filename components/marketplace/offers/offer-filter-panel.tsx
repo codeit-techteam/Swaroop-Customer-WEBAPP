@@ -7,12 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import {
-  OFFER_BRANDS,
   OFFER_CATEGORIES,
   OFFER_DISCOUNT_THRESHOLDS,
   OFFER_PAYMENT_OPTIONS,
   OFFER_TYPE_FILTER_OPTIONS,
-  OFFER_WAREHOUSES,
 } from "@/mock/offers";
 import { formatInr } from "@/lib/format";
 import type { OfferFiltersState, OfferPriceBounds } from "@/types/offers";
@@ -20,9 +18,17 @@ import type { MarketplaceParentCategoryId } from "@/types/marketplace";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
+interface OfferFilterOption {
+  id: string;
+  name: string;
+}
+
 interface OfferFilterPanelProps {
   draftFilters: OfferFiltersState;
   priceBounds: OfferPriceBounds;
+  /** Derived from live offers; never hardcoded. */
+  brands: OfferFilterOption[];
+  warehouses: OfferFilterOption[];
   resultCount?: number;
   onToggleCategory: (id: MarketplaceParentCategoryId) => void;
   onToggleBrand: (id: string) => void;
@@ -42,6 +48,8 @@ interface OfferFilterPanelProps {
 export function OfferFilterPanel({
   draftFilters,
   priceBounds,
+  brands,
+  warehouses,
   resultCount,
   onToggleCategory,
   onToggleBrand,
@@ -88,41 +96,49 @@ export function OfferFilterPanel({
 
         <Separator />
 
-        <FilterGroup title="Manufacturer">
-          {OFFER_BRANDS.map((brand) => (
-            <CheckRow
-              key={brand.id}
-              id={`brand-${brand.id}`}
-              label={brand.name}
-              checked={draftFilters.brands.includes(brand.id)}
-              onChange={() => onToggleBrand(brand.id)}
-            />
-          ))}
-        </FilterGroup>
+        {brands.length > 1 ? (
+          <>
+            <FilterGroup title="Manufacturer">
+              {brands.map((brand) => (
+                <CheckRow
+                  key={brand.id}
+                  id={`brand-${brand.id}`}
+                  label={brand.name}
+                  checked={draftFilters.brands.includes(brand.id)}
+                  onChange={() => onToggleBrand(brand.id)}
+                />
+              ))}
+            </FilterGroup>
 
-        <Separator />
+            <Separator />
+          </>
+        ) : null}
 
-        <FilterGroup title="Warehouse">
-          <div className="space-y-1">
-            <WarehouseBtn
-              active={!draftFilters.warehouseId}
-              onClick={() => onWarehouseChange(null)}
-            >
-              All Warehouses
-            </WarehouseBtn>
-            {OFFER_WAREHOUSES.map((wh) => (
-              <WarehouseBtn
-                key={wh.id}
-                active={draftFilters.warehouseId === wh.id}
-                onClick={() => onWarehouseChange(wh.id)}
-              >
-                {wh.name}
-              </WarehouseBtn>
-            ))}
-          </div>
-        </FilterGroup>
+        {warehouses.length ? (
+          <>
+            <FilterGroup title="Warehouse">
+              <div className="space-y-1">
+                <WarehouseBtn
+                  active={!draftFilters.warehouseId}
+                  onClick={() => onWarehouseChange(null)}
+                >
+                  All Warehouses
+                </WarehouseBtn>
+                {warehouses.map((wh) => (
+                  <WarehouseBtn
+                    key={wh.id}
+                    active={draftFilters.warehouseId === wh.id}
+                    onClick={() => onWarehouseChange(wh.id)}
+                  >
+                    {wh.name}
+                  </WarehouseBtn>
+                ))}
+              </div>
+            </FilterGroup>
 
-        <Separator />
+            <Separator />
+          </>
+        ) : null}
 
         <FilterGroup title="Price Range">
           <div className="space-y-2">

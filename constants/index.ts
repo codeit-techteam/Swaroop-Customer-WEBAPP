@@ -20,6 +20,7 @@ export const ROUTES = {
   marketplaceCategories: "/marketplace/categories",
   marketplaceCategory: "/marketplace/category",
   marketplaceProduct: "/marketplace/product",
+  marketplaceGrades: "/marketplace/grades",
   marketplaceOffers: "/marketplace/offers",
   marketplaceMyOffers: "/marketplace/offers/my-offers",
   marketplaceOfferDetail: "/marketplace/offers",
@@ -126,6 +127,10 @@ export function purchaseRequestsFiltered(
   return `${ROUTES.purchaseRequests}?status=${status}`;
 }
 
+export function marketplaceGradePath(gradeId: string): string {
+  return `${ROUTES.marketplaceGrades}/${encodeURIComponent(gradeId)}`;
+}
+
 export const AUTH_ROUTES = [
   ROUTES.login,
   ROUTES.register,
@@ -174,9 +179,14 @@ export const CUSTOMER_NAV: NavItem[] = [
     icon: "Store",
     children: [
       {
+        id: "marketplace-listings",
+        title: "Live Listings",
+        href: ROUTES.marketplace,
+      },
+      {
         id: "marketplace-browse",
         title: "Browse Grades",
-        href: ROUTES.marketplace,
+        href: ROUTES.marketplaceGrades,
       },
     ],
   },

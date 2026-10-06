@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
+import { BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
@@ -180,9 +182,7 @@ export function MarketplaceBrowse({
         <MarketplaceEmptyState
           title="Unable to load marketplace catalog"
           description={loadError}
-          action={
-            <Button onClick={() => void fetchCatalog()}>Retry</Button>
-          }
+          action={<Button onClick={() => void fetchCatalog()}>Retry</Button>}
         />
       </PageContainer>
     );
@@ -194,6 +194,14 @@ export function MarketplaceBrowse({
         title={pageTitle}
         description="Blind B2B procurement — browse grades by material, specification, price and availability. Seller identity stays protected."
         breadcrumbs={crumbItems}
+        actions={
+          <Button asChild variant="outline" className="h-10 rounded-xl">
+            <Link href={ROUTES.marketplaceGrades}>
+              <BookOpen className="h-4 w-4" aria-hidden />
+              Browse all grades
+            </Link>
+          </Button>
+        }
       />
 
       <motion.div
