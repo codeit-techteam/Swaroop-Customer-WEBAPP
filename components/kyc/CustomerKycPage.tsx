@@ -268,6 +268,38 @@ function panHolderError(holder: PanHolderDetails): string | null {
 const PAN_GST_MISMATCH =
   "GST/PAN mismatch: the PAN associated with the GSTIN does not match the entered PAN.";
 
+function formatIsoDate(value: string | null | undefined): string | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return value ?? null;
+  return new Date(`${value}T00:00:00Z`).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+/** Who confirmed a VERIFIED result, and when. */
+function verifiedByLine(verification: KycVerification): string | null {
+  if (verification.status !== "VERIFIED") return null;
+  const at = verification.reviewedAt ?? verification.verifiedAt;
+  const when = at
+    ? new Date(at).toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : null;
+  const by =
+    verification.method === "MANUAL"
+      ? "Verified by the PetroTrade compliance team"
+      : verification.provider === "surepass"
+        ? "Verified via Surepass"
+        : "Verified";
+  return when ? `${by} · ${when}` : by;
+}
+
 function verificationFacts(
   kind: "PAN" | "GST",
   verification: KycVerification,
@@ -277,6 +309,7 @@ function verificationFacts(
     kind === "PAN"
       ? [
           ["Name on PAN", d.nameOnPan],
+          ["Date of birth / incorporation", formatIsoDate(d.dateOnPan)],
           ["Category", d.panCategory],
           ["Status", d.panStatus],
         ]
@@ -284,7 +317,10 @@ function verificationFacts(
           ["Legal name", d.legalName],
           ["Trade name", d.tradeName],
           ["GST status", d.gstStatus],
-          ["Registered", d.registrationDate],
+          ["Registered", formatIsoDate(d.registrationDate)],
+          ["Cancelled on", formatIsoDate(d.cancellationDate)],
+          ["Taxpayer type", d.taxpayerType],
+          ["Constitution", d.constitution],
           [
             "State",
             d.state
@@ -489,6 +525,12 @@ function IdentityCard({
         <p className="mt-2 flex items-start gap-1.5 text-xs text-amber-800">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           {warning}
+        </p>
+      ) : null}
+      {shown && verifiedByLine(shown) ? (
+        <p className="mt-2 flex items-center gap-1.5 text-xs text-emerald-700">
+          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+          {verifiedByLine(shown)}
         </p>
       ) : null}
       {facts.length ? (

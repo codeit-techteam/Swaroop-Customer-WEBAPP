@@ -54,6 +54,8 @@ export type KycVerificationDetails = {
   pincode?: string | null;
   panMasked?: string | null;
   nameOnPan?: string | null;
+  /** Date of birth / incorporation (YYYY-MM-DD) confirmed by PAN Verify. */
+  dateOnPan?: string | null;
   panStatus?: string | null;
   panCategory?: string | null;
 };
