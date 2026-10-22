@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ROUTES } from "@/constants";
+import { toastInvoiceUnavailable } from "@/lib/document-actions";
 import { formatDateDdMmYyyy, formatInr, formatQuantityMt } from "@/lib/format";
 import {
   filterSortOrders,
@@ -136,9 +137,7 @@ export function DeliveredOrdersPage() {
                   <Button
                     variant="outline"
                     className="h-9 rounded-xl"
-                    onClick={() =>
-                      toast.success("Invoice download queued (mock)")
-                    }
+                    onClick={() => toastInvoiceUnavailable("tax")}
                   >
                     <Download className="h-3.5 w-3.5" />
                     Invoice
@@ -146,7 +145,11 @@ export function DeliveredOrdersPage() {
                   <Button
                     variant="outline"
                     className="h-9 rounded-xl"
-                    onClick={() => toast.success("POD download queued (mock)")}
+                    onClick={() =>
+                      toast.error(
+                        "Proof of delivery PDF has not been generated yet.",
+                      )
+                    }
                   >
                     <Download className="h-3.5 w-3.5" />
                     POD

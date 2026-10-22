@@ -48,7 +48,6 @@ export function ShipmentTrackingPage({ orderId }: ShipmentTrackingPageProps) {
   const dispatch = useShipmentStore((s) => s.dispatchByOrder[orderId]);
   const delivery = useShipmentStore((s) => s.deliveryByOrder[orderId]);
   const initFromOrder = useShipmentStore((s) => s.initFromOrder);
-  const advanceShipment = useShipmentStore((s) => s.advanceShipment);
 
   useEffect(() => {
     const finish = () => {
@@ -181,28 +180,19 @@ export function ShipmentTrackingPage({ orderId }: ShipmentTrackingPageProps) {
                   <ArrowLeft className="h-4 w-4" />
                   Back
                 </Button>
-                {order ? (
-                  <Button
-                    className="h-11 min-w-[200px] rounded-xl bg-brand hover:bg-brand-700"
-                    onClick={() => {
-                      const next = advanceShipment(orderId);
-                      toast.message(`Status: ${next.replaceAll("_", " ")}`);
-                    }}
-                  >
-                    <Navigation className="h-4 w-4" />
-                    {SHIPMENT_COPY.continueLabel}
-                  </Button>
-                ) : (
-                  <Button
-                    className="h-11 min-w-[200px] rounded-xl bg-brand hover:bg-brand-700"
-                    onClick={() =>
-                      router.push(`${ROUTES.orders}?status=in_transit`)
-                    }
-                  >
-                    <Navigation className="h-4 w-4" />
-                    View In Transit Board
-                  </Button>
-                )}
+                <Button
+                  className="h-11 min-w-[200px] rounded-xl bg-brand hover:bg-brand-700"
+                  onClick={() =>
+                    router.push(
+                      order
+                        ? ROUTES.shipmentTracking
+                        : `${ROUTES.orders}?status=in_transit`,
+                    )
+                  }
+                >
+                  <Navigation className="h-4 w-4" />
+                  {order ? "Open shipment tracking" : "View In Transit Board"}
+                </Button>
               </div>
             </div>
 

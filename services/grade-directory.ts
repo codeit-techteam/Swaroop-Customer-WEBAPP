@@ -1,6 +1,7 @@
 import { isAxiosError } from "axios";
 import apiClient from "@/lib/apiClient";
 import { asRecord, num, type Envelope } from "@/lib/api-envelope";
+import { marketplaceApiBase } from "@/lib/marketplace-api-base";
 import {
   toMarketplaceOffer,
   toMarketplaceProduct,
@@ -84,7 +85,7 @@ export async function fetchGradeDirectory(
 ): Promise<PagedResult<GradeDirectoryItem>> {
   const limit = Math.min(100, Math.max(1, query.limit ?? 24));
   const res = await apiClient.get<Envelope<unknown[]>>(
-    `/customer/marketplace/grades${qs({
+    `${marketplaceApiBase()}/grades${qs({
       page: query.page ?? 1,
       limit,
       search: query.search?.trim(),
@@ -94,6 +95,7 @@ export async function fetchGradeDirectory(
       manufacturer: query.manufacturer,
       hasOffers: query.hasOffers ? true : undefined,
     })}`,
+    { skipAuth: marketplaceApiBase() === "/public/marketplace" },
   );
   return pagedFrom(res, toGradeDirectoryItem, limit);
 }
@@ -102,7 +104,8 @@ export async function fetchGradeDetail(
   id: string,
 ): Promise<GradeDirectoryItem> {
   const res = await apiClient.get<Envelope<unknown>>(
-    `/customer/marketplace/grades/${encodeURIComponent(id)}`,
+    `${marketplaceApiBase()}/grades/${encodeURIComponent(id)}`,
+    { skipAuth: marketplaceApiBase() === "/public/marketplace" },
   );
   return toGradeDirectoryItem(res.data);
 }
@@ -113,7 +116,8 @@ export async function fetchGradeProducts(
   limit = 12,
 ): Promise<PagedResult<MarketplaceProduct>> {
   const res = await apiClient.get<Envelope<BlindProduct[]>>(
-    `/customer/marketplace/grades/${encodeURIComponent(id)}/products${qs({ page, limit })}`,
+    `${marketplaceApiBase()}/grades/${encodeURIComponent(id)}/products${qs({ page, limit })}`,
+    { skipAuth: marketplaceApiBase() === "/public/marketplace" },
   );
   return pagedFrom(
     res as Envelope<unknown[]>,
@@ -128,7 +132,8 @@ export async function fetchGradeOffers(
   limit = 12,
 ): Promise<PagedResult<BlindOffer>> {
   const res = await apiClient.get<Envelope<BlindOffer[]>>(
-    `/customer/marketplace/grades/${encodeURIComponent(id)}/offers${qs({ page, limit })}`,
+    `${marketplaceApiBase()}/grades/${encodeURIComponent(id)}/offers${qs({ page, limit })}`,
+    { skipAuth: marketplaceApiBase() === "/public/marketplace" },
   );
   return pagedFrom(
     res as Envelope<unknown[]>,

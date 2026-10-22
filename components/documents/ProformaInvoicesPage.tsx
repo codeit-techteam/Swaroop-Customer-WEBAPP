@@ -20,7 +20,7 @@ import { PROFORMA_STATUS_LABELS } from "@/constants/documents";
 import { formatDateDdMmYyyy, formatInr } from "@/lib/format";
 import {
   buildGenericDocumentContent,
-  simulatePdfDownload,
+  downloadProformaInvoicePdf,
 } from "@/lib/document-actions";
 import {
   filterProformas,
@@ -186,19 +186,13 @@ export function ProformaInvoicesPage() {
                       className="h-8 w-8 rounded-lg p-0"
                       title="Download"
                       onClick={() => {
-                        simulatePdfDownload(
-                          `${pi.proformaNumber}.pdf`,
-                          buildGenericDocumentContent({
-                            title: "Proforma Invoice",
-                            documentNumber: pi.proformaNumber,
-                            orderNumber: pi.orderNumber,
-                            seller: pi.seller,
-                            warehouse: pi.warehouse,
-                            product: pi.product,
-                          }),
-                        );
-                        markDownloaded("proforma", pi.id);
-                        toast.success("Download started");
+                        void (async () => {
+                          const ok = await downloadProformaInvoicePdf(pi.id);
+                          if (ok) {
+                            markDownloaded("proforma", pi.id);
+                            toast.success("Proforma opened");
+                          }
+                        })();
                       }}
                     >
                       <Download className="h-4 w-4" />

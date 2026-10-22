@@ -14,6 +14,7 @@ import {
   PrimaryButton,
 } from "@/components/auth";
 import { registerSchema, type RegisterFormValues } from "@/lib/auth-schemas";
+import { openPrivacyPolicy, openTermsOfService } from "@/lib/legal-links";
 import { useAuthStore } from "@/store/authStore";
 import { useOnboardingStore } from "@/store/onboardingStore";
 import { ROUTES } from "@/constants";
@@ -137,13 +138,28 @@ export function RegisterForm() {
               label={
                 <>
                   I agree to the{" "}
-                  <Link
-                    href="#"
+                  <button
+                    type="button"
                     className="font-medium text-accent-blue hover:underline"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      void openTermsOfService();
+                    }}
                   >
-                    Master Service Agreement
-                  </Link>
-                  , Privacy Policy, and institutional trading protocols.
+                    Terms of Service
+                  </button>
+                  ,{" "}
+                  <button
+                    type="button"
+                    className="font-medium text-accent-blue hover:underline"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      void openPrivacyPolicy();
+                    }}
+                  >
+                    Privacy Policy
+                  </button>
+                  , and institutional trading protocols.
                 </>
               }
             />

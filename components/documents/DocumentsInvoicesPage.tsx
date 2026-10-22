@@ -23,8 +23,8 @@ import {
 import { formatDateDdMmYyyy, formatInr } from "@/lib/format";
 import {
   buildInvoiceDocumentContent,
+  downloadTaxInvoicePdf,
   printDocumentHtml,
-  simulatePdfDownload,
 } from "@/lib/document-actions";
 import {
   filterInvoices,
@@ -186,12 +186,13 @@ export function DocumentsInvoicesPage() {
                       className="h-8 w-8 rounded-lg p-0"
                       title="Download PDF"
                       onClick={() => {
-                        simulatePdfDownload(
-                          `${inv.invoiceNumber}.pdf`,
-                          buildInvoiceDocumentContent(inv),
-                        );
-                        markDownloaded("invoice", inv.id);
-                        toast.success("PDF download started");
+                        void (async () => {
+                          const ok = await downloadTaxInvoicePdf(inv.id);
+                          if (ok) {
+                            markDownloaded("invoice", inv.id);
+                            toast.success("Invoice opened");
+                          }
+                        })();
                       }}
                     >
                       <Download className="h-4 w-4" />

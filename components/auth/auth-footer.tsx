@@ -1,28 +1,44 @@
 "use client";
 
-import Link from "next/link";
+import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
+import {
+  openContactSupport,
+  openPrivacyPolicy,
+  openTermsOfService,
+} from "@/lib/legal-links";
 
-interface AuthFooterLink {
+type AuthFooterAction = {
   label: string;
-  href: string;
-}
+  onClick: () => void;
+};
 
 interface AuthFooterProps {
-  links?: AuthFooterLink[];
   className?: string;
 }
 
-const DEFAULT_LINKS: AuthFooterLink[] = [
-  { label: "Privacy Policy", href: "#" },
-  { label: "Terms of Service", href: "#" },
-  { label: "Support Center", href: "#" },
+const ACTIONS: AuthFooterAction[] = [
+  { label: "Privacy Policy", onClick: () => void openPrivacyPolicy() },
+  { label: "Terms of Service", onClick: () => void openTermsOfService() },
+  { label: "Support Center", onClick: () => void openContactSupport() },
 ];
 
-export function AuthFooter({
-  links = DEFAULT_LINKS,
-  className,
-}: AuthFooterProps) {
+export function AuthFooter({ className }: AuthFooterProps) {
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const run = useCallback(
+    async (label: string, action: () => void | Promise<void>) => {
+      if (busy) return;
+      setBusy(label);
+      try {
+        await action();
+      } finally {
+        setBusy(null);
+      }
+    },
+    [busy],
+  );
+
   return (
     <footer
       className={cn(
@@ -30,14 +46,16 @@ export function AuthFooter({
         className,
       )}
     >
-      {links.map((link) => (
-        <Link
+      {ACTIONS.map((link) => (
+        <button
           key={link.label}
-          href={link.href}
-          className="transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue"
+          type="button"
+          disabled={busy !== null}
+          onClick={() => void run(link.label, link.onClick)}
+          className="transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue disabled:opacity-60"
         >
-          {link.label}
-        </Link>
+          {busy === link.label ? "Opening…" : link.label}
+        </button>
       ))}
     </footer>
   );

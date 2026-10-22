@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { PageContainer } from "@/components/layout/page-container";
 import { AppBreadcrumb } from "@/components/navigation/app-breadcrumb";
@@ -29,8 +30,11 @@ interface ProductDetailsPageProps {
 }
 
 export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
+  const searchParams = useSearchParams();
   const [quantity, setQuantity] = useState(25);
   const [paymentId, setPaymentId] = useState<PaymentMethodId>("advance");
+  const [rfqNotes, setRfqNotes] = useState("");
+  const [rfqDestination, setRfqDestination] = useState("");
   const loadProduct = useProductStore((s) => s.loadProduct);
   const selectedProduct = useProductStore((s) => s.selectedProduct);
   const relatedProducts = useProductStore((s) => s.relatedProducts);
@@ -90,8 +94,22 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
       setQuantity(0);
       return;
     }
-    setQuantity(Math.min(product.moq, stock));
-  }, [product?.id, product?.moq, product?.stock]);
+
+    const qtyParam = searchParams.get("qty");
+    const parsedQty = qtyParam ? Number(qtyParam) : NaN;
+    if (Number.isFinite(parsedQty) && parsedQty > 0) {
+      setQuantity(
+        Math.min(stock, Math.max(Math.min(product.moq, stock), parsedQty)),
+      );
+    } else {
+      setQuantity(Math.min(product.moq, stock));
+    }
+
+    const notes = searchParams.get("notes");
+    const destination = searchParams.get("destination");
+    if (notes) setRfqNotes(notes);
+    if (destination) setRfqDestination(destination);
+  }, [product?.id, product?.moq, product?.stock, searchParams]);
 
   if (!ready) {
     return (
@@ -178,6 +196,27 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
 
           <ProductHeader product={detail} />
           <ProductHighlights highlights={detail.highlights} />
+          {searchParams.get("rfq") === "1" && (rfqNotes || rfqDestination) ? (
+            <div className="rounded-2xl border border-sky-100 bg-sky-50/70 p-4 text-sm text-slate-700">
+              <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
+                Purchase request details
+              </p>
+              {rfqDestination ? (
+                <p className="mt-2">
+                  <span className="font-medium text-slate-900">
+                    Destination:
+                  </span>{" "}
+                  {rfqDestination}
+                </p>
+              ) : null}
+              {rfqNotes ? (
+                <p className="mt-1">
+                  <span className="font-medium text-slate-900">Notes:</span>{" "}
+                  {rfqNotes}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         <div className="min-w-0 xl:col-start-2 xl:row-span-2 xl:row-start-1">
@@ -190,6 +229,9 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
             quote={quote}
             quoteLoading={quoteLoading}
             quoteError={quoteError}
+            offerId={detail.offerId}
+            gradeId={detail.gradeId}
+            productId={detail.id}
             moq={detail.moq}
             maxStock={detail.stock}
             availabilityLabel={detail.availabilityLabel}

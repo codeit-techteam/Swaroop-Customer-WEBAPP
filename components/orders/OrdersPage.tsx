@@ -11,7 +11,6 @@ import {
   IndianRupee,
   Package,
 } from "lucide-react";
-import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -30,6 +29,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ROUTES } from "@/constants";
+import { toastInvoiceUnavailable } from "@/lib/document-actions";
 import { formatEtaDisplay, formatInr, formatQuantityMt } from "@/lib/format";
 import {
   applyKpiFocus,
@@ -318,7 +318,7 @@ export function OrdersPage() {
                       <TableHead className="whitespace-nowrap">Value</TableHead>
                       <TableHead className="whitespace-nowrap">ETA</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead className="w-[1%] text-right whitespace-nowrap">
+                      <TableHead className="w-[1%] whitespace-nowrap text-right">
                         Actions
                       </TableHead>
                     </TableRow>
@@ -407,9 +407,7 @@ export function OrdersPage() {
                                   router.push(`${ROUTES.orderDetail}/${row.id}`)
                                 }
                                 onDownload={() =>
-                                  toast.success(
-                                    "Invoice download queued (mock)",
-                                  )
+                                  toastInvoiceUnavailable("tax")
                                 }
                               />
                             </TableCell>

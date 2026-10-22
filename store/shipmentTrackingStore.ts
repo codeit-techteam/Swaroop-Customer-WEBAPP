@@ -2,19 +2,14 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { buildMvpTimeline, DEFAULT_SHIPMENT_FILTERS } from "@/mock/shipment-tracking";
+import { DEFAULT_SHIPMENT_FILTERS } from "@/mock/shipment-tracking";
 import { fetchCustomerShipments } from "@/services/logistics";
-import {
-  computeShipmentSummary,
-  shipmentProgressPercent,
-  shipmentStatusTimelineIndex,
-} from "@/lib/shipment-mvp";
+import { computeShipmentSummary } from "@/lib/shipment-mvp";
 import type {
   ShipmentDashboardSummary,
   ShipmentFiltersState,
   ShipmentNotification,
   ShipmentRecord,
-  ShipmentStatus,
   TransportDocument,
 } from "@/types/shipment-tracking";
 
@@ -39,21 +34,12 @@ type ShipmentTrackingActions = {
   markDocumentDownloaded: (shipmentId: string, documentId: string) => void;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
-  advanceShipmentStatus: (shipmentId: string) => void;
   getSummary: () => ShipmentDashboardSummary;
   setHydrated: (value: boolean) => void;
 };
 
 export type ShipmentTrackingStore = ShipmentTrackingState &
   ShipmentTrackingActions;
-
-const STATUS_SEQUENCE: ShipmentStatus[] = [
-  "ready_for_dispatch",
-  "dispatched",
-  "in_transit",
-  "out_for_delivery",
-  "delivered",
-];
 
 export function filterShipments(
   items: ShipmentRecord[],
@@ -90,64 +76,6 @@ export function filterShipments(
   );
 }
 
-function bumpTimeline(shipment: ShipmentRecord): ShipmentRecord {
-  if (shipment.currentStatus === "delivered") return shipment;
-
-  const idx = STATUS_SEQUENCE.indexOf(shipment.currentStatus);
-  const next = STATUS_SEQUENCE[Math.min(idx + 1, STATUS_SEQUENCE.length - 1)];
-  const dispatchDate =
-    shipment.dispatchDate ??
-    (next === "dispatched" || idx >= 0
-      ? next === "dispatched" ||
-        next === "in_transit" ||
-        next === "out_for_delivery" ||
-        next === "delivered"
-        ? new Date().toISOString()
-        : shipment.dispatchDate
-      : shipment.dispatchDate);
-
-  const timeline = buildMvpTimeline(
-    next,
-    shipment.createdAt,
-    dispatchDate ?? shipment.dispatchDate,
-  );
-  const progress = shipmentProgressPercent(next);
-  const routeIndex = Math.min(
-    shipment.route.length - 1,
-    Math.round(
-      (shipmentStatusTimelineIndex(next) / 5) * (shipment.route.length - 1),
-    ),
-  );
-  const route = shipment.route.map((stop, i) => ({
-    ...stop,
-    status:
-      i < routeIndex
-        ? ("completed" as const)
-        : i === routeIndex
-          ? ("current" as const)
-          : ("pending" as const),
-  }));
-
-  return {
-    ...shipment,
-    currentStatus: next,
-    timeline,
-    route,
-    progress,
-    remainingDistanceKm:
-      next === "delivered"
-        ? 0
-        : Math.round(shipment.remainingDistanceKm * (1 - (idx + 1) / 4)),
-    remainingHours:
-      next === "delivered"
-        ? 0
-        : Math.round(shipment.remainingHours * (1 - (idx + 1) / 4)),
-    currentCity: route[routeIndex]?.city ?? shipment.currentCity,
-    updatedAt: new Date().toISOString(),
-    dispatchDate: dispatchDate ?? shipment.dispatchDate,
-  };
-}
-
 export const useShipmentTrackingStore = create<ShipmentTrackingStore>()(
   persist(
     (set, get) => ({
@@ -176,7 +104,10 @@ export const useShipmentTrackingStore = create<ShipmentTrackingStore>()(
             notifications: [],
             isLoading: false,
             isHydrated: true,
-            loadError: error instanceof Error ? error.message : "Unable to load shipments.",
+            loadError:
+              error instanceof Error
+                ? error.message
+                : "Unable to load shipments.",
           });
         }
       },
@@ -216,13 +147,6 @@ export const useShipmentTrackingStore = create<ShipmentTrackingStore>()(
       markAllNotificationsRead: () =>
         set((state) => ({
           notifications: state.notifications.map((n) => ({ ...n, read: true })),
-        })),
-
-      advanceShipmentStatus: (shipmentId) =>
-        set((state) => ({
-          shipments: state.shipments.map((s) =>
-            s.id === shipmentId ? bumpTimeline(s) : s,
-          ),
         })),
 
       getSummary: () => computeShipmentSummary(get().shipments),

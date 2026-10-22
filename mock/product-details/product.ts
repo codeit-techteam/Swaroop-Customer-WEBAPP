@@ -107,6 +107,7 @@ export function buildProductDetail(
     categorySlug: category.slug,
     materialType: product.materialType,
     grade: product.grade,
+    gradeId: product.gradeId,
     description: product.description,
     casNumber: product.casNumber,
     hsnCode: "3902.10.00",

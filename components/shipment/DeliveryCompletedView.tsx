@@ -4,6 +4,7 @@ import { CheckCircle2, Download, RotateCcw, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toastInvoiceUnavailable } from "@/lib/document-actions";
 import { formatDateDdMmYyyy, formatInr } from "@/lib/format";
 import { DELIVERY_COPY } from "@/mock/shipments";
 import type { CustomerOrder, DeliveryDetails } from "@/types/order-journey";
@@ -88,7 +89,7 @@ export function DeliveryCompletedView({
         <Button
           variant="outline"
           className="h-11 rounded-xl"
-          onClick={() => toast.success("Invoice download queued (mock)")}
+          onClick={() => toastInvoiceUnavailable("tax")}
         >
           <Download className="h-4 w-4" />
           {DELIVERY_COPY.downloadInvoice}
@@ -96,7 +97,7 @@ export function DeliveryCompletedView({
         <Button
           variant="outline"
           className="h-11 rounded-xl"
-          onClick={() => toast.success("Receipt download queued (mock)")}
+          onClick={() => toast.error("Receipt PDF has not been generated yet.")}
         >
           <Download className="h-4 w-4" />
           {DELIVERY_COPY.downloadReceipt}
@@ -104,7 +105,11 @@ export function DeliveryCompletedView({
         <Button
           variant="outline"
           className="h-11 rounded-xl"
-          onClick={() => toast.success("Documents download queued (mock)")}
+          onClick={() =>
+            toast.error(
+              "Delivery documents are not available for download yet.",
+            )
+          }
         >
           <Download className="h-4 w-4" />
           {DELIVERY_COPY.downloadDocs}

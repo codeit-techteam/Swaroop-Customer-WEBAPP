@@ -123,6 +123,8 @@ export interface MarketplaceProduct {
   id: string;
   name: string;
   grade: string;
+  /** Backend grade UUID when available (price alerts, TDS). */
+  gradeId?: string;
   /** Material / grade code e.g. PP-RF-284 */
   gradeCode?: string;
   /** Parent browse category (Polymers / Chemicals / …) */

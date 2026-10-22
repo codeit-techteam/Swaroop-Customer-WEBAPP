@@ -24,8 +24,12 @@ import { BlindSellerBadge } from "@/components/marketplace/blind-seller-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ORDER_MVP_STAGES, orderMvpStageIndex } from "@/constants/order-progress";
+import {
+  ORDER_MVP_STAGES,
+  orderMvpStageIndex,
+} from "@/constants/order-progress";
 import { ROUTES } from "@/constants";
+import { toastInvoiceUnavailable } from "@/lib/document-actions";
 import {
   formatDateDdMmYyyy,
   formatEtaDisplay,
@@ -145,9 +149,7 @@ export function CatalogOrderDetailPage({
                 stages={ORDER_MVP_STAGES}
                 currentIndex={stageIndex}
                 currentLabel={
-                  order.displayStatus === "cancelled"
-                    ? "Cancelled"
-                    : undefined
+                  order.displayStatus === "cancelled" ? "Cancelled" : undefined
                 }
               />
             </CardContent>
@@ -285,7 +287,7 @@ export function CatalogOrderDetailPage({
                   </span>
                 </div>
               ))}
-              <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-3 mt-2">
+              <div className="mt-2 flex items-center justify-between rounded-xl bg-slate-50 px-3 py-3">
                 <span className="text-sm font-semibold text-slate-900">
                   Grand Total
                 </span>
@@ -399,7 +401,7 @@ export function CatalogOrderDetailPage({
             <CardContent className="space-y-2">
               <Button
                 className="h-10 w-full justify-start rounded-xl bg-brand hover:bg-brand-700"
-                onClick={() => toast.success("Invoice download queued (mock)")}
+                onClick={() => toastInvoiceUnavailable("tax")}
               >
                 <Download className="h-4 w-4" />
                 Download Invoice
@@ -409,7 +411,9 @@ export function CatalogOrderDetailPage({
                 variant="outline"
                 className="h-10 w-full justify-start rounded-xl"
                 onClick={() =>
-                  toast.success("E-Way Bill download queued (mock)")
+                  toast.error(
+                    "E-Way Bill PDF has not been generated yet for this order.",
+                  )
                 }
               >
                 <Download className="h-4 w-4" />
@@ -418,7 +422,11 @@ export function CatalogOrderDetailPage({
               <Button
                 variant="outline"
                 className="h-10 w-full justify-start rounded-xl"
-                onClick={() => toast.success("PO download queued (mock)")}
+                onClick={() =>
+                  toast.error(
+                    "Purchase order PDF has not been generated yet for this order.",
+                  )
+                }
               >
                 <Download className="h-4 w-4" />
                 Download Purchase Order

@@ -1,32 +1,53 @@
 "use client";
 
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { APP_SHORT_NAME } from "@/constants";
+import {
+  openContactSupport,
+  openPrivacyPolicy,
+  openTermsOfService,
+} from "@/lib/legal-links";
 
-interface FooterLink {
+type FooterAction = {
   label: string;
-  href: string;
-}
+  onClick: () => void;
+};
 
 interface EnterpriseFooterProps {
   copyright?: string;
-  links?: FooterLink[];
   className?: string;
   variant?: "bar" | "inline";
   showBrandPrefix?: boolean;
 }
 
-const DEFAULT_LINKS: FooterLink[] = [
-  { label: "Terms of Service", href: "#" },
-  { label: "Privacy Policy", href: "#" },
-  { label: "Security Protocol", href: "#" },
-  { label: "Contact Support", href: "#" },
+const ACTIONS: FooterAction[] = [
+  { label: "Terms of Service", onClick: () => void openTermsOfService() },
+  { label: "Privacy Policy", onClick: () => void openPrivacyPolicy() },
+  { label: "Contact Support", onClick: () => void openContactSupport() },
 ];
+
+function ActionButtons({ className }: { className?: string }) {
+  return (
+    <nav
+      aria-label="Legal"
+      className={cn("flex flex-wrap items-center gap-x-5 gap-y-2", className)}
+    >
+      {ACTIONS.map((link) => (
+        <button
+          key={link.label}
+          type="button"
+          onClick={link.onClick}
+          className="text-xs text-muted-foreground transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue"
+        >
+          {link.label}
+        </button>
+      ))}
+    </nav>
+  );
+}
 
 export function EnterpriseFooter({
   copyright = "© PetroTrade Solutions. Institutional Security Guaranteed.",
-  links = DEFAULT_LINKS,
   className,
   variant = "bar",
   showBrandPrefix = false,
@@ -42,15 +63,7 @@ export function EnterpriseFooter({
         )}
       >
         <span>{copy}</span>
-        {links.map((link) => (
-          <Link
-            key={link.label}
-            href={link.href}
-            className="transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue"
-          >
-            {link.label}
-          </Link>
-        ))}
+        <ActionButtons />
       </footer>
     );
   }
@@ -63,20 +76,7 @@ export function EnterpriseFooter({
       )}
     >
       <p className="text-xs text-muted-foreground">{copy}</p>
-      <nav
-        aria-label="Legal"
-        className="flex flex-wrap items-center gap-x-5 gap-y-2"
-      >
-        {links.map((link) => (
-          <Link
-            key={link.label}
-            href={link.href}
-            className="text-xs text-muted-foreground transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue"
-          >
-            {link.label}
-          </Link>
-        ))}
-      </nav>
+      <ActionButtons />
     </footer>
   );
 }

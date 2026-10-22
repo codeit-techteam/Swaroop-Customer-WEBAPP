@@ -28,6 +28,7 @@ import {
 } from "@/services/grade-directory";
 import type { GradeDirectoryItem, PageMeta } from "@/types/grade-directory";
 import { DelhiPriceListBadge, LiveOfferCount } from "./grade-badges";
+import { GradeTdsSection } from "./grade-tds-section";
 
 interface GradeDetailPageProps {
   gradeId: string;
@@ -211,6 +212,8 @@ export function GradeDetailPage({ gradeId }: GradeDetailPageProps) {
           </p>
         ) : null}
       </section>
+
+      <GradeTdsSection gradeId={gradeId} />
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-card">
         <BlindSellerBadge />

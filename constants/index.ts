@@ -141,10 +141,12 @@ export const AUTH_ROUTES = [
   ROUTES.auth,
 ] as const;
 
+/**
+ * Routes that require authentication. Marketplace/product browse is intentionally
+ * public (guest read via /public/marketplace). Cart, checkout, PRs, docs, etc. stay protected.
+ */
 export const PROTECTED_ROUTE_PREFIXES = [
   ROUTES.dashboard,
-  ROUTES.marketplace,
-  ROUTES.product,
   ROUTES.cart,
   ROUTES.checkout,
   ROUTES.purchaseRequests,

@@ -18,7 +18,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { printDocumentHtml, simulatePdfDownload } from "@/lib/document-actions";
+import {
+  downloadProformaInvoicePdf,
+  downloadTaxInvoicePdf,
+  printDocumentHtml,
+  simulatePdfDownload,
+  toastInvoiceUnavailable,
+} from "@/lib/document-actions";
 import { useDocumentsStore } from "@/store/documentsStore";
 import { cn } from "@/lib/utils";
 
@@ -94,8 +100,26 @@ export function DocumentPreviewModal() {
               <ToolbarButton
                 label="Download"
                 onClick={() => {
+                  const category = (preview.categoryLabel ?? "").toLowerCase();
+                  const isProforma = category.includes("proforma");
+                  const isTaxInvoice =
+                    category.includes("tax invoice") ||
+                    category.includes("invoice");
+                  if (isProforma || isTaxInvoice) {
+                    if (!preview.relatedId) {
+                      toastInvoiceUnavailable(isProforma ? "proforma" : "tax");
+                      return;
+                    }
+                    void (async () => {
+                      const ok = isProforma
+                        ? await downloadProformaInvoicePdf(preview.relatedId!)
+                        : await downloadTaxInvoicePdf(preview.relatedId!);
+                      if (ok) toast.success("Document opened");
+                    })();
+                    return;
+                  }
                   simulatePdfDownload(preview.fileName, preview.content);
-                  toast.success("PDF download started");
+                  toast.success("Download started");
                 }}
               >
                 <Download className="h-4 w-4" />

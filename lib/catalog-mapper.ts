@@ -152,20 +152,41 @@ export function toMarketplaceProduct(
         })
       : undefined;
 
+  const displayName =
+    (
+      product.grade as {
+        fullGradeName?: string | null;
+        displayName?: string | null;
+      } | null
+    )?.fullGradeName?.trim() ||
+    (
+      product.grade as { displayName?: string | null } | null
+    )?.displayName?.trim() ||
+    product.name;
+  const manufacturer =
+    product.manufacturer ||
+    product.brand ||
+    (product.grade as { manufacturer?: string | null } | null)?.manufacturer ||
+    undefined;
+
   return {
     id: product.id,
-    name: product.name,
+    name: displayName,
     grade: product.grade?.code ?? String(specs.materialType ?? product.code),
-    gradeCode: product.code,
+    gradeId: product.grade?.id,
+    gradeCode: product.grade?.code ?? product.code,
     categoryId: parentCategoryIdOf(product),
     materialType: String(
-      specs.materialType ?? product.grade?.name ?? product.name,
+      specs.materialType ??
+        product.grade?.category?.name ??
+        product.grade?.name ??
+        product.name,
     ),
     subCategory:
       typeof specs.subCategory === "string" ? specs.subCategory : undefined,
     brandId: "private",
-    brandName: product.manufacturer || product.brand || "Verified Supply",
-    brandShortName: "PVT",
+    brandName: manufacturer || "",
+    brandShortName: manufacturer ? manufacturer.slice(0, 3).toUpperCase() : "—",
     description: product.description ?? "",
     price: num(listing?.price),
     unit: "MT",

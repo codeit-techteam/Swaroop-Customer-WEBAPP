@@ -44,6 +44,13 @@ export function SpotPriceCard({
           {formatInr(spotPrice.pricePerMt, { compact: true })}{" "}
           <span className="text-sm font-semibold text-white/75">/ MT</span>
         </p>
+        <p className="relative mt-0.5 text-sm font-semibold tabular-nums text-white/85">
+          {formatInr(spotPrice.pricePerMt / 1000, { compact: true })}{" "}
+          <span className="text-xs font-medium text-white/70">/ kg</span>
+          <span className="ml-1 text-[10px] font-normal text-white/55">
+            (÷ 1,000)
+          </span>
+        </p>
         {delta !== 0 ? (
           <p
             className={cn(

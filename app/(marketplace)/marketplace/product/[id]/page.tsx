@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
-import { ProductDetailsPage } from "@/components/product-details";
+import { Suspense } from "react";
+import {
+  ProductDetailsPage,
+  ProductDetailsPageSkeleton,
+} from "@/components/product-details";
+import { PageContainer } from "@/components/layout/page-container";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
@@ -21,5 +26,15 @@ export default async function MarketplaceProductPage({
   params,
 }: ProductPageProps) {
   const { id } = await params;
-  return <ProductDetailsPage productId={id} />;
+  return (
+    <Suspense
+      fallback={
+        <PageContainer>
+          <ProductDetailsPageSkeleton />
+        </PageContainer>
+      }
+    >
+      <ProductDetailsPage productId={id} />
+    </Suspense>
+  );
 }

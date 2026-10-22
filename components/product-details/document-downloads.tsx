@@ -1,19 +1,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Download, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { ComplianceDocument } from "@/types/product-details";
 import { cn } from "@/lib/utils";
-import apiClient from "@/lib/apiClient";
+import { ROUTES } from "@/constants";
+import { getAccessToken } from "@/lib/auth-session";
+import { fetchProductDocumentUrl } from "@/services/grade-tds";
 
 interface DocumentDownloadsProps {
   documents: ComplianceDocument[];
   productId?: string;
   className?: string;
 }
-
-type Envelope<T> = { success: boolean; data: T };
 
 function isProductTechnicalDoc(doc: ComplianceDocument): boolean {
   const title = doc.title.trim().toUpperCase();
@@ -33,6 +34,7 @@ export function DocumentDownloads({
   productId,
   className,
 }: DocumentDownloadsProps) {
+  const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const visibleDocuments = useMemo(
     () => documents.filter(isProductTechnicalDoc),
@@ -51,8 +53,8 @@ export function DocumentDownloads({
           Technical Documents (TDS / MSDS)
         </h2>
         <p className="mt-2 text-xs text-slate-500">
-          TDS and MSDS will appear here when the supplier uploads them
-          (optional).
+          TDS unavailable — no approved Technical Data Sheet is on file for this
+          product yet.
         </p>
       </section>
     );
@@ -61,24 +63,27 @@ export function DocumentDownloads({
   const openDocument = async (doc: ComplianceDocument) => {
     const pid = productId ?? doc.productId;
     if (!pid) {
-      toast.error("Document unavailable");
+      toast.error("TDS unavailable");
+      return;
+    }
+    if (!getAccessToken()) {
+      const next = `${window.location.pathname}${window.location.search}`;
+      toast.message("Sign in to download TDS", {
+        description: "You will return to this product after login.",
+      });
+      router.push(`${ROUTES.login}?next=${encodeURIComponent(next)}`);
       return;
     }
     setLoadingId(doc.id);
     try {
-      const payload = await apiClient.get<
-        Envelope<{ url: string; fileName?: string; title?: string }>
-      >(`/customer/products/${pid}/documents/${doc.id}/url`);
-      const url = payload.data?.url;
-      if (!url) throw new Error("DOCUMENT_ACCESS_DENIED");
-      window.open(url, "_blank", "noopener,noreferrer");
+      const payload = await fetchProductDocumentUrl(pid, doc.id);
+      if (!payload.url) throw new Error("TDS unavailable");
+      window.open(payload.url, "_blank", "noopener,noreferrer");
       toast.success(`${doc.title} opened`, {
         description: "Verified Product Document",
       });
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Unable to open document",
-      );
+      toast.error(error instanceof Error ? error.message : "TDS unavailable");
     } finally {
       setLoadingId(null);
     }

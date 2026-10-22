@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { BulkPricingCard } from "./bulk-pricing-card";
 import { BuyingSummary } from "./buying-summary";
 import { PaymentOptionsCard } from "./payment-options-card";
+import { PriceAlertTrigger } from "./price-alert-dialog";
 import { SpotPriceCard } from "./spot-price-card";
 import { TrustBadges } from "./trust-badges";
 import type { PurchaseActions } from "./use-purchase-actions";
@@ -40,6 +41,9 @@ interface StickyPurchasePanelProps {
   quote: CheckoutQuote | null;
   quoteLoading: boolean;
   quoteError: string | null;
+  offerId?: string;
+  gradeId?: string;
+  productId?: string;
   moq: number;
   maxStock: number;
   availabilityLabel: string;
@@ -157,6 +161,9 @@ export function StickyPurchasePanel({
   quote,
   quoteLoading,
   quoteError,
+  offerId,
+  gradeId,
+  productId,
   moq,
   maxStock,
   availabilityLabel,
@@ -327,8 +334,20 @@ export function StickyPurchasePanel({
               quote={quote}
               loading={quoteLoading}
               error={quoteError}
+              offerId={offerId ?? quote?.offerId}
+              quantity={quantity}
               hideTotal
             />
+
+            {gradeId ? (
+              <PriceAlertTrigger
+                gradeId={gradeId}
+                productId={productId}
+                spotPricePerMt={
+                  quote ? Number(quote.unitPrice) : spotPrice.pricePerMt
+                }
+              />
+            ) : null}
 
             <TrustBadges className="border-0 p-0 !shadow-none" />
 

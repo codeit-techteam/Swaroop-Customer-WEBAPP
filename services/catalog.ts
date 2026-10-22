@@ -8,6 +8,7 @@ import {
   type BlindOffer,
   type BlindProduct,
 } from "@/lib/catalog-mapper";
+import { offersApiBase, productsApiBase } from "@/lib/marketplace-api-base";
 import type {
   MarketplaceBrand,
   MarketplaceCategory,
@@ -36,8 +37,10 @@ export async function fetchMarketplaceCatalog(): Promise<{
   let total = 0;
 
   do {
+    const base = productsApiBase();
     const payload = await apiClient.get<Envelope<BlindProduct[]>>(
-      `/customer/products?page=${page}&limit=100&sortBy=name&sortOrder=asc`,
+      `${base}?page=${page}&limit=100&sortBy=name&sortOrder=asc`,
+      { skipAuth: base.startsWith("/public/") },
     );
     pages.push(...(payload.data ?? []));
     totalPages = payload.meta?.totalPages ?? 1;
@@ -55,8 +58,13 @@ export async function fetchMarketplaceCatalog(): Promise<{
   };
 }
 
-export async function fetchMarketplaceProduct(id: string): Promise<MarketplaceProduct> {
-  const payload = await apiClient.get<Envelope<BlindProduct>>(`/customer/products/${id}`);
+export async function fetchMarketplaceProduct(
+  id: string,
+): Promise<MarketplaceProduct> {
+  const base = productsApiBase();
+  const payload = await apiClient.get<Envelope<BlindProduct>>(`${base}/${id}`, {
+    skipAuth: base.startsWith("/public/"),
+  });
   return toMarketplaceProduct(payload.data);
 }
 
@@ -69,8 +77,10 @@ export async function fetchMarketplaceOffers(
   const byProductId = new Map(products.map((item) => [item.id, item]));
 
   do {
+    const base = offersApiBase();
     const payload = await apiClient.get<Envelope<BlindOffer[]>>(
-      `/customer/offers?page=${page}&limit=100`,
+      `${base}?page=${page}&limit=100`,
+      { skipAuth: base.startsWith("/public/") },
     );
     pages.push(...(payload.data ?? []));
     totalPages = payload.meta?.totalPages ?? 1;
@@ -78,6 +88,9 @@ export async function fetchMarketplaceOffers(
   } while (page <= totalPages && page <= 10);
 
   return pages.map((offer) =>
-    toMarketplaceOffer(offer, offer.product?.id ? byProductId.get(offer.product.id) : undefined),
+    toMarketplaceOffer(
+      offer,
+      offer.product?.id ? byProductId.get(offer.product.id) : undefined,
+    ),
   );
 }

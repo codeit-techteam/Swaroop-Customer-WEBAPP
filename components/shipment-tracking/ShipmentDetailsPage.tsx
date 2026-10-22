@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, FastForward, Headset } from "lucide-react";
+import { ArrowLeft, Headset } from "lucide-react";
 import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { OrdersPageSkeleton } from "@/components/orders/orders-page-skeleton";
@@ -31,9 +31,6 @@ export function ShipmentDetailsPage({ shipmentId }: ShipmentDetailsPageProps) {
     s.shipments.find(
       (x) => x.id === shipmentId || x.orderNumber === shipmentId,
     ),
-  );
-  const advanceShipmentStatus = useShipmentTrackingStore(
-    (s) => s.advanceShipmentStatus,
   );
   const markDocumentDownloaded = useShipmentTrackingStore(
     (s) => s.markDocumentDownloaded,
@@ -86,18 +83,6 @@ export function ShipmentDetailsPage({ shipmentId }: ShipmentDetailsPageProps) {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            {shipment.currentStatus !== "delivered" ? (
-              <Button
-                className="rounded-xl bg-brand hover:bg-brand-700"
-                onClick={() => {
-                  advanceShipmentStatus(shipment.id);
-                  toast.success("Shipment status advanced");
-                }}
-              >
-                <FastForward className="mr-2 h-4 w-4" />
-                Advance Status
-              </Button>
-            ) : null}
           </div>
         }
       />

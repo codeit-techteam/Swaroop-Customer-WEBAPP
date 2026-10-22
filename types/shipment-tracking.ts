@@ -57,7 +57,8 @@ export interface RouteStop {
 }
 
 export interface ShipmentTimelineStage {
-  id: MvpTimelineStageId;
+  /** Backend event id or legacy MVP stage id. */
+  id: MvpTimelineStageId | string;
   title: string;
   description: string;
   date: string | null;

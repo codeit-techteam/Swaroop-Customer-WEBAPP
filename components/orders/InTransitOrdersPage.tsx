@@ -3,13 +3,13 @@
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Download, Eye, Headset } from "lucide-react";
-import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ROUTES } from "@/constants";
+import { toastInvoiceUnavailable } from "@/lib/document-actions";
 import { formatInr, formatQuantityMt } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
@@ -242,9 +242,7 @@ export function InTransitOrdersPage() {
                       <Button
                         variant="outline"
                         className="h-10 rounded-xl"
-                        onClick={() =>
-                          toast.success("Invoice download queued (mock)")
-                        }
+                        onClick={() => toastInvoiceUnavailable("tax")}
                       >
                         <Download className="h-4 w-4" />
                         Download Invoice

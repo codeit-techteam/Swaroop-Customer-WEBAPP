@@ -121,7 +121,11 @@ export function LoginForm() {
       setError("root", { message: sent.message ?? "Unable to send OTP" });
       return;
     }
-    router.push(ROUTES.otpVerification);
+    const next = searchParams.get("next");
+    const otpUrl = next
+      ? `${ROUTES.otpVerification}?next=${encodeURIComponent(next)}`
+      : ROUTES.otpVerification;
+    router.push(otpUrl);
   };
 
   return (

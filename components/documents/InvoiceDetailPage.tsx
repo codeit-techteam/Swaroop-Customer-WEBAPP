@@ -24,9 +24,9 @@ import {
 import { formatDateDdMmYyyy, formatInr } from "@/lib/format";
 import {
   buildInvoiceDocumentContent,
+  downloadTaxInvoicePdf,
   printDocumentHtml,
   shareDocumentText,
-  simulatePdfDownload,
 } from "@/lib/document-actions";
 import { useDocumentsStore } from "@/store/documentsStore";
 import { DocumentStatusBadge } from "./DocumentStatusBadge";
@@ -101,9 +101,13 @@ export function InvoiceDetailPage() {
             <Button
               className="rounded-xl bg-brand hover:bg-brand-700"
               onClick={() => {
-                simulatePdfDownload(`${inv.invoiceNumber}.pdf`, content);
-                markDownloaded("invoice", inv.id);
-                toast.success("PDF download started");
+                void (async () => {
+                  const ok = await downloadTaxInvoicePdf(inv.id);
+                  if (ok) {
+                    markDownloaded("invoice", inv.id);
+                    toast.success("Invoice opened");
+                  }
+                })();
               }}
             >
               <Download className="h-4 w-4" />

@@ -77,7 +77,8 @@ export function middleware(request: NextRequest) {
 
   if (isProtectedRoute(pathname) && !isAuthenticated) {
     const loginUrl = new URL(ROUTES.login, request.url);
-    loginUrl.searchParams.set("next", pathname);
+    const nextPath = `${pathname}${request.nextUrl.search}`;
+    loginUrl.searchParams.set("next", nextPath);
     return NextResponse.redirect(loginUrl);
   }
 

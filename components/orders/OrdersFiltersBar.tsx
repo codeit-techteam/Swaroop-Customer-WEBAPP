@@ -74,7 +74,11 @@ export function OrdersFiltersBar({
           <Button
             variant="outline"
             className="h-10 rounded-xl"
-            onClick={() => toast.success("Invoice pack download queued (mock)")}
+            onClick={() =>
+              toast.error(
+                "Tax invoice PDF pack is not available yet. Download individual invoices from Documents when signed PDFs are issued.",
+              )
+            }
           >
             <Download className="h-4 w-4" />
             Tax Invoices

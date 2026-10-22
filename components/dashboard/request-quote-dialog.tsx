@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -28,6 +29,7 @@ import {
   type RequestQuoteFormValues,
 } from "@/lib/request-quote-schemas";
 import { useAuthStore } from "@/store/authStore";
+import { ROUTES } from "@/constants";
 
 interface RequestQuoteDialogProps {
   open: boolean;
@@ -35,6 +37,9 @@ interface RequestQuoteDialogProps {
   offerTitle: string;
   offerDescription?: string;
   minQuantityMt?: number;
+  /** When known, deep-link into marketplace product after login. */
+  productId?: string;
+  gradeId?: string;
 }
 
 const defaultValues: RequestQuoteFormValues = {
@@ -47,14 +52,23 @@ const defaultValues: RequestQuoteFormValues = {
   message: "",
 };
 
+/**
+ * RFQ entry point — does not create a parallel RFQ entity.
+ * Authenticated users are sent to checkout/marketplace to create a Purchase Request
+ * (the platform RFQ). Guests must sign in first and return via `?next=`.
+ */
 export function RequestQuoteDialog({
   open,
   onOpenChange,
   offerTitle,
   offerDescription,
   minQuantityMt = 500,
+  productId,
+  gradeId,
 }: RequestQuoteDialogProps) {
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const form = useForm<RequestQuoteFormValues>({
     resolver: zodResolver(
@@ -68,7 +82,6 @@ export function RequestQuoteDialog({
 
   useEffect(() => {
     if (!open) return;
-
     form.reset({
       ...defaultValues,
       contactName: user?.name ?? "",
@@ -81,15 +94,39 @@ export function RequestQuoteDialog({
 
   const { isSubmitting } = form.formState;
 
-  async function onSubmit(values: RequestQuoteFormValues) {
-    await new Promise((resolve) => setTimeout(resolve, 400));
+  function continueToPurchaseRequest(values: RequestQuoteFormValues) {
+    const params = new URLSearchParams();
+    params.set("qty", String(values.quantityMt));
+    if (values.deliveryLocation)
+      params.set("destination", values.deliveryLocation);
+    if (values.message) params.set("notes", values.message);
+    if (productId) params.set("productId", productId);
+    if (gradeId) params.set("gradeId", gradeId);
+    params.set("rfq", "1");
+    const destination = productId
+      ? `${ROUTES.marketplaceProduct}/${productId}?${params.toString()}`
+      : `${ROUTES.marketplace}?${params.toString()}`;
 
-    toast.success("Quote request submitted", {
-      description: `Our trading desk will respond within 24 hours for your ${values.quantityMt} MT order.`,
+    if (!isAuthenticated) {
+      const login = new URL(ROUTES.login, window.location.origin);
+      login.searchParams.set("next", destination);
+      toast.message("Sign in to submit a purchase request", {
+        description: "Your RFQ details will be available after you return.",
+      });
+      onOpenChange(false);
+      router.push(`${login.pathname}${login.search}`);
+      return;
+    }
+
+    toast.success("Continue to place your purchase request", {
+      description: `Use checkout on ${offerTitle} to create an official Purchase Request (RFQ).`,
     });
-
-    form.reset(defaultValues);
     onOpenChange(false);
+    router.push(destination);
+  }
+
+  async function onSubmit(values: RequestQuoteFormValues) {
+    continueToPurchaseRequest(values);
   }
 
   return (
@@ -105,7 +142,7 @@ export function RequestQuoteDialog({
           <DialogTitle>Request Quote — {offerTitle}</DialogTitle>
           <DialogDescription>
             {offerDescription ??
-              "Share your bulk order requirements and our institutional trading desk will prepare a custom quote."}
+              "Share your requirements. Quotes are handled as Purchase Requests on PetroTrade — the same RFQ workflow used at checkout."}
           </DialogDescription>
         </DialogHeader>
 
@@ -121,73 +158,65 @@ export function RequestQuoteDialog({
               <FormInput
                 control={form.control}
                 name="companyName"
-                label="Company name"
-                placeholder="Registered business name"
+                label="Company"
+                placeholder="Legal name"
               />
             </div>
-
             <div className="grid gap-4 sm:grid-cols-2">
               <FormInput
                 control={form.control}
                 name="email"
-                label="Work email"
-                type="email"
+                label="Email"
                 placeholder="you@company.com"
               />
               <FormInput
                 control={form.control}
                 name="phone"
-                label="Phone number"
-                type="tel"
-                placeholder="10-digit mobile"
+                label="Phone"
+                placeholder="+91…"
               />
             </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormInput
-                control={form.control}
-                name="quantityMt"
-                label="Quantity (MT)"
-                type="number"
-                placeholder={`Min. ${minQuantityMt}`}
-              />
-              <FormInput
-                control={form.control}
-                name="deliveryLocation"
-                label="Delivery location"
-                placeholder="City, state, or port"
-              />
-            </div>
-
+            <FormInput
+              control={form.control}
+              name="quantityMt"
+              label="Quantity (MT)"
+              type="number"
+            />
+            <FormInput
+              control={form.control}
+              name="deliveryLocation"
+              label="Destination"
+              placeholder="City / warehouse"
+            />
             <FormField
               control={form.control}
               name="message"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Additional requirements</FormLabel>
+                  <FormLabel>Notes</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Packaging, delivery timeline, logistics preferences…"
-                      rows={3}
                       {...field}
+                      placeholder="Specs, packaging, delivery window…"
+                      rows={3}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            <DialogFooter className="gap-2 sm:gap-0">
+            <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={isSubmitting}
               >
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting…" : "Submit Quote Request"}
+                {isAuthenticated
+                  ? "Continue to purchase request"
+                  : "Sign in to continue"}
               </Button>
             </DialogFooter>
           </form>

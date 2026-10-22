@@ -609,3 +609,44 @@ export async function fetchCustomerProformas(): Promise<BackendProforma[]> {
 export async function submitCustomerUtr(paymentId: string, utrNumber: string) {
   await apiClient.post(`/customer/payments/${paymentId}/utr`, { utrNumber });
 }
+
+/** Signed PDF download response — never invent PDF bytes on the client. */
+export type FinancePdfDownload = {
+  available: boolean;
+  url: string | null;
+  message?: string;
+  invoiceNumber?: string;
+  piNumber?: string;
+  status?: string;
+  documentId?: string;
+};
+
+export async function downloadProformaPdf(
+  id: string,
+): Promise<FinancePdfDownload> {
+  const payload = await apiClient.get<Envelope<FinancePdfDownload>>(
+    `/customer/proforma-invoices/${encodeURIComponent(id)}/download`,
+  );
+  return (
+    payload.data ?? {
+      available: false,
+      url: null,
+      message: "Proforma invoice PDF is not available.",
+    }
+  );
+}
+
+export async function downloadFinanceInvoicePdf(
+  id: string,
+): Promise<FinancePdfDownload> {
+  const payload = await apiClient.get<Envelope<FinancePdfDownload>>(
+    `/customer/finance-invoices/${encodeURIComponent(id)}/download`,
+  );
+  return (
+    payload.data ?? {
+      available: false,
+      url: null,
+      message: "Tax invoice PDF is not available.",
+    }
+  );
+}

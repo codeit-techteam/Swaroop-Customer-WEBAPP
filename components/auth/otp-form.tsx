@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, CheckCircle2, Clock, ShieldCheck } from "lucide-react";
 import {
@@ -41,6 +41,7 @@ function formatTimer(seconds: number): string {
 
 export function OtpForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const pendingContact = useAuthStore((s) => s.pendingContact);
   const otpSource = useAuthStore((s) => s.otpSource);
   const verifyOTP = useAuthStore((s) => s.verifyOTP);
@@ -101,8 +102,9 @@ export function OtpForm() {
     }
 
     setSuccess(true);
+    const next = searchParams.get("next");
     window.setTimeout(() => {
-      router.push(getPostAuthDestination());
+      router.push(getPostAuthDestination(next));
     }, 900);
   };
 

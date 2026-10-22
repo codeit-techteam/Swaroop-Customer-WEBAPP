@@ -3,6 +3,13 @@
  * Blind marketplace: documents never expose supplier identity.
  */
 
+import { toast } from "sonner";
+import {
+  downloadFinanceInvoicePdf,
+  downloadProformaPdf,
+  type FinancePdfDownload,
+} from "@/services/finance";
+
 function triggerDownload(
   filename: string,
   content: string,
@@ -19,9 +26,75 @@ function triggerDownload(
   URL.revokeObjectURL(url);
 }
 
+/**
+ * @deprecated Do not use for finance invoices — fabricated PDFs are forbidden.
+ * Kept for non-finance support docs until those are also vaulted.
+ */
 export function simulatePdfDownload(fileName: string, content: string) {
   const safeName = fileName.replace(/\.pdf$/i, "") + ".txt";
   triggerDownload(safeName, content, "text/plain");
+}
+
+/** Clear unavailable state when the backend has not generated a PDF artifact. */
+export function invoiceDocumentUnavailable(
+  kind: "proforma" | "tax" = "proforma",
+) {
+  const label = kind === "tax" ? "Tax invoice" : "Proforma invoice";
+  return {
+    available: false as const,
+    message: `${label} PDF has not been generated yet. The commercial record is available in the portal; ask support if you need a signed PDF.`,
+  };
+}
+
+export async function openSignedDocumentUrl(
+  url: string | null | undefined,
+  label: string,
+) {
+  if (!url) {
+    toast.error(`${label} is not available for download.`);
+    return false;
+  }
+  window.open(url, "_blank", "noopener,noreferrer");
+  return true;
+}
+
+async function openFinanceDownloadResult(
+  result: FinancePdfDownload,
+  label: string,
+  kind: "proforma" | "tax",
+) {
+  if (result.available && result.url) {
+    return openSignedDocumentUrl(result.url, label);
+  }
+  toast.error(result.message ?? invoiceDocumentUnavailable(kind).message);
+  return false;
+}
+
+/** Download a vaulted proforma PDF when available — never fabricates content. */
+export async function downloadProformaInvoicePdf(id: string) {
+  try {
+    const result = await downloadProformaPdf(id);
+    return openFinanceDownloadResult(result, "Proforma invoice", "proforma");
+  } catch {
+    toast.error(invoiceDocumentUnavailable("proforma").message);
+    return false;
+  }
+}
+
+/** Download a vaulted tax/finance invoice PDF when available. */
+export async function downloadTaxInvoicePdf(id: string) {
+  try {
+    const result = await downloadFinanceInvoicePdf(id);
+    return openFinanceDownloadResult(result, "Tax invoice", "tax");
+  } catch {
+    toast.error(invoiceDocumentUnavailable("tax").message);
+    return false;
+  }
+}
+
+/** Clear toast when an order has no invoice id / PDF artifact. */
+export function toastInvoiceUnavailable(kind: "proforma" | "tax" = "tax") {
+  toast.error(invoiceDocumentUnavailable(kind).message);
 }
 
 export function printDocumentHtml(title: string, content: string) {

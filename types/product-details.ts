@@ -114,6 +114,8 @@ export interface ProductDetailRecord {
   categorySlug: string;
   materialType: string;
   grade: string;
+  /** Backend grade UUID when available (price alerts, TDS). */
+  gradeId?: string;
   description: string;
   casNumber: string;
   hsnCode: string;

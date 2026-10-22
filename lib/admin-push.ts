@@ -49,7 +49,9 @@ function toPriority(value: string): NotificationPriority {
   return "medium";
 }
 
-export function adminPushToCustomerNotification(item: AdminPushPayload): AppNotification {
+export function adminPushToCustomerNotification(
+  item: AdminPushPayload,
+): AppNotification {
   const category = CATEGORY_MAP[item.category] ?? "promotions";
   return {
     id: item.id,
@@ -58,7 +60,7 @@ export function adminPushToCustomerNotification(item: AdminPushPayload): AppNoti
     title: item.title,
     description: item.body,
     fullDescription: item.body,
-    referenceNumber: item.id,
+    referenceNumber: "",
     status: "unread",
     priority: toPriority(item.priority),
     createdAt: item.sentAt,
