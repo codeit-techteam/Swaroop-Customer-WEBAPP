@@ -29,14 +29,7 @@ export function PasswordResetSuccessPageShell() {
         </main>
       </div>
 
-      <EnterpriseFooter
-        showBrandPrefix
-        links={[
-          { label: "Terms of Service", href: "#" },
-          { label: "Privacy Policy", href: "#" },
-          { label: "Security Protocol", href: "#" },
-        ]}
-      />
+      <EnterpriseFooter showBrandPrefix />
     </div>
   );
 }
