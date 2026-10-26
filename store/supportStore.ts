@@ -5,8 +5,6 @@ import { persist } from "zustand/middleware";
 import {
   ACCOUNT_MANAGER,
   DEFAULT_SUPPORT_FILTERS,
-  EXECUTIVE_CHAT_REPLIES,
-  MOCK_CHAT_THREAD,
   MOCK_FAQS,
   MOCK_KNOWLEDGE_ARTICLES,
   MOCK_SUPPORT_ACTIVITIES,
@@ -15,10 +13,10 @@ import {
 } from "@/mock/support";
 import {
   createCustomerSupportTicket,
+  getCustomerSupportTicket,
   listCustomerSupportTickets,
+  replyCustomerSupportTicket,
 } from "@/services/support";
-import apiClient from "@/lib/apiClient";
-import type { Envelope } from "@/lib/api-envelope";
 import type {
   AccountManager,
   ChatMessage,
@@ -36,7 +34,37 @@ import type {
   TicketStatus,
 } from "@/types/support";
 
-const STORAGE_KEY = "petrotrade.support-center.v2";
+const STORAGE_KEY = "petrotrade.support-center.v3";
+const CHAT_TICKET_SUBJECT = "Live chat support";
+
+function isOpenTicket(ticket: SupportTicket) {
+  return ticket.status !== "resolved" && ticket.status !== "closed";
+}
+
+function pickOpenChatTicket(
+  tickets: SupportTicket[],
+): SupportTicket | undefined {
+  const open = tickets.filter(isOpenTicket);
+  const named = open.find((t) => t.subject === CHAT_TICKET_SUBJECT);
+  if (named) return named;
+  const awaiting = open.find((t) => t.status === "waiting_customer");
+  if (awaiting) return awaiting;
+  return [...open].sort(
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+  )[0];
+}
+
+function ticketToChatMessages(ticket: SupportTicket): ChatMessage[] {
+  return ticket.conversation.map((m) => ({
+    id: m.id,
+    sender: m.sender,
+    senderName: m.senderName,
+    body: m.body,
+    at: m.at,
+    read: m.read,
+    attachmentName: m.attachmentName,
+  }));
+}
 
 export interface SupportStoreState {
   tickets: SupportTicket[];
@@ -56,6 +84,7 @@ export interface SupportStoreState {
   lastCreatedTicketId: string | null;
   chatModalOpen: boolean;
   floatingChatOpen: boolean;
+  chatTicketId: string | null;
   replyDraft: string;
   chatDraft: string;
   chatTyping: boolean;
@@ -85,7 +114,12 @@ export interface SupportStoreState {
   addTicketAttachment: (id: string, fileName: string) => void;
   closeTicket: (id: string) => void;
   updateTicketStatus: (id: string, status: TicketStatus) => void;
-  sendChatMessage: (body: string, attachmentName?: string) => void;
+  ensureChatSession: () => Promise<void>;
+  refreshChatMessages: () => Promise<void>;
+  sendChatMessage: (
+    body: string,
+    attachmentName?: string,
+  ) => Promise<string | null>;
   markActivityRead: (id: string) => void;
   markAllActivitiesRead: () => void;
   openDocPreview: (docId: string) => void;
@@ -200,7 +234,7 @@ export const useSupportStore = create<SupportStoreState>()(
       faqs: MOCK_FAQS,
       docs: MOCK_SUPPORT_DOCS,
       articles: MOCK_KNOWLEDGE_ARTICLES,
-      chatMessages: MOCK_CHAT_THREAD,
+      chatMessages: [],
       activities: MOCK_SUPPORT_ACTIVITIES,
       accountManager: ACCOUNT_MANAGER,
       summary: { ...MOCK_SUPPORT_SUMMARY, openTickets: 0 },
@@ -218,6 +252,7 @@ export const useSupportStore = create<SupportStoreState>()(
       lastCreatedTicketId: null,
       chatModalOpen: false,
       floatingChatOpen: false,
+      chatTicketId: null,
       replyDraft: "",
       chatDraft: "",
       chatTyping: false,
@@ -295,15 +330,24 @@ export const useSupportStore = create<SupportStoreState>()(
       replyToTicket: async (id, body, attachmentName) => {
         const trimmed = body.trim();
         if (!trimmed && !attachmentName) return;
-        await apiClient.post<Envelope<unknown>>(
-          `/customer/support/tickets/${id}/reply`,
-          {
-            body: trimmed || "(Attachment)",
-            attachmentName,
-          },
+        const updated = await replyCustomerSupportTicket(
+          id,
+          trimmed,
+          attachmentName,
         );
-        await get().loadTickets();
-        set({ replyDraft: "" });
+        set((s) => {
+          const tickets = s.tickets.map((t) =>
+            t.id === updated.id ? updated : t,
+          );
+          return {
+            tickets,
+            replyDraft: "",
+            summary: rebuildSummary(tickets),
+            ...(s.chatTicketId === updated.id
+              ? { chatMessages: ticketToChatMessages(updated) }
+              : {}),
+          };
+        });
       },
 
       addTicketAttachment: (id, fileName) => {
@@ -343,46 +387,115 @@ export const useSupportStore = create<SupportStoreState>()(
         get().updateTicketStatus(id, "closed");
       },
 
-      sendChatMessage: (body, attachmentName) => {
-        const trimmed = body.trim();
-        if (!trimmed && !attachmentName) return;
-        const now = nowIso();
-        const customerMsg: ChatMessage = {
-          id: `chat-${Date.now()}`,
-          sender: "customer",
-          senderName: "You",
-          body: trimmed || "(Attachment)",
-          at: now,
-          read: true,
-          attachmentName,
-        };
-        set((s) => ({
-          chatMessages: [...s.chatMessages, customerMsg],
-          chatDraft: "",
-          chatTyping: true,
-        }));
+      ensureChatSession: async () => {
+        set({ chatTyping: true });
+        try {
+          let tickets = get().tickets;
+          if (tickets.length === 0) {
+            tickets = await listCustomerSupportTickets();
+            set({ tickets, summary: rebuildSummary(tickets) });
+          }
 
-        const delay = 1200 + Math.floor(Math.random() * 900);
-        window.setTimeout(() => {
-          const reply =
-            EXECUTIVE_CHAT_REPLIES[
-              Math.floor(Math.random() * EXECUTIVE_CHAT_REPLIES.length)
-            ];
-          set((s) => ({
+          const existing =
+            tickets.find(
+              (t) => t.id === get().chatTicketId && isOpenTicket(t),
+            ) ?? pickOpenChatTicket(tickets);
+
+          if (existing) {
+            const fresh = await getCustomerSupportTicket(existing.id);
+            set((s) => ({
+              chatTicketId: fresh.id,
+              chatMessages: ticketToChatMessages(fresh),
+              chatTyping: false,
+              tickets: [fresh, ...s.tickets.filter((t) => t.id !== fresh.id)],
+              summary: rebuildSummary([
+                fresh,
+                ...s.tickets.filter((t) => t.id !== fresh.id),
+              ]),
+            }));
+            return;
+          }
+
+          set({
+            chatTicketId: null,
+            chatMessages: [],
             chatTyping: false,
-            chatMessages: [
-              ...s.chatMessages,
-              {
-                id: `chat-${Date.now()}`,
-                sender: "executive",
-                senderName: "Asha Krishnan",
-                body: reply,
-                at: nowIso(),
-                read: true,
-              },
-            ],
+          });
+        } catch {
+          set({ chatTyping: false });
+        }
+      },
+
+      refreshChatMessages: async () => {
+        const chatTicketId = get().chatTicketId;
+        if (!chatTicketId) return;
+        try {
+          const fresh = await getCustomerSupportTicket(chatTicketId);
+          set((s) => ({
+            chatMessages: ticketToChatMessages(fresh),
+            tickets: s.tickets.map((t) => (t.id === fresh.id ? fresh : t)),
           }));
-        }, delay);
+        } catch {
+          /* keep current thread if refresh fails */
+        }
+      },
+
+      sendChatMessage: async (body, attachmentName) => {
+        const trimmed = body.trim();
+        if (!trimmed && !attachmentName) return null;
+
+        set({ chatTyping: true, chatDraft: "" });
+        try {
+          let chatTicketId = get().chatTicketId;
+          let ticket: SupportTicket;
+
+          if (!chatTicketId) {
+            ticket = await createCustomerSupportTicket({
+              category: "others",
+              subject: CHAT_TICKET_SUBJECT,
+              description:
+                trimmed || `Chat attachment: ${attachmentName ?? "file"}`,
+              attachmentName,
+              priority: "medium",
+            });
+            chatTicketId = ticket.id;
+          } else {
+            ticket = await replyCustomerSupportTicket(
+              chatTicketId,
+              trimmed,
+              attachmentName,
+            );
+          }
+
+          set((s) => {
+            const tickets = [
+              ticket,
+              ...s.tickets.filter((t) => t.id !== ticket.id),
+            ];
+            return {
+              chatTicketId: ticket.id,
+              chatMessages: ticketToChatMessages(ticket),
+              chatTyping: false,
+              tickets,
+              summary: rebuildSummary(tickets),
+              activities: [
+                {
+                  id: `act-${Date.now()}`,
+                  type: "ticket_replied" as const,
+                  title: "Chat message sent",
+                  description: `${ticket.ticketId} — synced with support desk`,
+                  at: nowIso(),
+                  read: false,
+                },
+                ...s.activities,
+              ],
+            };
+          });
+          return ticket.ticketId;
+        } catch (error) {
+          set({ chatTyping: false });
+          throw error;
+        }
       },
 
       markActivityRead: (id) =>
@@ -435,7 +548,7 @@ export const useSupportStore = create<SupportStoreState>()(
     {
       name: STORAGE_KEY,
       partialize: (s) => ({
-        chatMessages: s.chatMessages,
+        chatTicketId: s.chatTicketId,
         preferences: s.preferences,
       }),
       onRehydrateStorage: () => (state) => {

@@ -56,11 +56,29 @@ export function RaiseTicketDialog() {
     setSubmitting(false);
   }
 
+  function clearFieldError(field: string) {
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }
+
   function validate() {
     const next: Record<string, string> = {};
     if (!category) next.category = "Select a category";
-    if (!subject.trim()) next.subject = "Subject is required";
-    if (!description.trim()) next.description = "Description is required";
+    const subjectText = subject.trim();
+    if (!subjectText) next.subject = "Subject is required";
+    else if (subjectText.length < 3)
+      next.subject = "Subject must be at least 3 characters";
+    else if (subjectText.length > 200)
+      next.subject = "Subject must be at most 200 characters";
+    const descriptionText = description.trim();
+    if (descriptionText.length < 10)
+      next.description = "Describe the issue (min 10 characters)";
+    else if (descriptionText.length > 5000)
+      next.description = "Description must be at most 5000 characters";
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -87,8 +105,8 @@ export function RaiseTicketDialog() {
     try {
       await createTicket({
         category,
-        subject,
-        description,
+        subject: subject.trim(),
+        description: description.trim(),
         attachmentName,
       });
       resetForm();
@@ -131,8 +149,11 @@ export function RaiseTicketDialog() {
             <div className="space-y-2">
               <Label>Support Category</Label>
               <Select
-                value={category}
-                onValueChange={(v) => setCategory(v as TicketCategory)}
+                value={category || undefined}
+                onValueChange={(v) => {
+                  setCategory(v as TicketCategory);
+                  clearFieldError("category");
+                }}
               >
                 <SelectTrigger
                   className={cn(errors.category && "border-red-400")}
@@ -157,7 +178,10 @@ export function RaiseTicketDialog() {
               <Textarea
                 id="ticket-subject"
                 value={subject}
-                onChange={(e) => setSubject(e.target.value)}
+                onChange={(e) => {
+                  setSubject(e.target.value);
+                  clearFieldError("subject");
+                }}
                 placeholder="Brief summary of your issue"
                 rows={2}
                 className={cn(
@@ -175,8 +199,11 @@ export function RaiseTicketDialog() {
               <Textarea
                 id="ticket-desc"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Provide details — order numbers, payment references, etc."
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  clearFieldError("description");
+                }}
+                placeholder="Provide details — order numbers, payment references, etc. (min 10 characters)"
                 rows={4}
                 className={cn(
                   "resize-none rounded-xl",

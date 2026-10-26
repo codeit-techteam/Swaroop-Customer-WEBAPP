@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import apiClient from "@/lib/apiClient";
 import type { Envelope } from "@/lib/api-envelope";
 import { TICKET_CATEGORY_LABELS } from "@/constants/support";
@@ -176,24 +177,47 @@ export async function listCustomerSupportTickets(): Promise<SupportTicket[]> {
   return (payload.data ?? []).map(mapSupportTicket);
 }
 
+function supportApiError(error: unknown, fallback: string): Error {
+  if (isAxiosError<{ message?: string | string[] }>(error)) {
+    const message = error.response?.data?.message;
+    if (typeof message === "string" && message.trim()) {
+      return new Error(message);
+    }
+    if (Array.isArray(message) && message[0]) {
+      return new Error(String(message[0]));
+    }
+    if (error.response?.status === 400) {
+      return new Error(
+        "Invalid ticket details. Subject needs 3+ characters and description 10+ characters.",
+      );
+    }
+  }
+  if (error instanceof Error && error.message) return error;
+  return new Error(fallback);
+}
+
 export async function createCustomerSupportTicket(
   input: RaiseTicketInput,
 ): Promise<SupportTicket> {
-  const payload = await apiClient.post<Envelope<BackendSupportTicket>>(
-    "/customer/support/tickets",
-    {
-      category: CATEGORY_TO_API[input.category],
-      priority: PRIORITY_TO_API[input.priority ?? "medium"],
-      subject: input.subject.trim(),
-      description: input.description.trim(),
-      attachmentName: input.attachmentName,
-      channel: "WEB",
-    },
-  );
-  if (!payload.data) {
-    throw new Error("Failed to create support ticket");
+  try {
+    const payload = await apiClient.post<Envelope<BackendSupportTicket>>(
+      "/customer/support/tickets",
+      {
+        category: CATEGORY_TO_API[input.category],
+        priority: PRIORITY_TO_API[input.priority ?? "medium"],
+        subject: input.subject.trim(),
+        description: input.description.trim(),
+        attachmentName: input.attachmentName,
+        channel: "WEB",
+      },
+    );
+    if (!payload.data) {
+      throw new Error("Failed to create support ticket");
+    }
+    return mapSupportTicket(payload.data);
+  } catch (error) {
+    throw supportApiError(error, "Failed to create support ticket");
   }
-  return mapSupportTicket(payload.data);
 }
 
 export async function getCustomerSupportTicket(
@@ -206,4 +230,26 @@ export async function getCustomerSupportTicket(
     throw new Error("Support ticket not found");
   }
   return mapSupportTicket(payload.data);
+}
+
+export async function replyCustomerSupportTicket(
+  id: string,
+  body: string,
+  attachmentName?: string,
+): Promise<SupportTicket> {
+  try {
+    const payload = await apiClient.post<Envelope<BackendSupportTicket>>(
+      `/customer/support/tickets/${id}/reply`,
+      {
+        body: body.trim() || "(Attachment)",
+        attachmentName,
+      },
+    );
+    if (!payload.data) {
+      throw new Error("Failed to send reply");
+    }
+    return mapSupportTicket(payload.data);
+  } catch (error) {
+    throw supportApiError(error, "Failed to send reply");
+  }
 }

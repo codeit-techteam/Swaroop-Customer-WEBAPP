@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Send, X } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,15 +10,32 @@ import { useSupportStore } from "@/store/supportStore";
 import { formatChatTime } from "./support-format";
 import { cn } from "@/lib/utils";
 
+const POLL_MS = 12_000;
+
 export function FloatingChatWidget() {
   const open = useSupportStore((s) => s.floatingChatOpen);
   const setFloatingChatOpen = useSupportStore((s) => s.setFloatingChatOpen);
   const chatMessages = useSupportStore((s) => s.chatMessages);
   const chatTyping = useSupportStore((s) => s.chatTyping);
+  const chatTicketId = useSupportStore((s) => s.chatTicketId);
   const sendChatMessage = useSupportStore((s) => s.sendChatMessage);
+  const ensureChatSession = useSupportStore((s) => s.ensureChatSession);
+  const refreshChatMessages = useSupportStore((s) => s.refreshChatMessages);
 
   const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    void ensureChatSession();
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        void refreshChatMessages();
+      }
+    }, POLL_MS);
+    return () => window.clearInterval(timer);
+  }, [open, ensureChatSession, refreshChatMessages]);
 
   useEffect(() => {
     if (open) {
@@ -25,10 +43,25 @@ export function FloatingChatWidget() {
     }
   }, [open, chatMessages, chatTyping]);
 
-  function handleSend() {
-    if (!draft.trim()) return;
-    sendChatMessage(draft);
+  async function handleSend() {
+    const text = draft.trim();
+    if (!text || sending) return;
+    if (!chatTicketId && text.length < 10) {
+      toast.error("Please enter at least 10 characters to start chat");
+      return;
+    }
+    setSending(true);
     setDraft("");
+    try {
+      await sendChatMessage(text);
+    } catch (error) {
+      setDraft(text);
+      toast.error(
+        error instanceof Error ? error.message : "Could not send message",
+      );
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -38,7 +71,10 @@ export function FloatingChatWidget() {
           <div className="flex items-center justify-between bg-brand px-4 py-3 text-white">
             <div>
               <p className="text-sm font-semibold">PetroTrade Support</p>
-              <p className="text-xs opacity-80">Typically replies in minutes</p>
+              <p className="text-xs opacity-80">
+                Synced with Admin desk
+                {chatTicketId ? " · live ticket" : ""}
+              </p>
             </div>
             <button
               type="button"
@@ -54,7 +90,10 @@ export function FloatingChatWidget() {
             <div className="space-y-2.5">
               <div className="rounded-2xl bg-slate-100 px-3.5 py-2.5 text-sm text-slate-700">
                 <p className="font-medium">Hello!</p>
-                <p className="mt-0.5">How can we help you?</p>
+                <p className="mt-0.5">
+                  Messages create a support ticket visible to Admin and your
+                  seller/customer apps.
+                </p>
               </div>
               {chatMessages.map((m) => (
                 <div
@@ -66,6 +105,11 @@ export function FloatingChatWidget() {
                       : "bg-slate-100 text-slate-700",
                   )}
                 >
+                  {m.sender !== "customer" ? (
+                    <p className="mb-0.5 text-[10px] font-medium text-slate-500">
+                      {m.senderName}
+                    </p>
+                  ) : null}
                   <p className="leading-relaxed">{m.body}</p>
                   <p
                     className={cn(
@@ -77,9 +121,9 @@ export function FloatingChatWidget() {
                   </p>
                 </div>
               ))}
-              {chatTyping ? (
+              {chatTyping || sending ? (
                 <div className="inline-flex rounded-2xl bg-slate-100 px-3.5 py-2.5 text-xs text-slate-500">
-                  Support is typing…
+                  Sending to support desk…
                 </div>
               ) : null}
               <div ref={bottomRef} />
@@ -92,18 +136,19 @@ export function FloatingChatWidget() {
               onChange={(e) => setDraft(e.target.value)}
               placeholder="Type your message…"
               className="rounded-xl"
+              disabled={sending}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  handleSend();
+                  void handleSend();
                 }
               }}
             />
             <Button
               size="icon"
               className="shrink-0 rounded-xl bg-brand hover:bg-brand/90"
-              onClick={handleSend}
-              disabled={!draft.trim()}
+              onClick={() => void handleSend()}
+              disabled={!draft.trim() || sending}
               aria-label="Send message"
             >
               <Send className="h-4 w-4" />

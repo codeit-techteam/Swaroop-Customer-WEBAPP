@@ -19,7 +19,9 @@ import { useSupportStore } from "@/store/supportStore";
 export function ChatSupportModal() {
   const open = useSupportStore((s) => s.chatModalOpen);
   const setChatModalOpen = useSupportStore((s) => s.setChatModalOpen);
+  const setFloatingChatOpen = useSupportStore((s) => s.setFloatingChatOpen);
   const sendChatMessage = useSupportStore((s) => s.sendChatMessage);
+  const ensureChatSession = useSupportStore((s) => s.ensureChatSession);
 
   const [message, setMessage] = useState("");
   const [attachmentName, setAttachmentName] = useState<string | undefined>();
@@ -37,14 +39,31 @@ export function ChatSupportModal() {
       toast.error("Please enter a message");
       return;
     }
+    if (message.trim() && message.trim().length < 10 && !attachmentName) {
+      toast.error("Please enter at least 10 characters so support can help");
+      return;
+    }
     setSending(true);
-    await new Promise((r) => setTimeout(r, 400));
-    sendChatMessage(message, attachmentName);
-    toast.success("Message sent", {
-      description: "Our support team will respond shortly.",
-    });
-    reset();
-    setChatModalOpen(false);
+    try {
+      const ticketId = await sendChatMessage(message, attachmentName);
+      toast.success("Message sent to support", {
+        description: ticketId
+          ? `Ticket ${ticketId} is visible in Admin and synced across apps.`
+          : "Our support team will respond shortly.",
+      });
+      reset();
+      setChatModalOpen(false);
+      setFloatingChatOpen(true);
+      void ensureChatSession();
+    } catch (error) {
+      setSending(false);
+      toast.error("Could not send message", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Please try again in a moment.",
+      });
+    }
   }
 
   return (
@@ -53,12 +72,15 @@ export function ChatSupportModal() {
       onOpenChange={(v) => {
         setChatModalOpen(v);
         if (!v) reset();
+        if (v) void ensureChatSession();
       }}
     >
       <DialogContent className="rounded-2xl sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-brand">Hello 👋</DialogTitle>
-          <p className="text-sm text-slate-600">How can we help you today?</p>
+          <DialogTitle className="text-brand">Hello</DialogTitle>
+          <p className="text-sm text-slate-600">
+            Start a live chat ticket — replies sync with Admin and your apps.
+          </p>
         </DialogHeader>
 
         <div className="space-y-4 py-1">
@@ -68,7 +90,7 @@ export function ChatSupportModal() {
               id="chat-message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Describe your issue…"
+              placeholder="Describe your issue… (min 10 characters)"
               rows={5}
               className="resize-none rounded-xl"
             />

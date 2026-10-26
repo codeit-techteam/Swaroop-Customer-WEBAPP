@@ -27,7 +27,11 @@ import { useAuthStore } from "@/store/authStore";
 import { ROUTES } from "@/constants";
 import { cn } from "@/lib/utils";
 
-const IS_DEV = process.env.NODE_ENV !== "production";
+/** Show demo credentials while OTP SMS is not production-locked. */
+const SHOW_DEMO_OTP =
+  process.env.NODE_ENV !== "production" ||
+  process.env.NEXT_PUBLIC_DEMO_OTP === "123456" ||
+  process.env.NEXT_PUBLIC_DEMO_OTP === "true";
 
 const LOGIN_METHOD_OPTIONS: Array<{
   value: LoginMethod;
@@ -65,8 +69,8 @@ export function LoginForm() {
         options,
       ),
     defaultValues: {
-      identifier: IS_DEV ? "customer@test.local" : "",
-      password: IS_DEV ? "Test@12345" : "",
+      identifier: SHOW_DEMO_OTP ? "customer@test.local" : "",
+      password: SHOW_DEMO_OTP ? "Test@12345" : "",
       rememberMe: false,
     },
   });
@@ -79,7 +83,11 @@ export function LoginForm() {
     setLoginMethod(method);
     setValue(
       "identifier",
-      IS_DEV ? (method === "phone" ? "8240890242" : "customer@test.local") : "",
+      SHOW_DEMO_OTP
+        ? method === "phone"
+          ? "8240890242"
+          : "customer@test.local"
+        : "",
     );
     clearErrors("identifier");
   };
@@ -251,7 +259,7 @@ export function LoginForm() {
             Continue with OTP
           </SecondaryButton>
 
-          {IS_DEV ? (
+          {SHOW_DEMO_OTP ? (
             <p className="text-center text-xs text-muted-foreground">
               Same Customer APP account:{" "}
               <span className="font-medium text-foreground">

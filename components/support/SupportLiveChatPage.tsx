@@ -26,8 +26,18 @@ export function SupportLiveChatPage() {
   const online = useSupportStore((s) => s.chatExecutiveOnline);
   const setChatDraft = useSupportStore((s) => s.setChatDraft);
   const sendChatMessage = useSupportStore((s) => s.sendChatMessage);
+  const ensureChatSession = useSupportStore((s) => s.ensureChatSession);
+  const refreshChatMessages = useSupportStore((s) => s.refreshChatMessages);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    void ensureChatSession();
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") void refreshChatMessages();
+    }, 12_000);
+    return () => window.clearInterval(timer);
+  }, [ensureChatSession, refreshChatMessages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -35,8 +45,16 @@ export function SupportLiveChatPage() {
 
   if (!isHydrated) return <SupportLoadingSkeleton />;
 
-  function handleSend() {
-    sendChatMessage(draft);
+  async function handleSend() {
+    const text = draft.trim();
+    if (!text) return;
+    try {
+      await sendChatMessage(text);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not send message",
+      );
+    }
   }
 
   return (
@@ -206,10 +224,23 @@ export function SupportLiveChatPage() {
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    sendChatMessage(draft || `Sharing ${file.name}`, file.name);
-                    toast.success("Attachment sent", {
-                      description: file.name,
-                    });
+                    void (async () => {
+                      try {
+                        await sendChatMessage(
+                          draft || `Sharing ${file.name}`,
+                          file.name,
+                        );
+                        toast.success("Attachment sent", {
+                          description: file.name,
+                        });
+                      } catch (error) {
+                        toast.error(
+                          error instanceof Error
+                            ? error.message
+                            : "Could not send attachment",
+                        );
+                      }
+                    })();
                   }
                   e.target.value = "";
                 }}
