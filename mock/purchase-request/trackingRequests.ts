@@ -6,7 +6,7 @@ import type { SubmittedPurchaseRequest } from "@/types/purchase-request";
 import { PRICE_LOCK_DURATION_SECONDS } from "./purchaseRequest";
 
 const SELLERS = [
-  "PetroTrade Supply Network",
+  "PolyStoreX Supply Network",
   "West India Hub",
   "East India Hub",
   "North India Hub",
@@ -283,7 +283,7 @@ export const trackingRequestsMock: PurchaseRequestTrackingItem[] = [
     totalAmount: 3980000,
     rejectionReason:
       "Insufficient inventory at selected warehouse for the requested quantity.",
-    rejectedBy: "PetroTrade Review Desk",
+    rejectedBy: "PolyStoreX Review Desk",
     canCancel: false,
   },
   {
@@ -451,7 +451,7 @@ export const trackingRequestsMock: PurchaseRequestTrackingItem[] = [
     orderStatus: null,
     totalAmount: 4220000,
     rejectionReason: "Market price moved outside the locked window.",
-    rejectedBy: "PetroTrade Review Desk",
+    rejectedBy: "PolyStoreX Review Desk",
     canCancel: false,
   },
 ];

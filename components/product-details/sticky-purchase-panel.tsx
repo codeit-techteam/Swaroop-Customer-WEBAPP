@@ -352,7 +352,7 @@ export function StickyPurchasePanel({
             <TrustBadges className="border-0 p-0 !shadow-none" />
 
             <p className="text-[11px] leading-relaxed text-slate-400">
-              Totals come from the latest PetroTrade quote. Payment is collected
+              Totals come from the latest PolyStoreX quote. Payment is collected
               after seller response, commercial acceptance, and proforma
               invoice.
             </p>

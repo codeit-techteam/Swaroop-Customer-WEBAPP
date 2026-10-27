@@ -157,7 +157,7 @@ export function DocumentPreviewModal() {
           >
             <div className="mb-6 border-b border-slate-200 pb-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-brand">
-                PetroTrade Customer Portal
+                PolyStoreX Customer Portal
               </p>
               <h2 className="mt-1 text-xl font-semibold text-slate-900">
                 {preview.title}

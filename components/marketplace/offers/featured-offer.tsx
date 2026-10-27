@@ -42,7 +42,7 @@ export function FeaturedOffer({ offer, className }: FeaturedOfferProps) {
       )}
     >
       <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr]">
-        <div className="relative min-h-[220px] lg:min-h-[320px] bg-gradient-to-r from-brand to-brand-700">
+        <div className="relative min-h-[220px] bg-gradient-to-r from-brand to-brand-700 lg:min-h-[320px]">
           {offer.bannerImage ? (
             <Image
               src={offer.bannerImage}
@@ -63,7 +63,7 @@ export function FeaturedOffer({ offer, className }: FeaturedOfferProps) {
                 {offer.productName}
               </h2>
               <p className="mt-1 text-sm text-white/80">
-                Fulfilled by PetroTrade Network
+                Fulfilled by PolyStoreX Network
               </p>
               <p className="mt-2 flex items-center gap-1.5 text-sm text-white/90">
                 <MapPin className="h-4 w-4" />

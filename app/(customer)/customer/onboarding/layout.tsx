@@ -5,7 +5,7 @@ import { CompletedOnboardingRedirect } from "@/components/onboarding/CompletedOn
 export const metadata: Metadata = {
   title: "Customer Onboarding",
   description:
-    "Complete your PetroTrade customer onboarding — company details, GST verification, addresses, and credit eligibility.",
+    "Complete your PolyStoreX customer onboarding — company details, GST verification, addresses, and credit eligibility.",
 };
 
 export default function OnboardingLayout({

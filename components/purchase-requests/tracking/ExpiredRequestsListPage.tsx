@@ -45,7 +45,7 @@ export function ExpiredRequestsListPage() {
     <PageContainer>
       <PageHeader
         title="Expired Requests"
-        description="Requests that exceeded the 15-minute PetroTrade confirmation window."
+        description="Requests that exceeded the 15-minute PolyStoreX confirmation window."
         breadcrumbs={[
           { label: "Purchase Requests", href: ROUTES.purchaseRequests },
           { label: "Expired" },

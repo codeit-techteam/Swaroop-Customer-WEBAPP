@@ -61,7 +61,7 @@ export function SupportLiveChatPage() {
     <div className="space-y-6">
       <SupportPageHeader
         title="Live Chat"
-        subtitle="Chat with PetroTrade Enterprise Support in real time."
+        subtitle="Chat with PolyStoreX Enterprise Support in real time."
         hideSearch
       />
 

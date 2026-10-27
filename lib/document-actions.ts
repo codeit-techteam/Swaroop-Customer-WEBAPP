@@ -121,7 +121,7 @@ export function printDocumentHtml(title: string, content: string) {
       </head>
       <body>
         <h1>${title.replace(/</g, "&lt;")}</h1>
-        <div class="meta">PetroTrade Customer Portal · Document Preview</div>
+        <div class="meta">PolyStoreX Customer Portal · Document Preview</div>
         <pre>${content.replace(/</g, "&lt;")}</pre>
         <script>window.onload = () => { window.print(); }</script>
       </body>
@@ -167,7 +167,7 @@ export function buildPoDocumentContent(po: {
   };
 }): string {
   return [
-    "PETROTRADE — PURCHASE ORDER",
+    "POLYSTOREX — PURCHASE ORDER",
     "===========================",
     "",
     `PO Number     : ${po.poNumber}`,
@@ -205,7 +205,7 @@ export function buildPoDocumentContent(po: {
     `Delivery Terms: ${po.deliveryTerms}`,
     "",
     "This is a frontend demo document. No backend generated.",
-    "© PetroTrade Customer Portal",
+    "© PolyStoreX Customer Portal",
   ].join("\n");
 }
 
@@ -257,10 +257,10 @@ export function buildInvoiceDocumentContent(inv: {
     "",
     `Payment       : ${inv.paymentInfo.method}`,
     `UTR           : ${inv.paymentInfo.utr ?? "—"}`,
-    `Payment To    : PetroTrade`,
+    `Payment To    : PolyStoreX`,
     "",
     "This is a frontend demo document. No backend generated.",
-    "© PetroTrade Customer Portal",
+    "© PolyStoreX Customer Portal",
   ].join("\n");
 }
 
@@ -274,7 +274,7 @@ export function buildGenericDocumentContent(meta: {
   extraLines?: string[];
 }): string {
   return [
-    `PETROTRADE CUSTOMER PORTAL — ${meta.title.toUpperCase()}`,
+    `POLYSTOREX CUSTOMER PORTAL — ${meta.title.toUpperCase()}`,
     "=".repeat(48),
     "",
     `Document No.  : ${meta.documentNumber}`,
@@ -286,7 +286,7 @@ export function buildGenericDocumentContent(meta: {
     ...(meta.extraLines ?? []),
     "",
     "This is a frontend demo document. No backend generated.",
-    "© PetroTrade Customer Portal",
+    "© PolyStoreX Customer Portal",
   ]
     .filter(Boolean)
     .join("\n");

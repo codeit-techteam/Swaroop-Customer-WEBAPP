@@ -142,7 +142,7 @@ export function RequestQuoteDialog({
           <DialogTitle>Request Quote — {offerTitle}</DialogTitle>
           <DialogDescription>
             {offerDescription ??
-              "Share your requirements. Quotes are handled as Purchase Requests on PetroTrade — the same RFQ workflow used at checkout."}
+              "Share your requirements. Quotes are handled as Purchase Requests on PolyStoreX — the same RFQ workflow used at checkout."}
           </DialogDescription>
         </DialogHeader>
 

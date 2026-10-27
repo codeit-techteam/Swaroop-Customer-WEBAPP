@@ -18,7 +18,7 @@ export function SupportAccountManagerPage() {
     <div className="space-y-6">
       <SupportPageHeader
         title="Account Manager"
-        subtitle="Your dedicated PetroTrade relationship desk for commercial, credit and escalation needs."
+        subtitle="Your dedicated PolyStoreX relationship desk for commercial, credit and escalation needs."
         hideSearch
       />
 

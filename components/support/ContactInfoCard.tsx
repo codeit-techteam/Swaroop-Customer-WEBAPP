@@ -8,7 +8,7 @@ export function ContactInfoCard() {
   return (
     <Card className="border-slate-200 bg-slate-50/50 shadow-sm">
       <CardContent className="space-y-5 p-6">
-        <h2 className="text-lg font-semibold text-brand">PetroTrade Support</h2>
+        <h2 className="text-lg font-semibold text-brand">PolyStoreX Support</h2>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex items-start gap-3">

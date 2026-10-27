@@ -207,7 +207,7 @@ export function GradeDirectoryPage() {
     <PageContainer className="space-y-5">
       <PageHeader
         title="Grade Directory"
-        description="Browse the PetroTrade Grade Master by category, grade group and manufacturer, then open a grade to see live blind offers."
+        description="Browse the PolyStoreX Grade Master by category, grade group and manufacturer, then open a grade to see live blind offers."
         breadcrumbs={[
           { label: "Marketplace", href: ROUTES.marketplace },
           { label: "Grade Directory" },

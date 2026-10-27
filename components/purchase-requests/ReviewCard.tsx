@@ -90,7 +90,7 @@ export function ReviewCard({
       >
         <Row label="Material" value={product.name} />
         <Row label="Grade" value={product.grade} />
-        <Row label="Supply Partner" value="Verified by PetroTrade" />
+        <Row label="Supply Partner" value="Verified by PolyStoreX" />
         <Row label="Location" value={product.warehouseRegion} />
         <Row label="Quantity" value={formatQuantityMt(form.quantityMt)} />
         <Row label="Packaging" value={packaging} />

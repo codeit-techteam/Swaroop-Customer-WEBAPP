@@ -34,7 +34,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
 };
 
 const SELLERS = [
-  "PetroTrade Supply Network",
+  "PolyStoreX Supply Network",
   "West India Hub",
   "East India Hub",
   "North India Hub",
@@ -243,12 +243,12 @@ function defaultCopy(
   };
 
   const descriptions: Partial<Record<NotificationType, string>> = {
-    purchase_request_submitted: `Your purchase request for ${product} has been submitted successfully to PetroTrade.`,
-    seller_reviewing_request: `PetroTrade is reviewing your request for ${product} (${warehouse}).`,
+    purchase_request_submitted: `Your purchase request for ${product} has been submitted successfully to PolyStoreX.`,
+    seller_reviewing_request: `PolyStoreX is reviewing your request for ${product} (${warehouse}).`,
     seller_approved_request: `Order confirmed for ${product}. Order generation is in progress.`,
-    seller_rejected_request: `PetroTrade declined the purchase request for ${product} from ${warehouse}.`,
+    seller_rejected_request: `PolyStoreX declined the purchase request for ${product} from ${warehouse}.`,
     purchase_request_expired: `Purchase request for ${product} expired before confirmation.`,
-    purchase_order_generated: `${po} has been successfully generated after PetroTrade confirmation.`,
+    purchase_order_generated: `${po} has been successfully generated after PolyStoreX confirmation.`,
     purchase_order_ready: `Purchase order PDF for ${po} is ready to download.`,
     advance_payment_required: `Advance payment is required to proceed with order ${order}.`,
     payment_submitted: `Payment for ${product} order ${order} has been submitted.`,
@@ -259,14 +259,14 @@ function defaultCopy(
     payment_received: `Payment received for ${product} (${order}).`,
     refund_initiated: `Refund initiated for ${order}. Amount will credit within 3–5 business days.`,
     receipt_ready: `Payment receipt for ${order} is ready to download.`,
-    credit_activated: `Trade credit has been activated on your PetroTrade account.`,
+    credit_activated: `Trade credit has been activated on your PolyStoreX account.`,
     shipment_created: `Shipment created for ${product} from ${warehouse}.`,
     truck_assigned: `Truck assigned for ${order} dispatch from ${warehouse}.`,
     vehicle_assigned: `Vehicle assigned for shipment of ${product} (${warehouse}).`,
     driver_assigned: `Driver assigned for ${order} shipment from ${warehouse}.`,
     vehicle_dispatched: `Vehicle dispatched from ${warehouse} with ${product} cargo.`,
     truck_left_warehouse: `Truck left ${warehouse} en route to destination.`,
-    shipment_in_transit: `${product} shipment via PetroTrade Logistics is currently in transit.`,
+    shipment_in_transit: `${product} shipment via PolyStoreX Logistics is currently in transit.`,
     reached_hub: `Shipment for ${order} reached the transit hub.`,
     reached_destination: `Shipment for ${order} has reached the destination city.`,
     shipment_delayed: `Shipment delayed due to weather near ${warehouse}. ETA updated.`,
@@ -277,14 +277,14 @@ function defaultCopy(
     gst_invoice_ready: `Tax invoice for ${order} is ready for download.`,
     certificates_uploaded: `Quality & material certificates uploaded for ${order}.`,
     documents_available: `Order documents for ${order} are now available in Documents.`,
-    quality_certificate_ready: `Quality certificate for ${product} is ready via PetroTrade QC.`,
+    quality_certificate_ready: `Quality certificate for ${product} is ready via PolyStoreX QC.`,
     lab_report_ready: `Lab test report for ${product} batch is available.`,
     transport_documents_uploaded: `E-way bill and transport docs uploaded for ${order}.`,
     offer_available: `New offer on ${product} available at ${warehouse}.`,
     flash_sale: `Flash sale live on ${product} — limited stock at ${warehouse}.`,
     festival_offer: `Festival pricing active on ${product} at ${warehouse}.`,
     bulk_discount: `Bulk discount unlocked for ${product} orders above 50 MT.`,
-    new_product_launch: `New grade of ${product} now available on PetroTrade.`,
+    new_product_launch: `New grade of ${product} now available on PolyStoreX.`,
     credit_scheme: `Special credit scheme available for ${product} procurement.`,
     special_warehouse_offer: `Exclusive pricing from ${warehouse}.`,
     limited_time_pricing: `Limited-time price lock on ${product} — ends soon.`,
@@ -294,7 +294,7 @@ function defaultCopy(
     account_verification: `Your business account verification is complete.`,
     profile_updated: `Company profile details were updated successfully.`,
     policy_update: `Procurement policy update published. Please review.`,
-    security_alert: `New login detected on your PetroTrade account.`,
+    security_alert: `New login detected on your PolyStoreX account.`,
     password_changed: `Your account password was changed successfully.`,
     gst_verified: `GSTIN verification completed for your company profile.`,
   };
@@ -302,16 +302,16 @@ function defaultCopy(
   const title = titles[type] ?? "Notification";
   const description =
     descriptions[type] ??
-    `Update regarding ${product} via PetroTrade Supply Network (${ref}).`;
+    `Update regarding ${product} via PolyStoreX Supply Network (${ref}).`;
   const fullDescription = `${description}
 
 Reference: ${ref}
 Order: ${order}
 Product: ${product}
-Supply Source: PetroTrade Supply Network
+Supply Source: PolyStoreX Supply Network
 Warehouse: ${warehouse}
 
-This alert is part of your procurement workflow on PetroTrade Customer Portal. Open the related module for full details and next actions.`;
+This alert is part of your procurement workflow on PolyStoreX Customer Portal. Open the related module for full details and next actions.`;
 
   return { title, description, fullDescription };
 }

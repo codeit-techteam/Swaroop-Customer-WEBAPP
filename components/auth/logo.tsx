@@ -1,7 +1,7 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { Factory } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_SHORT_NAME } from "@/constants";
 
@@ -23,24 +23,18 @@ export function Logo({
   size = "md",
 }: LogoProps) {
   const isLight = variant === "light";
-  const iconSize = size === "sm" ? "h-8 w-8" : "h-9 w-9";
-  const factorySize = size === "sm" ? "h-4 w-4" : "h-4.5 w-4.5";
+  const iconSize = size === "sm" ? 32 : 36;
 
   const content = (
     <div className={cn("flex items-center gap-2.5", className)}>
-      <div
-        className={cn(
-          "flex shrink-0 items-center justify-center rounded-md",
-          iconSize,
-          isLight ? "bg-white text-brand" : "bg-brand text-white",
-        )}
-        aria-hidden
-      >
-        <Factory
-          className={cn(factorySize, "h-[18px] w-[18px]")}
-          strokeWidth={2}
-        />
-      </div>
+      <Image
+        src="/brand/polystorex-logo.png"
+        alt={APP_SHORT_NAME}
+        width={iconSize}
+        height={iconSize}
+        className="shrink-0 object-contain"
+        priority
+      />
       <div className="flex flex-col leading-tight">
         <span
           className={cn(

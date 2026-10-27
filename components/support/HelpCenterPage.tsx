@@ -24,7 +24,7 @@ export function HelpCenterPage() {
           </h1>
           <p className="max-w-2xl text-sm leading-relaxed text-slate-600 md:text-base">
             Need help with your orders, payments, shipment or account? Our
-            PetroTrade support team is here to help.
+            PolyStoreX support team is here to help.
           </p>
         </header>
 

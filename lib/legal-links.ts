@@ -1,5 +1,16 @@
 import { env } from "@/lib/env";
 
+/** Live marketing site with production /terms, /privacy, /contact. */
+const LIVE_WEBSITE_ORIGIN = "https://swaroop-website-mocha.vercel.app";
+const BROKEN_WEBSITE_HOSTS = new Set([
+  "petrotrade.in",
+  "www.petrotrade.in",
+  "swaroop-website.vercel.app",
+]);
+const LIVE_TERMS_URL = `${LIVE_WEBSITE_ORIGIN}/terms`;
+const LIVE_PRIVACY_URL = `${LIVE_WEBSITE_ORIGIN}/privacy`;
+const LIVE_SUPPORT_URL = `${LIVE_WEBSITE_ORIGIN}/contact`;
+
 export type LegalLinks = {
   websiteUrl: string | null;
   termsUrl: string | null;
@@ -9,17 +20,9 @@ export type LegalLinks = {
   missing: string[];
 };
 
-const EMPTY: LegalLinks = {
-  websiteUrl: null,
-  termsUrl: null,
-  privacyUrl: null,
-  supportUrl: null,
-  supportEmail: null,
-  missing: [
-    "PUBLIC_TERMS_URL (or PUBLIC_WEBSITE_URL)",
-    "PUBLIC_PRIVACY_URL (or PUBLIC_WEBSITE_URL)",
-    "PUBLIC_SUPPORT_URL / PUBLIC_SUPPORT_EMAIL (or PUBLIC_WEBSITE_URL)",
-  ],
+export type ContactSupportOptions = {
+  /** Pre-select topic on the marketing /contact form. */
+  topic?: string;
 };
 
 let cached: LegalLinks | null = null;
@@ -32,6 +35,37 @@ function isHttpUrl(value: string | null | undefined): value is string {
     return u.protocol === "https:" || u.protocol === "http:";
   } catch {
     return false;
+  }
+}
+
+function resolvePublicWebsiteUrl(
+  url: string | null | undefined,
+): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    if (BROKEN_WEBSITE_HOSTS.has(parsed.hostname.toLowerCase())) {
+      const live = new URL(LIVE_WEBSITE_ORIGIN);
+      parsed.protocol = live.protocol;
+      parsed.host = live.host;
+      return parsed.toString();
+    }
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+function withTopic(url: string, topic?: string): string {
+  if (!topic) return url;
+  try {
+    const parsed = new URL(url);
+    if (!parsed.searchParams.has("topic")) {
+      parsed.searchParams.set("topic", topic);
+    }
+    return parsed.toString();
+  } catch {
+    return url;
   }
 }
 
@@ -51,16 +85,26 @@ export async function fetchLegalLinks(): Promise<LegalLinks> {
       const data = body.data;
       if (!data) throw new Error("Missing legal links payload");
       cached = {
-        websiteUrl: data.websiteUrl ?? null,
-        termsUrl: data.termsUrl ?? null,
-        privacyUrl: data.privacyUrl ?? null,
-        supportUrl: data.supportUrl ?? null,
+        websiteUrl:
+          resolvePublicWebsiteUrl(data.websiteUrl) ?? LIVE_WEBSITE_ORIGIN,
+        termsUrl: resolvePublicWebsiteUrl(data.termsUrl) ?? LIVE_TERMS_URL,
+        privacyUrl:
+          resolvePublicWebsiteUrl(data.privacyUrl) ?? LIVE_PRIVACY_URL,
+        supportUrl:
+          resolvePublicWebsiteUrl(data.supportUrl) ?? LIVE_SUPPORT_URL,
         supportEmail: data.supportEmail ?? null,
         missing: Array.isArray(data.missing) ? data.missing : [],
       };
       return cached;
     } catch {
-      return EMPTY;
+      return {
+        websiteUrl: LIVE_WEBSITE_ORIGIN,
+        termsUrl: LIVE_TERMS_URL,
+        privacyUrl: LIVE_PRIVACY_URL,
+        supportUrl: LIVE_SUPPORT_URL,
+        supportEmail: null,
+        missing: [],
+      };
     } finally {
       inflight = null;
     }
@@ -72,52 +116,27 @@ function openBlank(url: string) {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
-function missingAlert(label: string, keys: string[]) {
-  const detail =
-    keys.length > 0
-      ? `Missing configuration: ${keys.join(", ")}`
-      : "Ask an admin to set the public legal URL in the backend environment.";
-  window.alert(`${label} is not configured.\n\n${detail}`);
-}
-
 export async function openTermsOfService(): Promise<void> {
   const links = await fetchLegalLinks();
-  if (!isHttpUrl(links.termsUrl)) {
-    missingAlert(
-      "Terms of Service",
-      links.missing.filter((k) => k.includes("TERMS") || k.includes("WEBSITE")),
-    );
-    return;
-  }
-  openBlank(links.termsUrl);
+  openBlank(isHttpUrl(links.termsUrl) ? links.termsUrl : LIVE_TERMS_URL);
 }
 
 export async function openPrivacyPolicy(): Promise<void> {
   const links = await fetchLegalLinks();
-  if (!isHttpUrl(links.privacyUrl)) {
-    missingAlert(
-      "Privacy Policy",
-      links.missing.filter(
-        (k) => k.includes("PRIVACY") || k.includes("WEBSITE"),
-      ),
-    );
-    return;
-  }
-  openBlank(links.privacyUrl);
+  openBlank(isHttpUrl(links.privacyUrl) ? links.privacyUrl : LIVE_PRIVACY_URL);
 }
 
-export async function openContactSupport(): Promise<void> {
+export async function openContactSupport(
+  options?: ContactSupportOptions,
+): Promise<void> {
   const links = await fetchLegalLinks();
   if (isHttpUrl(links.supportUrl)) {
-    openBlank(links.supportUrl);
+    openBlank(withTopic(links.supportUrl, options?.topic));
     return;
   }
   if (links.supportEmail) {
     window.location.href = `mailto:${links.supportEmail}`;
     return;
   }
-  missingAlert(
-    "Contact Support",
-    links.missing.filter((k) => k.includes("SUPPORT") || k.includes("WEBSITE")),
-  );
+  openBlank(withTopic(LIVE_SUPPORT_URL, options?.topic));
 }

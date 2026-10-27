@@ -19,6 +19,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -301,6 +311,18 @@ function validateImportStep(
   return errors;
 }
 
+function validateImportPublish(
+  values: Values,
+  isBuy: boolean,
+): Record<string, string> {
+  // BUY validity is assigned by the server on publish — no review-step fields.
+  const steps: StepId[] = ["product", "commercial", "shipping"];
+  return Object.assign(
+    {},
+    ...steps.map((s) => validateImportStep(s, values, isBuy)),
+  );
+}
+
 const filled = (v: unknown) =>
   Array.isArray(v) ? v.length > 0 : v !== null && v !== undefined && v !== "";
 
@@ -372,6 +394,7 @@ function ListingForm({
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const [confirmPublishOpen, setConfirmPublishOpen] = useState(false);
 
   const savedRef = useRef<Values>(initialValues(initial, bundle));
   const versionRef = useRef<number>(initial?.version ?? 0);
@@ -512,6 +535,19 @@ function ListingForm({
   }
 
   async function handlePublish() {
+    const publishErrors = validateImportPublish(values, isBuy);
+    if (Object.keys(publishErrors).length > 0) {
+      setFieldErrors((prev) => ({ ...prev, ...publishErrors }));
+      const firstField = Object.keys(publishErrors)[0];
+      const firstStep = firstField ? FIELD_STEP[firstField] : undefined;
+      if (firstStep) setStep(firstStep);
+      toast.error(
+        `Please fix ${Object.keys(publishErrors).length} field${
+          Object.keys(publishErrors).length > 1 ? "s" : ""
+        } before publishing.`,
+      );
+      return;
+    }
     setPublishing(true);
     try {
       const ok = await save();
@@ -1490,21 +1526,43 @@ function ListingForm({
             ) : (
               <>
                 {stepIndex < STEPS.length - 1 ? (
-                  <Button
-                    type="button"
-                    variant={step === "review" ? "outline" : "default"}
-                    onClick={() => goToStep(stepIndex + 1)}
-                  >
+                  <Button type="button" onClick={() => goToStep(stepIndex + 1)}>
                     Next
                   </Button>
                 ) : null}
                 {step === "review" ? (
                   <Button
                     type="button"
-                    onClick={handlePublish}
-                    disabled={publishing || saveState === "conflict"}
+                    className="bg-emerald-600 text-white hover:bg-emerald-700"
+                    onClick={() => {
+                      const publishErrors = validateImportPublish(
+                        values,
+                        isBuy,
+                      );
+                      if (Object.keys(publishErrors).length > 0) {
+                        setFieldErrors((prev) => ({
+                          ...prev,
+                          ...publishErrors,
+                        }));
+                        toast.error(
+                          "Complete required fields before publishing.",
+                        );
+                        return;
+                      }
+                      setConfirmPublishOpen(true);
+                    }}
+                    disabled={
+                      publishing ||
+                      saveState === "conflict" ||
+                      Object.keys(validateImportPublish(values, isBuy)).length >
+                        0
+                    }
                   >
-                    {publishing ? <Loader2 className="animate-spin" /> : null}
+                    {publishing ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="h-4 w-4" />
+                    )}
                     Publish {isBuy ? "buy request" : "sell offer"}
                   </Button>
                 ) : null}
@@ -1513,6 +1571,35 @@ function ListingForm({
           </div>
         </div>
       </div>
+      <AlertDialog
+        open={confirmPublishOpen}
+        onOpenChange={setConfirmPublishOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isBuy ? "Submit buy request?" : "Publish this offer?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {isBuy
+                ? "This will publish your buy request to the import market."
+                : "This will publish your sell offer to matched buyers. You can pause it later if needed."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Review again</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-emerald-600 hover:bg-emerald-700"
+              onClick={() => {
+                setConfirmPublishOpen(false);
+                void handlePublish();
+              }}
+            >
+              {isBuy ? "Submit" : "Publish offer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

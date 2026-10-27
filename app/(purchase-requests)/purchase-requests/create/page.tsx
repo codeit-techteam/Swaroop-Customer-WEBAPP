@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { ROUTES } from "@/constants";
+import { CreatePurchaseRequestEntry } from "@/components/purchase-requests/create-purchase-request-entry";
 
 export const metadata: Metadata = {
-  title: "Add to Cart",
+  title: "Create Purchase Request",
+  description:
+    "Select a marketplace grade or continue from your cart to place a purchase request.",
 };
 
 interface CreatePageProps {
@@ -11,13 +12,11 @@ interface CreatePageProps {
 }
 
 /**
- * Legacy Create Purchase Request route.
- * Blind marketplace flow: Product Details → Add to Cart → Cart → Checkout.
+ * B-02 / web parity: Create Purchase Request must not silently dump users onto
+ * the marketplace grade list. With a productId, open that product for RFQ;
+ * otherwise show a guided entry (cart → checkout, or pick a product).
  */
 export default async function Page({ searchParams }: CreatePageProps) {
   const { productId } = await searchParams;
-  if (productId) {
-    redirect(`${ROUTES.marketplaceProduct}/${productId}`);
-  }
-  redirect(ROUTES.marketplace);
+  return <CreatePurchaseRequestEntry productId={productId} />;
 }

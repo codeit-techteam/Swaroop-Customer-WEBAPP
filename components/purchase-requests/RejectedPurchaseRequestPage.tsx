@@ -57,7 +57,7 @@ export function RejectedPurchaseRequestPage() {
     <PageContainer>
       <PageHeader
         title="Rejected Requests"
-        description="Requests declined after PetroTrade review."
+        description="Requests declined after PolyStoreX review."
         breadcrumbs={[
           { label: "Purchase Requests", href: ROUTES.purchaseRequests },
           { label: "Rejected" },

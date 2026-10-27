@@ -59,7 +59,7 @@ function addressSubtitle(address: CheckoutAddress) {
 
 /**
  * Header delivery location control — visual language matches the existing
- * PetroTrade web header chip (MapPin + city + badge), with Customer APP
+ * PolyStoreX web header chip (MapPin + city + badge), with Customer APP
  * delivery-address behavior (GPS + saved addresses + checkout wiring).
  */
 export function LocationSelector({ compact = false }: { compact?: boolean }) {

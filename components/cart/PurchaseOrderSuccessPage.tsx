@@ -129,7 +129,7 @@ export function PurchaseOrderSuccessPage() {
     <PageContainer>
       <PageHeader
         title="Purchase Order Generated"
-        description="Your order is awaiting seller confirmation under the PetroTrade network."
+        description="Your order is awaiting seller confirmation under the PolyStoreX network."
         breadcrumbs={[
           { label: "Checkout", href: ROUTES.checkout },
           { label: "Purchase Order" },
@@ -237,7 +237,7 @@ export function PurchaseOrderSuccessPage() {
                   <p className="mt-2 text-xs text-slate-400">
                     Payment method (
                     {po.paymentMethodTitle ?? paymentOption.title}) shared with
-                    PetroTrade for approval review.
+                    PolyStoreX for approval review.
                   </p>
                   <Button
                     type="button"
@@ -318,7 +318,7 @@ export function PurchaseOrderSuccessPage() {
                     <p className="font-medium">{item.name}</p>
                     <p className="text-xs text-slate-500">
                       {formatQuantityMt(item.quantityMt)} · Fulfilled by
-                      PetroTrade Network
+                      PolyStoreX Network
                     </p>
                   </div>
                   <p className="font-semibold tabular-nums">
@@ -365,7 +365,7 @@ export function PurchaseOrderSuccessPage() {
                 />
               </div>
               <p className="pt-1 text-[11px] text-slate-400">
-                Fulfilled by PetroTrade Network
+                Fulfilled by PolyStoreX Network
               </p>
             </CardContent>
           </Card>

@@ -184,7 +184,7 @@ export function PurchaseRequestSuccessPage() {
               </p>
               <p className="mt-1 text-xs leading-[18px] text-slate-600">
                 Seller identity stays confidential until commercial acceptance.
-                PetroTrade manages matching and negotiation on your behalf.
+                PolyStoreX manages matching and negotiation on your behalf.
               </p>
             </div>
           </div>

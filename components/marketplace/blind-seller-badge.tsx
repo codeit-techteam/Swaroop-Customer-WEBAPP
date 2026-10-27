@@ -34,7 +34,7 @@ export function BlindSellerBadge({
         </TooltipTrigger>
         <TooltipContent className="max-w-xs text-xs leading-relaxed">
           Supplier identity remains confidential during marketplace discovery
-          and procurement. Disclosure follows PetroTrade transaction policy.
+          and procurement. Disclosure follows PolyStoreX transaction policy.
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

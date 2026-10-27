@@ -2,6 +2,7 @@ import apiClient from "@/lib/apiClient";
 import {
   brandsFromProducts,
   categoriesFromProducts,
+  dedupeMarketplaceProducts,
   toMarketplaceOffer,
   toMarketplaceProduct,
   warehousesFromProducts,
@@ -34,7 +35,6 @@ export async function fetchMarketplaceCatalog(): Promise<{
   const pages: BlindProduct[] = [];
   let page = 1;
   let totalPages = 1;
-  let total = 0;
 
   do {
     const base = productsApiBase();
@@ -44,17 +44,16 @@ export async function fetchMarketplaceCatalog(): Promise<{
     );
     pages.push(...(payload.data ?? []));
     totalPages = payload.meta?.totalPages ?? 1;
-    total = payload.meta?.total ?? pages.length;
     page += 1;
   } while (page <= totalPages && page <= 10);
 
-  const products = pages.map(toMarketplaceProduct);
+  const products = dedupeMarketplaceProducts(pages.map(toMarketplaceProduct));
   return {
     products,
     categories: categoriesFromProducts(products),
     brands: brandsFromProducts(products),
     warehouses: warehousesFromProducts(products),
-    total,
+    total: products.length,
   };
 }
 

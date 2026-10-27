@@ -33,7 +33,7 @@ export function AccountManagerCard({
       description: manager.email,
     });
     window.open(
-      `mailto:${manager.email}?subject=PetroTrade%20Enterprise%20Support`,
+      `mailto:${manager.email}?subject=PolyStoreX%20Enterprise%20Support`,
       "_blank",
     );
   }

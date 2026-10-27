@@ -57,7 +57,7 @@ export function creditPaymentTermsLabel(
 ): string {
   if (creditTermDays === 15) return "Net-15";
   if (creditTermDays === 30) return "Net-30";
-  return "PetroTrade managed";
+  return "PolyStoreX managed";
 }
 
 export function monthlyPurchaseLabel(band: MonthlyPurchaseBand | ""): string {

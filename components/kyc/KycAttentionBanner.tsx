@@ -52,7 +52,7 @@ export function KycAttentionBanner() {
           </p>
           <p className="mt-1 text-sm text-slate-600">
             Verify your PAN and GSTIN and upload your documents to get full
-            access to PetroTrade.
+            access to PolyStoreX.
           </p>
         </div>
         <Link
@@ -88,7 +88,7 @@ export function KycAttentionBanner() {
             <XCircle className="h-4 w-4 shrink-0" />
           )}
           {changes
-            ? "PetroTrade requested changes to your KYC"
+            ? "PolyStoreX requested changes to your KYC"
             : "Your KYC needs correction"}
         </p>
         {reason ? (

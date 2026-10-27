@@ -62,7 +62,9 @@ export function mapProductToSelected(
   },
 ): SelectedProduct | null {
   const product =
-    useMarketplaceStore.getState().products.find((item) => item.id === productId) ??
+    useMarketplaceStore
+      .getState()
+      .products.find((item) => item.id === productId) ??
     getProductById(productId);
   if (!product) return null;
 
@@ -71,7 +73,7 @@ export function mapProductToSelected(
     name: product.name,
     grade: product.grade,
     manufacturer: "Verified Supply Partner",
-    warehouse: "PetroTrade Network Hub",
+    warehouse: "PolyStoreX Network Hub",
     warehouseRegion: "Western India Region",
     availableStock: product.stock,
     moq: overrides?.moq ?? product.moq,
@@ -108,7 +110,7 @@ export const VALIDATION_STEP_TITLES: Record<ValidationStepId, string> = {
 };
 
 export const VALIDATION_STEP_SUBTITLES: Record<ValidationStepId, string> = {
-  order_received: "Request received by PetroTrade",
+  order_received: "Request received by PolyStoreX",
   payment_verified: "Credit facility limit checked",
   procurement_matching: "Identified optimal sourcing node",
   price_reconfirmation: "Validating current market index",

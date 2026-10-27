@@ -154,7 +154,7 @@ export function ReceiptsPage() {
           {selected ? (
             <div className="space-y-1 rounded-2xl border border-slate-200 bg-slate-50 p-5">
               <p className="text-center text-xs font-semibold uppercase tracking-widest text-brand">
-                PetroTrade Technologies
+                PolyStoreX Technologies
               </p>
               <p className="pb-3 text-center text-lg font-semibold">
                 {selected.receiptNumber}

@@ -38,7 +38,12 @@ function specEntries(product: MarketplaceProduct) {
     const value = specs[key];
     if (value) {
       entries.push({
-        label: key === "mfi" ? "MFI" : key === "iv" ? "IV" : key.charAt(0).toUpperCase() + key.slice(1),
+        label:
+          key === "mfi"
+            ? "MFI"
+            : key === "iv"
+              ? "IV"
+              : key.charAt(0).toUpperCase() + key.slice(1),
         value,
       });
     }
@@ -134,11 +139,11 @@ export function ProductCard({
             {formatQuantityMt(product.moq)}
           </p>
         </div>
-        <div>
+        <div className="min-w-0 sm:col-span-2">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
             Location
           </p>
-          <p className="mt-0.5 font-medium text-slate-800">
+          <p className="mt-0.5 break-words font-medium text-slate-800">
             {regionLabel(product)}
           </p>
         </div>

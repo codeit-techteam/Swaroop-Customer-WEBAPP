@@ -13,26 +13,26 @@
     --popover: 0 0% 100%;
     --popover-foreground: 213 78% 12%;
 
-    /* #0B2E59 */
-    --primary: 213 78% 20%;
+    /* PolyStoreX primary #00338D */
+    --primary: 218 100% 28%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 25% 96%;
-    --secondary-foreground: 213 78% 20%;
+    --secondary-foreground: 218 100% 28%;
 
     --muted: 210 20% 96%;
     --muted-foreground: 215 16% 42%;
 
-    /* Accent Blue #1E6FFF */
-    --accent: 217 100% 56%;
-    --accent-foreground: 0 0% 100%;
+    /* PolyStoreX accent #FFB800 */
+    --accent: 43 100% 50%;
+    --accent-foreground: 218 100% 18%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 214 24% 90%;
     --input: 214 24% 90%;
-    --ring: 213 78% 20%;
+    --ring: 218 100% 28%;
 
     --radius: 0.875rem;
   }

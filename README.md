@@ -1,6 +1,6 @@
-# PetroTrade Customer Web Application
+# PolyStoreX Customer Web Application
 
-Enterprise B2B customer web portal (desktop companion to the PetroTrade Customer Mobile App).
+Enterprise B2B customer web portal (desktop companion to the PolyStoreX Customer Mobile App).
 
 ## Stack
 

@@ -92,7 +92,7 @@ export function PurchaseOrdersPage() {
       <DocumentsModuleChrome />
       <PageHeader
         title="Purchase Orders"
-        description="Formal POs linked to approved purchase requests and PetroTrade confirmations."
+        description="Formal POs linked to approved purchase requests and PolyStoreX confirmations."
         breadcrumbs={[{ label: "Documents" }]}
       />
 

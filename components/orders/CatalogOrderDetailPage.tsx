@@ -211,7 +211,7 @@ export function CatalogOrderDetailPage({
                     Handled By
                   </dt>
                   <dd className="mt-1 text-sm font-medium text-slate-900">
-                    PetroTrade Operations
+                    PolyStoreX Operations
                   </dd>
                 </div>
                 <div className="rounded-xl border border-slate-100 px-3 py-2.5">
@@ -480,7 +480,7 @@ export function CatalogOrderDetailPage({
           </Card>
 
           <p className="px-1 text-center text-[11px] leading-relaxed text-slate-400">
-            Commercial documents reference PetroTrade as counterparty. Supplier
+            Commercial documents reference PolyStoreX as counterparty. Supplier
             identity stays protected per blind marketplace policy.
           </p>
         </aside>

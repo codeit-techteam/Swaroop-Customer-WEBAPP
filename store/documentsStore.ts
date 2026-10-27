@@ -84,11 +84,7 @@ function nowIso() {
 export function computeDocumentsSummary(
   state: Pick<
     DocumentsStoreState,
-    | "purchaseOrders"
-    | "invoices"
-    | "certificates"
-    | "downloads"
-    | "proformas"
+    "purchaseOrders" | "invoices" | "certificates" | "downloads" | "proformas"
   >,
 ): DocumentsDashboardSummary {
   return {
@@ -461,7 +457,10 @@ export const useDocumentsStore = create<DocumentsStoreState>()(
             notifications: [],
             isLoading: false,
             isHydrated: true,
-            loadError: error instanceof Error ? error.message : "Unable to load documents.",
+            loadError:
+              error instanceof Error
+                ? error.message
+                : "Unable to load documents.",
           });
         }
       },
@@ -587,7 +586,7 @@ export const useDocumentsStore = create<DocumentsStoreState>()(
           seller: proforma.seller,
           warehouse: proforma.warehouse,
           company: {
-            name: "PetroTrade Technologies Pvt Ltd",
+            name: "PolyStoreX Technologies Pvt Ltd",
             gstin: "27AABCP4821Q1ZV",
             address: "12th Floor, One BKC, Bandra Kurla Complex",
             city: "Mumbai",
@@ -622,10 +621,7 @@ export const useDocumentsStore = create<DocumentsStoreState>()(
 
         set((s) => ({
           invoices: [invoice, ...s.invoices],
-          gstInvoices: [
-            ...invoicesToGstDocuments([invoice]),
-            ...s.gstInvoices,
-          ],
+          gstInvoices: [...invoicesToGstDocuments([invoice]), ...s.gstInvoices],
           proformas: s.proformas.map((p) =>
             p.id === proformaId
               ? {

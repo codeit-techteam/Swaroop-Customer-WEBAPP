@@ -104,7 +104,7 @@ export function HelpCard({ variant = "card", className }: HelpCardProps) {
         <DialogHeader>
           <DialogTitle>Need Help?</DialogTitle>
           <DialogDescription>
-            Reach PetroTrade support by phone, email, or send us a message.
+            Reach PolyStoreX support by phone, email, or send us a message.
           </DialogDescription>
         </DialogHeader>
 

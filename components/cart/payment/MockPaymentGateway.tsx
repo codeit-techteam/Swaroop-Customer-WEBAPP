@@ -69,7 +69,7 @@ export function MockPaymentGateway({
           Complete Payment
         </CardTitle>
         <p className="text-xs text-slate-500">
-          Mock payment gateway · no real charge. Fulfilled by PetroTrade
+          Mock payment gateway · no real charge. Fulfilled by PolyStoreX
           Network.
         </p>
       </CardHeader>

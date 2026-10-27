@@ -1,5 +1,5 @@
 /**
- * CMS-style material taxonomy for PetroTrade blind marketplace tiles.
+ * CMS-style material taxonomy for PolyStoreX blind marketplace tiles.
  * gradeCount / startingPrice are aligned with `blindGradesMock`.
  */
 

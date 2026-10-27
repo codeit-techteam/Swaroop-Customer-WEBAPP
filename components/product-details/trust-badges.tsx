@@ -1,16 +1,10 @@
 "use client";
 
-import {
-  BadgeCheck,
-  FileCheck2,
-  Lock,
-  Receipt,
-  Truck,
-} from "lucide-react";
+import { BadgeCheck, FileCheck2, Lock, Receipt, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TRUST_ITEMS = [
-  { label: "PetroTrade Verified", icon: BadgeCheck },
+  { label: "PolyStoreX Verified", icon: BadgeCheck },
   { label: "Tax Invoice", icon: Receipt },
   { label: "Quality Checked", icon: FileCheck2 },
   { label: "Secure Payment", icon: Lock },
@@ -36,7 +30,10 @@ export function TrustBadges({ className }: TrustBadgesProps) {
             key={item.label}
             className="flex items-center gap-2 rounded-xl bg-slate-50/80 px-2.5 py-2"
           >
-            <Icon className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden="true" />
+            <Icon
+              className="h-3.5 w-3.5 shrink-0 text-brand"
+              aria-hidden="true"
+            />
             <span className="text-[11px] font-semibold leading-tight text-slate-700">
               {item.label}
             </span>

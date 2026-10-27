@@ -18,7 +18,7 @@ export async function generateMetadata({
   const { id } = await params;
   return {
     title: `Product ${id} | Marketplace`,
-    description: "Marketplace product details from PetroTrade catalog.",
+    description: "Marketplace product details from PolyStoreX catalog.",
   };
 }
 

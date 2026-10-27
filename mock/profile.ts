@@ -180,7 +180,7 @@ export const customerProfileMock: CustomerProfileState = {
     availableCredit: 31_25_000,
     paymentScore: 92,
     averagePaymentDays: 18,
-    creditPartner: "PetroTrade Finance",
+    creditPartner: "PolyStoreX Finance",
     interestRate: 12.5,
     paymentTerms: ["advance", "15_days", "30_days"],
     history: [
@@ -297,7 +297,7 @@ export const customerProfileMock: CustomerProfileState = {
     {
       id: "act-4",
       title: "Order Generated",
-      description: "PO-2026-00452 generated after PetroTrade confirmation.",
+      description: "PO-2026-00452 generated after PolyStoreX confirmation.",
       at: "2026-08-01T09:30:00.000Z",
       category: "order",
     },
@@ -325,7 +325,7 @@ export const customerProfileMock: CustomerProfileState = {
     {
       id: "act-8",
       title: "Company Created",
-      description: "Swaroop Plastic Industries onboarded onto PetroTrade.",
+      description: "Swaroop Plastic Industries onboarded onto PolyStoreX.",
       at: "2022-06-14T05:00:00.000Z",
       category: "account",
     },

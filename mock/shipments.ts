@@ -50,7 +50,7 @@ export const DELIVERY_COPY = {
   headerTitle: "Delivered",
   successTitle: "Shipment Delivered Successfully",
   successSubtitle:
-    "Your shipment has been successfully delivered and received. Thank you for choosing PetroTrade.",
+    "Your shipment has been successfully delivered and received. Thank you for choosing PolyStoreX.",
   rateLabel: "Rate Delivery",
   repeatLabel: "Repeat Purchase",
   downloadInvoice: "Download Invoice",

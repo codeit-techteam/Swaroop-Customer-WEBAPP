@@ -20,9 +20,13 @@ export const metadata: Metadata = {
     template: `%s | ${env.appName}`,
   },
   description:
-    "PetroTrade Customer Web Portal — desktop companion to the PetroTrade Customer Mobile App.",
+    "PolyStoreX Customer Web Portal — desktop companion to the PolyStoreX Customer Mobile App.",
   applicationName: env.appName,
   metadataBase: new URL(env.appUrl),
+  icons: {
+    icon: "/favicon.png",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({

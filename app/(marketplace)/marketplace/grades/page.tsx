@@ -9,7 +9,7 @@ import {
 export const metadata: Metadata = {
   title: "Grade Directory | Marketplace",
   description:
-    "Browse the PetroTrade Grade Master by category, grade group and manufacturer.",
+    "Browse the PolyStoreX Grade Master by category, grade group and manufacturer.",
 };
 
 export default function MarketplaceGradesPage() {

@@ -270,7 +270,7 @@ export function RequestCreditPage() {
         description={
           hasActiveFacility
             ? "Request additional credit or revised payment terms. Your current facility stays active while this application is reviewed."
-            : "Apply for a PetroTrade credit facility to purchase materials on Net-15 or Net-30 terms. Your application is reviewed before approval."
+            : "Apply for a PolyStoreX credit facility to purchase materials on Net-15 or Net-30 terms. Your application is reviewed before approval."
         }
         breadcrumbs={[
           { label: "Payments", href: ROUTES.payments },

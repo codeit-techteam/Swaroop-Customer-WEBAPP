@@ -59,7 +59,7 @@ export function generateOnboardingPdf(state: OnboardingState): void {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.setTextColor(11, 46, 89);
-  doc.text("PetroTrade Portal", 20, 22);
+  doc.text("PolyStoreX Portal", 20, 22);
 
   doc.setFontSize(14);
   doc.setTextColor(15, 23, 42);

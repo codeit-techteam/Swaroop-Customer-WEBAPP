@@ -69,7 +69,7 @@ export function ActiveRequestsPage() {
     <PageContainer>
       <PageHeader
         title="Active Requests"
-        description="Purchase requests currently in progress — draft through PetroTrade review."
+        description="Purchase requests currently in progress — draft through PolyStoreX review."
         breadcrumbs={[
           { label: "Purchase Requests", href: ROUTES.purchaseRequests },
           { label: "Active" },

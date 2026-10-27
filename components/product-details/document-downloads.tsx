@@ -100,7 +100,7 @@ export function DocumentDownloads({
         Technical Documents
       </h2>
       <p className="mt-0.5 text-xs text-slate-500">
-        Verified product documents from PetroTrade
+        Verified product documents from PolyStoreX
       </p>
       <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {visibleDocuments.map((doc) => (

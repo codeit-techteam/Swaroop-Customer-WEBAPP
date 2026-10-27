@@ -26,7 +26,10 @@ export type AuthSessionPayload = AuthTokens & {
 
 type LoginBody = { password: string; email?: string; phone?: string };
 
-function identifierPayload(identifier: string): { email?: string; phone?: string } {
+function identifierPayload(identifier: string): {
+  email?: string;
+  phone?: string;
+} {
   if (looksLikeEmail(identifier)) {
     return { email: identifier.trim().toLowerCase() };
   }
@@ -47,7 +50,7 @@ export function authErrorMessage(error: unknown, fallback: string): string {
     if (typeof message === "string" && message) return message;
     if (Array.isArray(message) && message[0]) return message[0];
     if (!error.response) {
-      return "Unable to reach PetroTrade. Confirm the backend is running.";
+      return "Unable to reach PolyStoreX. Confirm the backend is running.";
     }
   }
   if (error instanceof Error && error.message) return error.message;
@@ -70,7 +73,9 @@ export async function sendAuthOtp(
   identifier: string,
   purpose: "LOGIN" | "SIGNUP" | "PASSWORD_RESET" = "LOGIN",
 ): Promise<{ message: string; devOtp?: string }> {
-  const payload = await apiClient.post<Envelope<{ message: string; devOtp?: string }>>(
+  const payload = await apiClient.post<
+    Envelope<{ message: string; devOtp?: string }>
+  >(
     "/auth/otp/send",
     { ...identifierPayload(identifier), purpose },
     { skipAuth: true, skipRefresh: true },

@@ -1,7 +1,7 @@
 import type { NavItem } from "@/types";
 
-export const APP_NAME = "PetroTrade Customer Portal";
-export const APP_SHORT_NAME = "PetroTrade";
+export const APP_NAME = "PolyStoreX Customer Portal";
+export const APP_SHORT_NAME = "PolyStoreX";
 
 export const ROUTES = {
   home: "/",
@@ -164,7 +164,7 @@ export const PROTECTED_ROUTE_PREFIXES = [
 ] as const;
 
 /**
- * Customer App sidebar — mirrors PetroTrade Customer Mobile workflow.
+ * Customer App sidebar — mirrors PolyStoreX Customer Mobile workflow.
  * Badge counts are applied at render time from live data (`useNavBadgeCounts`).
  */
 export const CUSTOMER_NAV: NavItem[] = [

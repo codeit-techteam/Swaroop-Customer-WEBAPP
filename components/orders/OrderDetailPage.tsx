@@ -69,7 +69,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
     <PageContainer>
       <PageHeader
         title="Order Details"
-        description="Order generated after PetroTrade confirmation — track payment, dispatch and shipment."
+        description="Order generated after PolyStoreX confirmation — track payment, dispatch and shipment."
         breadcrumbs={[
           { label: "Orders", href: ROUTES.orders },
           { label: order.id },
@@ -146,7 +146,9 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
                     <Package className="h-3 w-3" aria-hidden />
                     Warehouse
                   </dt>
-                  <dd className="mt-1 text-sm font-semibold">{order.warehouse}</dd>
+                  <dd className="mt-1 text-sm font-semibold">
+                    {order.warehouse}
+                  </dd>
                 </div>
                 <div className="rounded-xl bg-slate-50 p-3">
                   <dt className="text-[11px] uppercase tracking-wide text-slate-500">

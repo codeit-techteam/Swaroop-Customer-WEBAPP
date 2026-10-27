@@ -5,7 +5,7 @@ import { ForgotPasswordHero } from "@/components/auth/forgot-password-hero";
 
 export const metadata: Metadata = {
   title: "Forgot Password",
-  description: "Reset your PetroTrade institutional account password",
+  description: "Reset your PolyStoreX institutional account password",
 };
 
 export default function ForgotPasswordPage() {

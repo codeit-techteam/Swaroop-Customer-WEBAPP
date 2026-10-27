@@ -9,7 +9,7 @@ export const PRODUCT_GALLERY_IMAGES: ProductGalleryImage[] = [];
 export const DEFAULT_QUALITY_ASSURANCE: QualityAssurance = {
   title: "Certified Quality",
   subtitle:
-    "Issued Through PetroTrade Quality Assurance · Verified By PetroTrade QC",
+    "Issued Through PolyStoreX Quality Assurance · Verified By PolyStoreX QC",
   badges: ["Quality Assured", "GST Compliant", "NABL Approved Lab"],
 };
 

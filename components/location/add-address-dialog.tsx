@@ -470,7 +470,7 @@ export function AddAddressDialog({
           <DialogDescription>
             {step === "search"
               ? "Search your delivery location or use where you are right now."
-              : "Saved to your PetroTrade organization for checkout and freight — shared with the Customer APP for the same login."}
+              : "Saved to your PolyStoreX organization for checkout and freight — shared with the Customer APP for the same login."}
           </DialogDescription>
         </DialogHeader>
 

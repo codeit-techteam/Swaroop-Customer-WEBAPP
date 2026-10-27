@@ -134,7 +134,7 @@ export const MOCK_SUPPORT_TICKETS: SupportTicket[] = [
     status: "waiting_customer",
     subject: "Purchase request declined — need clarification",
     description:
-      "PR-4502 was declined after PetroTrade review. Need commercial reason and options to resubmit.",
+      "PR-4502 was declined after PolyStoreX review. Need commercial reason and options to resubmit.",
     createdAt: "2026-08-04T05:30:00.000Z",
     updatedAt: "2026-08-04T08:00:00.000Z",
     assignedTo: "Support Desk",
@@ -284,9 +284,9 @@ export const MOCK_FAQS: FaqItem[] = [
   },
   {
     id: "faq-6",
-    question: "What happens if PetroTrade declines a request?",
+    question: "What happens if PolyStoreX declines a request?",
     answer:
-      "Rejected purchase requests appear under Purchase Requests → Rejected with PetroTrade remark. You can reorder with revised commercial terms or raise a Support ticket for Account Manager mediation.",
+      "Rejected purchase requests appear under Purchase Requests → Rejected with PolyStoreX remark. You can reorder with revised commercial terms or raise a Support ticket for Account Manager mediation.",
     tags: ["orders", "rejection"],
   },
   {
@@ -315,11 +315,11 @@ export const MOCK_SUPPORT_DOCS: SupportDoc[] = [
     fileName: "petrotrade-gst-guide.pdf",
     pages: 18,
     updatedAt: "2026-06-12",
-    content: `PETROTRADE ENTERPRISE — GST GUIDE
+    content: `POLYSTOREX ENTERPRISE — GST GUIDE
 ================================
 
 1. E-Invoice lifecycle
-   - PetroTrade generates IRN on confirmation of tax invoice.
+   - PolyStoreX generates IRN on confirmation of tax invoice.
    - Buyer downloads JSON/PDF from Documents → Invoices.
 
 2. HSN references
@@ -475,13 +475,13 @@ export const MOCK_KNOWLEDGE_ARTICLES: KnowledgeArticle[] = [
   },
   {
     id: "kb-5",
-    title: "What to do when PetroTrade declines your PR",
+    title: "What to do when PolyStoreX declines your PR",
     shortDescription: "Options for renegotiation, reorder, or mediation.",
     category: "orders",
     readTime: "4 min",
     popular: true,
     content:
-      "Review PetroTrade remarks, adjust commercials, or escalate via Account Manager for strategic offtake programs.",
+      "Review PolyStoreX remarks, adjust commercials, or escalate via Account Manager for strategic offtake programs.",
   },
   {
     id: "kb-6",
@@ -517,7 +517,7 @@ export const MOCK_CHAT_THREAD: ChatMessage[] = [
     "chat-1",
     "executive",
     "Asha Krishnan",
-    "Welcome to PetroTrade Live Support. You're connected to Asha from Enterprise Desk.",
+    "Welcome to PolyStoreX Live Support. You're connected to Asha from Enterprise Desk.",
     "2026-08-04T10:00:00.000Z",
   ),
   msg(

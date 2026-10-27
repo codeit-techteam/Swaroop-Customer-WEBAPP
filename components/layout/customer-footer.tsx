@@ -20,7 +20,7 @@ export function CustomerFooter({ className }: CustomerFooterProps) {
             {APP_SHORT_NAME} Enterprise
           </p>
           <p className="mt-0.5 text-xs text-slate-400">
-            © PetroTrade Industrial Markets · India · GST Ready
+            © PolyStoreX Industrial Markets · India · GST Ready
           </p>
         </div>
         <nav

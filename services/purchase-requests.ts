@@ -130,7 +130,7 @@ export function mapPurchaseRequest(
     paymentMethodId,
     paymentMethodTitle:
       paymentMethodId === "credit_15" || paymentMethodId === "credit_30"
-        ? "Credit — PetroTrade Managed"
+        ? "Credit — PolyStoreX Managed"
         : paymentMethodId.replaceAll("_", " "),
     status,
     requestStatus: mapRequestStatus(item.status),

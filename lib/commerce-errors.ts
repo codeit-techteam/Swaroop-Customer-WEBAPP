@@ -68,7 +68,8 @@ const COPY: Record<string, Omit<CommerceErrorCopy, "code">> = {
   },
   QUOTE_NOT_FOUND: {
     title: "Quote unavailable",
-    message: "This quote could not be found. Return to cart to get a new price.",
+    message:
+      "This quote could not be found. Return to cart to get a new price.",
   },
   CREDIT_NOT_ELIGIBLE: {
     title: "Credit unavailable",
@@ -76,7 +77,7 @@ const COPY: Record<string, Omit<CommerceErrorCopy, "code">> = {
   },
   CREDIT_LIMIT_EXCEEDED: {
     title: "Credit limit exceeded",
-    message: "Requested amount exceeds your available PetroTrade credit.",
+    message: "Requested amount exceeds your available PolyStoreX credit.",
   },
   NETWORK_ERROR: {
     title: "Unable to refresh pricing",

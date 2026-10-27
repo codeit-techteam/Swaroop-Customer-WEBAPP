@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | PetroTrade",
+    template: "%s | PolyStoreX",
     default: "Authentication",
   },
 };

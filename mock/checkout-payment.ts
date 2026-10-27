@@ -61,11 +61,11 @@ export const checkoutPaymentOptionsMock: CheckoutPaymentOption[] = [
     id: "on_delivery",
     title: "Cash On Delivery (On Delivery)",
     description:
-      "Payment after delivery. Subject to PetroTrade approval. Available only for eligible customers.",
+      "Payment after delivery. Subject to PolyStoreX approval. Available only for eligible customers.",
     timing: "On Delivery",
     benefits: [
       "Pay after delivery",
-      "Subject to PetroTrade approval",
+      "Subject to PolyStoreX approval",
       "Eligible customers only",
     ],
     badge: { label: "Approval Required", variant: "approval" },

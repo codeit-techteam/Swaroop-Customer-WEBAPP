@@ -70,7 +70,7 @@ export function FloatingChatWidget() {
         <div className="fixed bottom-24 right-4 z-50 flex w-[min(100vw-2rem,360px)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl md:bottom-6 md:right-6">
           <div className="flex items-center justify-between bg-brand px-4 py-3 text-white">
             <div>
-              <p className="text-sm font-semibold">PetroTrade Support</p>
+              <p className="text-sm font-semibold">PolyStoreX Support</p>
               <p className="text-xs opacity-80">
                 Synced with Admin desk
                 {chatTicketId ? " · live ticket" : ""}

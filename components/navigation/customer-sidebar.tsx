@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Factory, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
+import Image from "next/image";
 import { CUSTOMER_NAV, ROUTES, APP_SHORT_NAME } from "@/constants";
+
 import { Sidebar } from "@/components/layout/sidebar";
 import { SidebarItem } from "@/components/navigation/sidebar-item";
 import { SidebarJourney } from "@/components/navigation/sidebar-journey";
@@ -197,8 +199,15 @@ export function CustomerSidebar({
           )}
           onClick={handleNavigate}
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-white to-brand-50 text-brand shadow-[0_8px_18px_rgba(0,0,0,0.18)]">
-            <Factory className="h-[18px] w-[18px]" strokeWidth={2.2} />
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-[0_8px_18px_rgba(0,0,0,0.18)]">
+            <Image
+              src="/brand/polystorex-logo.png"
+              alt={APP_SHORT_NAME}
+              width={36}
+              height={36}
+              className="h-9 w-9 object-contain"
+              priority
+            />
           </span>
           {!collapsed ? (
             <span className="min-w-0">

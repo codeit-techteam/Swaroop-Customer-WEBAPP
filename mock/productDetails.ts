@@ -97,7 +97,7 @@ export function getProductDetailsById(
     procurementTerms: DEFAULT_PROCUREMENT_TERMS,
     trustTitle: "Platform Assurance",
     trustDescription:
-      "This product is fulfilled by PetroTrade Supply Network. Supplier identity is never disclosed — all transactions are with PetroTrade.",
+      "This product is fulfilled by PolyStoreX Supply Network. Supplier identity is never disclosed — all transactions are with PolyStoreX.",
     trustHighlight: "Verified Supply Network",
     trustFeatures: DEFAULT_TRUST_FEATURES,
     paymentEligibility,

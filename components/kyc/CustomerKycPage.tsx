@@ -91,7 +91,7 @@ function StatusBanner({ overview }: { overview: CustomerKycOverview }) {
             <ShieldCheck className="h-4 w-4" /> KYC verified
           </p>
           <p className="mt-1 text-sm">
-            Your business is verified. You have full access to PetroTrade.
+            Your business is verified. You have full access to PolyStoreX.
           </p>
         </div>
         <Button asChild size="sm">
@@ -152,7 +152,7 @@ function StatusBanner({ overview }: { overview: CustomerKycOverview }) {
         </p>
         <p className="mt-1 text-sm">
           Submitted {formatDateTime(overview.submittedAt) ?? "recently"}. The
-          PetroTrade compliance team is reviewing your details. We&apos;ll
+          PolyStoreX compliance team is reviewing your details. We&apos;ll
           notify you once the review is complete.
         </p>
       </div>
@@ -293,7 +293,7 @@ function verifiedByLine(verification: KycVerification): string | null {
     : null;
   const by =
     verification.method === "MANUAL"
-      ? "Verified by the PetroTrade compliance team"
+      ? "Verified by the PolyStoreX compliance team"
       : verification.provider === "surepass"
         ? "Verified via Surepass"
         : "Verified";
@@ -929,7 +929,7 @@ export function CustomerKycPage() {
     <PageContainer className="max-w-3xl">
       <PageHeader
         title="Business KYC"
-        description="Your details are verified securely by PetroTrade and reviewed by our compliance team."
+        description="Your details are verified securely by PolyStoreX and reviewed by our compliance team."
         breadcrumbs={[
           { label: "Profile", href: ROUTES.profile },
           { label: "Business KYC" },

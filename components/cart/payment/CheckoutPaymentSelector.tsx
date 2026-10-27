@@ -37,7 +37,7 @@ export function CheckoutPaymentSelector({
         </h2>
         <p className="mt-1 text-sm leading-relaxed text-slate-500">
           Choose how you want to pay for this order. Your selected payment
-          method will be shared with PetroTrade during seller approval.
+          method will be shared with PolyStoreX during seller approval.
         </p>
       </div>
 

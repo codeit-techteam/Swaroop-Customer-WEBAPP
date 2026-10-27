@@ -168,7 +168,7 @@ export function gradeDirectoryErrorMessage(
 ): string {
   if (isAxiosError<{ message?: string | string[] }>(error)) {
     if (!error.response) {
-      return "Unable to reach PetroTrade. Check your connection and try again.";
+      return "Unable to reach PolyStoreX. Check your connection and try again.";
     }
     const message = error.response.data?.message;
     if (typeof message === "string" && message) return message;

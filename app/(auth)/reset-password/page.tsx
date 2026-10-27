@@ -3,7 +3,7 @@ import { ResetPasswordPageShell } from "@/components/auth/reset-password-page-sh
 
 export const metadata: Metadata = {
   title: "Reset Password",
-  description: "Create a new password for your PetroTrade account",
+  description: "Create a new password for your PolyStoreX account",
 };
 
 export default function ResetPasswordPage() {

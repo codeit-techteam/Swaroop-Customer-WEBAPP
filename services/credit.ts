@@ -318,7 +318,7 @@ export function creditApiError(error: unknown, fallback: string): string {
     if (typeof message === "string" && message) return message;
     if (Array.isArray(message) && message[0]) return String(message[0]);
     if (!error.response) {
-      return "Unable to reach PetroTrade. Check your connection and try again.";
+      return "Unable to reach PolyStoreX. Check your connection and try again.";
     }
   }
   if (
@@ -355,7 +355,7 @@ export function toDashboardCredit(limit: BackendCreditLimit): {
       currency: "INR",
       invoiceId: "",
       dueLabel:
-        outstanding > 0 ? "Outstanding PetroTrade credit" : "No invoices due",
+        outstanding > 0 ? "Outstanding PolyStoreX credit" : "No invoices due",
     },
   };
 }

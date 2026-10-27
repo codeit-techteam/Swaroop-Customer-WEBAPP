@@ -77,7 +77,7 @@ export function SubmitPurchaseRequestPage() {
     <PageContainer>
       <PageHeader
         title="Submit Purchase Request"
-        description="Final summary — accept terms and submit to PetroTrade."
+        description="Final summary — accept terms and submit to PolyStoreX."
         breadcrumbs={[
           { label: "Purchase Requests", href: ROUTES.purchaseRequests },
           { label: "Payment", href: ROUTES.purchaseRequestsPayment },
@@ -122,7 +122,7 @@ export function SubmitPurchaseRequestPage() {
                   className="mt-0.5"
                 />
                 <span>
-                  I accept the PetroTrade Industrial Service Terms and Purchase
+                  I accept the PolyStoreX Industrial Service Terms and Purchase
                   Agreement for this request.
                 </span>
               </label>

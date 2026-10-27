@@ -131,7 +131,7 @@ export function CreditApplicationSubmittedView({
             {application.customerMessage ??
               (isPending
                 ? "Your file is locked for underwriting. Existing trading credit, if any, stays active until a decision is made."
-                : "Latest status from the PetroTrade credit desk.")}
+                : "Latest status from the PolyStoreX credit desk.")}
           </p>
         </CardHeader>
         <CardContent className="space-y-4">

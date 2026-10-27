@@ -28,7 +28,7 @@ import type {
   RecentlyGeneratedItem,
 } from "@/types/documents";
 
-/** Blind marketplace: all document parties resolve to PetroTrade. */
+/** Blind marketplace: all document parties resolve to PolyStoreX. */
 
 function pad(n: number, width = 4) {
   return String(n).padStart(width, "0");
@@ -370,7 +370,7 @@ function buildProformas(): ProformaInvoiceDocument[] {
       ],
       pricing,
       paymentTerms:
-        "As per commercial offer · Subject to PetroTrade confirmation",
+        "As per commercial offer · Subject to PolyStoreX confirmation",
       validityNote: "Prices valid until expiry. Subject to stock availability.",
       convertedInvoiceId: status === "converted" ? `inv-${s.index}` : null,
     };
@@ -511,7 +511,7 @@ function buildNotifications(): DocumentNotification[] {
       type: "invoice_generated",
       title: "Invoice Generated",
       message:
-        "INV-2026-3403 has been generated for ORD-2026-1003 · PetroTrade Supply Network.",
+        "INV-2026-3403 has been generated for ORD-2026-1003 · PolyStoreX Supply Network.",
       createdAt: isoDaysAgo(1, 11),
       read: false,
       href: documentsInvoicePath("inv-3"),
@@ -545,10 +545,7 @@ export const purchaseOrdersMock = buildPurchaseOrders();
 export const invoicesMock = buildInvoices();
 export const proformaInvoicesMock = buildProformas();
 export const certificatesMock = buildCertificates();
-export const downloadsMock = buildDownloads(
-  purchaseOrdersMock,
-  invoicesMock,
-);
+export const downloadsMock = buildDownloads(purchaseOrdersMock, invoicesMock);
 export const documentNotificationsMock = buildNotifications();
 
 export const DEFAULT_DOCUMENTS_FILTERS: DocumentsFiltersState = {

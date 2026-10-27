@@ -50,11 +50,11 @@ const DEFAULT_FEATURES = [
   "IS Certified",
   "Quality Assured",
   "Consistent Batch Specs",
-  "PetroTrade Verified",
+  "PolyStoreX Verified",
 ];
 
 export const DEFAULT_PRODUCT_HIGHLIGHTS = [
-  "PetroTrade Verified",
+  "PolyStoreX Verified",
   "Tax Invoice Available",
   "Fast Dispatch",
   "Credit Eligible",

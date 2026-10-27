@@ -15,7 +15,7 @@ export function PageFooter({ className }: PageFooterProps) {
       role="contentinfo"
     >
       <p className="text-xs text-slate-500">
-        © PetroTrade Industrial Solutions. All rights reserved.
+        © PolyStoreX Industrial Solutions. All rights reserved.
       </p>
       <nav
         className="flex flex-wrap items-center gap-4 text-xs text-slate-500"

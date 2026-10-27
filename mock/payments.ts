@@ -75,7 +75,7 @@ export const PAYMENT_PROCESS_COPY: Record<
 
 export const TRANSFER_BANK = {
   bankName: "HDFC Bank",
-  accountName: "PetroTrade India Pvt. Ltd.",
+  accountName: "PolyStoreX India Pvt. Ltd.",
   accountNumber: "XXXXXX4821",
   ifsc: "HDFC0001234",
   branch: "Bandra Kurla Complex, Mumbai",

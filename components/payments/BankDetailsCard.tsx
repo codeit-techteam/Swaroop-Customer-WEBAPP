@@ -5,7 +5,7 @@ import { Copy, Download, QrCode } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PETROTRADE_TRANSFER_BANK } from "@/constants/payments";
+import { POLYSTOREX_TRANSFER_BANK } from "@/constants/payments";
 import { formatInr } from "@/lib/format";
 import type { TransferBankDetails } from "@/types/payments";
 
@@ -64,13 +64,13 @@ function Row({
 }
 
 export function BankDetailsCard({
-  details = PETROTRADE_TRANSFER_BANK,
+  details = POLYSTOREX_TRANSFER_BANK,
   amountToPay,
   deadlineLabel,
 }: BankDetailsCardProps) {
   const downloadDetails = () => {
     const text = [
-      "PetroTrade — Payment Details",
+      "PolyStoreX — Payment Details",
       `Beneficiary: ${details.beneficiaryName}`,
       `Bank: ${details.bankName}`,
       `Branch: ${details.branch}`,

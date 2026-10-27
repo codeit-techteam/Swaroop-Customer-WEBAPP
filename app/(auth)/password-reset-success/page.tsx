@@ -3,7 +3,7 @@ import { PasswordResetSuccessPageShell } from "@/components/auth/password-reset-
 
 export const metadata: Metadata = {
   title: "Password Reset Success",
-  description: "Your PetroTrade account password has been updated",
+  description: "Your PolyStoreX account password has been updated",
 };
 
 export default function PasswordResetSuccessPage() {

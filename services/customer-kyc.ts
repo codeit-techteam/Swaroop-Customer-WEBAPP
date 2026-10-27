@@ -311,7 +311,7 @@ export function customerKycError(error: unknown, fallback: string): string {
     if (typeof message === "string" && message) return message;
     if (Array.isArray(message) && message[0]) return String(message[0]);
     if (!error.response) {
-      return "Unable to reach PetroTrade. Check your connection and try again.";
+      return "Unable to reach PolyStoreX. Check your connection and try again.";
     }
   }
   if (error instanceof Error && error.message === STORAGE_UPLOAD_FAILED) {

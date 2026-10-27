@@ -45,7 +45,12 @@ export type BlindProduct = {
     code: string;
     name: string;
     displayName?: string;
-    category?: { id: string; code: string; name: string } | null;
+    category?: {
+      id: string;
+      code: string;
+      name: string;
+      displayName?: string | null;
+    } | null;
   } | null;
   documents?: Array<{
     id: string;
@@ -109,6 +114,34 @@ export function parentCategoryIdOf(
   return "polymers";
 }
 
+/** B-06: one card per commercially distinct listing (grade + price + MOQ + origin + ETA). */
+export function dedupeMarketplaceProducts(
+  products: MarketplaceProduct[],
+): MarketplaceProduct[] {
+  const byId = new Map<string, MarketplaceProduct>();
+  for (const product of products) {
+    if (!byId.has(product.id)) byId.set(product.id, product);
+  }
+  const unique = [...byId.values()];
+  const best = new Map<string, MarketplaceProduct>();
+  for (const product of unique) {
+    const key = [
+      product.gradeId || product.gradeCode || product.id,
+      product.price,
+      product.moq,
+      (product.origin ?? "").trim().toLowerCase(),
+      (product.warehouseLabel ?? "").trim().toLowerCase(),
+      (product.eta ?? "").trim().toLowerCase().replace(/\s+/g, ""),
+    ].join("::");
+    const previous = best.get(key);
+    if (!previous || product.stock > previous.stock) {
+      best.set(key, product);
+    }
+  }
+  const keep = new Set([...best.values()].map((product) => product.id));
+  return unique.filter((product) => keep.has(product.id));
+}
+
 export function toMarketplaceProduct(
   product: BlindProduct,
 ): MarketplaceProduct {
@@ -152,38 +185,77 @@ export function toMarketplaceProduct(
         })
       : undefined;
 
+  const materialFromSpecs =
+    typeof specs.materialType === "string" ? specs.materialType.trim() : "";
+  const subFromSpecs =
+    typeof specs.subCategory === "string" ? specs.subCategory.trim() : "";
+  const isInternalGradeCode = (value?: string | null) =>
+    Boolean(value && /^[A-Z][A-Z0-9]*(_[A-Z0-9]+)+$/.test(value.trim()));
+  const firstReadable = (...candidates: Array<string | null | undefined>) => {
+    for (const candidate of candidates) {
+      const value = candidate?.trim();
+      if (value && !isInternalGradeCode(value)) return value;
+    }
+    return "";
+  };
+
+  const gradeFull = (
+    product.grade as { fullGradeName?: string | null } | null
+  )?.fullGradeName?.trim();
+  const gradeDisplay = (
+    product.grade as { displayName?: string | null } | null
+  )?.displayName?.trim();
+  const productName = product.name?.trim() || "";
+  // Prefer commercial product name over a shorter/generic grade label (B-05).
   const displayName =
-    (
-      product.grade as {
-        fullGradeName?: string | null;
-        displayName?: string | null;
-      } | null
-    )?.fullGradeName?.trim() ||
-    (
-      product.grade as { displayName?: string | null } | null
-    )?.displayName?.trim() ||
-    product.name;
+    gradeFull ||
+    (productName && (!gradeDisplay || productName.length > gradeDisplay.length)
+      ? productName
+      : "") ||
+    firstReadable(gradeDisplay, product.grade?.name, productName) ||
+    productName;
   const manufacturer =
     product.manufacturer ||
     product.brand ||
     (product.grade as { manufacturer?: string | null } | null)?.manufacturer ||
     undefined;
 
+  const readableCategory =
+    firstReadable(
+      product.grade?.category?.displayName,
+      product.grade?.category?.name,
+      materialFromSpecs,
+      product.grade?.name,
+      productName,
+    ) || productName;
+  // B-05: never surface MASTERBATCH_BLACK on white TiO2 — prefer specs / gradeNo.
+  const materialLabel = firstReadable(materialFromSpecs) || "";
+  const readableBadge =
+    firstReadable(
+      subFromSpecs && materialLabel
+        ? `${subFromSpecs} ${materialLabel}`
+        : undefined,
+      subFromSpecs,
+      (product.grade as { gradeNo?: string | null } | null)?.gradeNo,
+      materialLabel,
+      gradeDisplay,
+      readableCategory,
+    ) || readableCategory;
+
   return {
     id: product.id,
     name: displayName,
-    grade: product.grade?.code ?? String(specs.materialType ?? product.code),
+    grade: readableBadge,
     gradeId: product.grade?.id,
-    gradeCode: product.grade?.code ?? product.code,
+    gradeCode:
+      firstReadable(
+        (product.grade as { gradeNo?: string | null } | null)?.gradeNo,
+        product.code,
+      ) || product.code,
     categoryId: parentCategoryIdOf(product),
-    materialType: String(
-      specs.materialType ??
-        product.grade?.category?.name ??
-        product.grade?.name ??
-        product.name,
-    ),
-    subCategory:
-      typeof specs.subCategory === "string" ? specs.subCategory : undefined,
+    materialType:
+      firstReadable(materialFromSpecs, readableCategory) || readableCategory,
+    subCategory: subFromSpecs || undefined,
     brandId: "private",
     brandName: manufacturer || "",
     brandShortName: manufacturer ? manufacturer.slice(0, 3).toUpperCase() : "—",

@@ -224,7 +224,7 @@ export function OrdersPage() {
     <PageContainer>
       <PageHeader
         title="Orders"
-        description="Orders generated after PetroTrade confirmation — track processing through delivery."
+        description="Orders generated after PolyStoreX confirmation — track processing through delivery."
         breadcrumbs={[{ label: "Orders" }]}
       />
 

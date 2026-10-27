@@ -55,7 +55,7 @@ export function RegisterHero() {
       </div>
 
       <p className="text-[11px] text-white/50">
-        © PetroTrade Solutions. Institutional Trading Environment
+        © PolyStoreX Solutions. Institutional Trading Environment
       </p>
     </div>
   );

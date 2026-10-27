@@ -66,12 +66,7 @@ export function DocumentsDashboardPage() {
   );
 
   const recent = useMemo(
-    () =>
-      buildRecentlyGenerated(
-        purchaseOrders,
-        invoices,
-        certificates,
-      ),
+    () => buildRecentlyGenerated(purchaseOrders, invoices, certificates),
     [purchaseOrders, invoices, certificates],
   );
 
@@ -281,7 +276,7 @@ export function DocumentsDashboardPage() {
                     title: "Document Centre Overview",
                     documentNumber: "GUIDE-DOCS-001",
                     extraLines: [
-                      "1. Purchase Order Generated after PetroTrade confirmation",
+                      "1. Purchase Order Generated after PolyStoreX confirmation",
                       "2. Invoice Generated after commercial confirmation",
                       "3. Payment Completed unlocks receipts",
                       "4. Shipment Documents Ready (packing, challan, e-way)",

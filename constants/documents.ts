@@ -90,7 +90,7 @@ export const DOCUMENT_NOTIFICATION_LABELS: Record<
 
 /** Blind marketplace supply sources — never real supplier company names. */
 export const DOCUMENT_SELLERS = [
-  "PetroTrade Supply Network",
+  "PolyStoreX Supply Network",
   "Verified Supply Network",
   "West India Hub",
   "East India Hub",
@@ -127,7 +127,7 @@ export const BUYER_COMPANY = {
 } as const;
 
 export const PLATFORM_COMPANY = {
-  name: "PetroTrade Technologies Pvt Ltd",
+  name: "PolyStoreX Technologies Pvt Ltd",
   gstin: "27AABCP4821Q1ZV",
   address: "12th Floor, One BKC, Bandra Kurla Complex",
   city: "Mumbai",

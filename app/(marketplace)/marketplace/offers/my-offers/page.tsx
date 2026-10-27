@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { MyOffersPage } from "@/components/marketplace/offers/my-offers-page";
 
 export const metadata: Metadata = {
-  title: "My Offers | PetroTrade",
+  title: "My Offers | PolyStoreX",
   description: "Track your saved, applied and used marketplace offers.",
 };
 

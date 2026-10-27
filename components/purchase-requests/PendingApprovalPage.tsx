@@ -124,7 +124,7 @@ export function PendingApprovalPage() {
     <PageContainer>
       <PageHeader
         title="Pending Confirmation"
-        description="Market price is locked while PetroTrade reviews your request."
+        description="Market price is locked while PolyStoreX reviews your request."
         breadcrumbs={[
           { label: "Purchase Requests", href: ROUTES.purchaseRequests },
           { label: "Pending Approval" },

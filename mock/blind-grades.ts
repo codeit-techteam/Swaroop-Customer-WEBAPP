@@ -1,5 +1,5 @@
 /**
- * Blind B2B marketplace catalog for PetroTrade.
+ * Blind B2B marketplace catalog for PolyStoreX.
  * Seller identity is always PRIVATE — brand/seller fields never surface in UI.
  */
 
@@ -83,7 +83,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-28T08:00:00.000Z",
     popularityScore: 98,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "11.0 g/10 min", density: "0.900 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "11.0 g/10 min",
+      density: "0.900 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-hdpe-f1002",
@@ -110,7 +114,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-22T08:00:00.000Z",
     popularityScore: 92,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "0.20 g/10 min", density: "0.952 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "0.20 g/10 min",
+      density: "0.952 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-pvc-s65",
@@ -164,7 +172,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-18T08:00:00.000Z",
     popularityScore: 85,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "7.0 g/10 min", density: "0.960 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "7.0 g/10 min",
+      density: "0.960 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-lldpe-f24005",
@@ -191,7 +203,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-25T08:00:00.000Z",
     popularityScore: 90,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "0.90 g/10 min", density: "0.920 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "0.90 g/10 min",
+      density: "0.920 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-pet-resin",
@@ -245,7 +261,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-26T08:00:00.000Z",
     popularityScore: 96,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "3.5 g/10 min", density: "0.905 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "3.5 g/10 min",
+      density: "0.905 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-hdpe-pipe",
@@ -272,7 +292,12 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-08T08:00:00.000Z",
     popularityScore: 78,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "0.25 g/10 min", density: "0.960 g/cm³", form: "Pellets", mrs: "10.0 MPa" },
+    technicalSpecs: {
+      mfi: "0.25 g/10 min",
+      density: "0.960 g/cm³",
+      form: "Pellets",
+      mrs: "10.0 MPa",
+    },
   }),
   blindGrade({
     id: "mkt-pvc-k67",
@@ -326,7 +351,12 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-05T08:00:00.000Z",
     popularityScore: 72,
     supplyOrigin: "imported",
-    technicalSpecs: { mfi: "10 g/10 min", density: "1.20 g/cm³", form: "Pellets", transmittance: "89%" },
+    technicalSpecs: {
+      mfi: "10 g/10 min",
+      density: "1.20 g/cm³",
+      form: "Pellets",
+      transmittance: "89%",
+    },
   }),
   blindGrade({
     id: "mkt-abs-resin",
@@ -353,7 +383,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-20T08:00:00.000Z",
     popularityScore: 81,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "15 g/10 min", density: "1.05 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "15 g/10 min",
+      density: "1.05 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-eva-resin",
@@ -380,7 +414,12 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-10T08:00:00.000Z",
     popularityScore: 70,
     supplyOrigin: "imported",
-    technicalSpecs: { mfi: "2.5 g/10 min", density: "0.940 g/cm³", form: "Pellets", vaContent: "18%" },
+    technicalSpecs: {
+      mfi: "2.5 g/10 min",
+      density: "0.940 g/cm³",
+      form: "Pellets",
+      vaContent: "18%",
+    },
   }),
   blindGrade({
     id: "mkt-pp-copolymer",
@@ -407,7 +446,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-27T08:00:00.000Z",
     popularityScore: 89,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "12 g/10 min", density: "0.900 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "12 g/10 min",
+      density: "0.900 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-lldpe-rotomold",
@@ -434,7 +477,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-14T08:00:00.000Z",
     popularityScore: 76,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "4.0 g/10 min", density: "0.935 g/cm³", form: "Powder" },
+    technicalSpecs: {
+      mfi: "4.0 g/10 min",
+      density: "0.935 g/cm³",
+      form: "Powder",
+    },
   }),
   blindGrade({
     id: "mkt-pet-fiber",
@@ -488,7 +535,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-21T08:00:00.000Z",
     popularityScore: 74,
     supplyOrigin: "domestic",
-    technicalSpecs: { purity: "99.5%", form: "Liquid", boilingPoint: "110.6 °C" },
+    technicalSpecs: {
+      purity: "99.5%",
+      form: "Liquid",
+      boilingPoint: "110.6 °C",
+    },
   }),
   blindGrade({
     id: "mkt-meg",
@@ -542,7 +593,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-16T08:00:00.000Z",
     popularityScore: 77,
     supplyOrigin: "domestic",
-    technicalSpecs: { purity: "99.5%", form: "Liquid", viscosity: "80 cP @ 20°C" },
+    technicalSpecs: {
+      purity: "99.5%",
+      form: "Liquid",
+      viscosity: "80 cP @ 20°C",
+    },
   }),
   blindGrade({
     id: "mkt-cao-stabilizer",
@@ -596,7 +651,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-24T08:00:00.000Z",
     popularityScore: 79,
     supplyOrigin: "domestic",
-    technicalSpecs: { viscosity: "28–32 cSt @ 40°C", form: "Liquid", vi: "95+" },
+    technicalSpecs: {
+      viscosity: "28–32 cSt @ 40°C",
+      form: "Liquid",
+      vi: "95+",
+    },
   }),
   blindGrade({
     id: "mkt-base-oil-n500",
@@ -623,7 +682,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-23T08:00:00.000Z",
     popularityScore: 82,
     supplyOrigin: "domestic",
-    technicalSpecs: { viscosity: "90–110 cSt @ 40°C", form: "Liquid", vi: "100+" },
+    technicalSpecs: {
+      viscosity: "90–110 cSt @ 40°C",
+      form: "Liquid",
+      vi: "100+",
+    },
   }),
   blindGrade({
     id: "mkt-base-oil-g3",
@@ -650,7 +713,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-07-09T08:00:00.000Z",
     popularityScore: 68,
     supplyOrigin: "imported",
-    technicalSpecs: { viscosity: "30–34 cSt @ 40°C", form: "Liquid", vi: "120+" },
+    technicalSpecs: {
+      viscosity: "30–34 cSt @ 40°C",
+      form: "Liquid",
+      vi: "120+",
+    },
   }),
 
   // ─── Additional polymers ────────────────────────────────────────────────
@@ -679,7 +746,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-01T08:00:00.000Z",
     popularityScore: 84,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "0.30 g/10 min", density: "0.922 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "0.30 g/10 min",
+      density: "0.922 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-ldpe-injection",
@@ -689,8 +760,7 @@ export const blindGradesMock: MarketplaceProduct[] = [
     categoryId: "polymers",
     materialType: "LDPE",
     subCategory: "Injection Moulding",
-    description:
-      "Injection LDPE for lids, caps and soft moulded components.",
+    description: "Injection LDPE for lids, caps and soft moulded components.",
     price: 93800,
     origin: "Western India Region",
     warehouseId: "wh-jamnagar",
@@ -706,7 +776,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-02T08:00:00.000Z",
     popularityScore: 71,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "7.0 g/10 min", density: "0.918 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "7.0 g/10 min",
+      density: "0.918 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-pp-thermoform",
@@ -733,7 +807,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-03T08:00:00.000Z",
     popularityScore: 86,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "2.8 g/10 min", density: "0.905 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "2.8 g/10 min",
+      density: "0.905 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-cpvc-pipe",
@@ -787,7 +865,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-05T08:00:00.000Z",
     popularityScore: 69,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "3.5 g/10 min", density: "1.04 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "3.5 g/10 min",
+      density: "1.04 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-nylon6-extrusion",
@@ -814,7 +896,12 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-06T08:00:00.000Z",
     popularityScore: 64,
     supplyOrigin: "imported",
-    technicalSpecs: { mfi: "2.4 g/10 min", density: "1.13 g/cm³", form: "Pellets", rv: "2.7" },
+    technicalSpecs: {
+      mfi: "2.4 g/10 min",
+      density: "1.13 g/cm³",
+      form: "Pellets",
+      rv: "2.7",
+    },
   }),
   blindGrade({
     id: "mkt-nylon66-injection",
@@ -841,7 +928,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-07T08:00:00.000Z",
     popularityScore: 62,
     supplyOrigin: "imported",
-    technicalSpecs: { mfi: "18 g/10 min", density: "1.14 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "18 g/10 min",
+      density: "1.14 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-pom-copolymer",
@@ -868,7 +959,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-08T08:00:00.000Z",
     popularityScore: 67,
     supplyOrigin: "imported",
-    technicalSpecs: { mfi: "9.0 g/10 min", density: "1.41 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "9.0 g/10 min",
+      density: "1.41 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-tpu-shore85a",
@@ -895,7 +990,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-09T08:00:00.000Z",
     popularityScore: 58,
     supplyOrigin: "imported",
-    technicalSpecs: { hardness: "85 Shore A", density: "1.18 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      hardness: "85 Shore A",
+      density: "1.18 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-hdpe-blow",
@@ -922,7 +1021,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-10T08:00:00.000Z",
     popularityScore: 88,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "0.35 g/10 min", density: "0.954 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "0.35 g/10 min",
+      density: "0.954 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-lldpe-metallocene",
@@ -949,7 +1052,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-11T08:00:00.000Z",
     popularityScore: 75,
     supplyOrigin: "imported",
-    technicalSpecs: { mfi: "1.0 g/10 min", density: "0.918 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "1.0 g/10 min",
+      density: "0.918 g/cm³",
+      form: "Pellets",
+    },
   }),
 
   // ─── Masterbatch & compounds ────────────────────────────────────────────
@@ -1059,7 +1166,12 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-15T08:00:00.000Z",
     popularityScore: 72,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "8 g/10 min", density: "1.04 g/cm³", form: "Pellets", filler: "20% Talc" },
+    technicalSpecs: {
+      mfi: "8 g/10 min",
+      density: "1.04 g/cm³",
+      form: "Pellets",
+      filler: "20% Talc",
+    },
   }),
   blindGrade({
     id: "mkt-compound-abs-fr",
@@ -1086,7 +1198,12 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-16T08:00:00.000Z",
     popularityScore: 61,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "12 g/10 min", density: "1.18 g/cm³", form: "Pellets", flammability: "UL94 V-0" },
+    technicalSpecs: {
+      mfi: "12 g/10 min",
+      density: "1.18 g/cm³",
+      form: "Pellets",
+      flammability: "UL94 V-0",
+    },
   }),
 
   // ─── Solvents & chemicals ───────────────────────────────────────────────
@@ -1142,7 +1259,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-18T08:00:00.000Z",
     popularityScore: 90,
     supplyOrigin: "domestic",
-    technicalSpecs: { purity: "99.8%", form: "Liquid", boilingPoint: "82.5 °C" },
+    technicalSpecs: {
+      purity: "99.8%",
+      form: "Liquid",
+      boilingPoint: "82.5 °C",
+    },
   }),
   blindGrade({
     id: "mkt-mibk",
@@ -1250,7 +1371,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-22T08:00:00.000Z",
     popularityScore: 76,
     supplyOrigin: "domestic",
-    technicalSpecs: { purity: "99.9%", form: "Liquid", boilingPoint: "80.1 °C" },
+    technicalSpecs: {
+      purity: "99.9%",
+      form: "Liquid",
+      boilingPoint: "80.1 °C",
+    },
   }),
   blindGrade({
     id: "mkt-styrene",
@@ -1277,7 +1402,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-23T08:00:00.000Z",
     popularityScore: 87,
     supplyOrigin: "domestic",
-    technicalSpecs: { purity: "99.8%", form: "Liquid", inhibitor: "10–15 ppm TBC" },
+    technicalSpecs: {
+      purity: "99.8%",
+      form: "Liquid",
+      inhibitor: "10–15 ppm TBC",
+    },
   }),
   blindGrade({
     id: "mkt-mma",
@@ -1304,7 +1433,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-24T08:00:00.000Z",
     popularityScore: 68,
     supplyOrigin: "imported",
-    technicalSpecs: { purity: "99.8%", form: "Liquid", inhibitor: "10–20 ppm MEHQ" },
+    technicalSpecs: {
+      purity: "99.8%",
+      form: "Liquid",
+      inhibitor: "10–20 ppm MEHQ",
+    },
   }),
   blindGrade({
     id: "mkt-maleic-anhydride",
@@ -1331,7 +1464,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-25T08:00:00.000Z",
     popularityScore: 71,
     supplyOrigin: "domestic",
-    technicalSpecs: { purity: "99.5%", form: "Flakes", meltingPoint: "52.8 °C" },
+    technicalSpecs: {
+      purity: "99.5%",
+      form: "Flakes",
+      meltingPoint: "52.8 °C",
+    },
   }),
   blindGrade({
     id: "mkt-melamine",
@@ -1412,7 +1549,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-28T08:00:00.000Z",
     popularityScore: 69,
     supplyOrigin: "domestic",
-    technicalSpecs: { purity: "99%", form: "Liquid", boilingRange: "137–143 °C" },
+    technicalSpecs: {
+      purity: "99%",
+      form: "Liquid",
+      boilingRange: "137–143 °C",
+    },
   }),
   blindGrade({
     id: "mkt-n-butanol",
@@ -1439,7 +1580,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-29T08:00:00.000Z",
     popularityScore: 65,
     supplyOrigin: "domestic",
-    technicalSpecs: { purity: "99.5%", form: "Liquid", boilingPoint: "117.7 °C" },
+    technicalSpecs: {
+      purity: "99.5%",
+      form: "Liquid",
+      boilingPoint: "117.7 °C",
+    },
   }),
 
   // ─── Recycled materials ─────────────────────────────────────────────────
@@ -1468,7 +1613,12 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-30T08:00:00.000Z",
     popularityScore: 89,
     supplyOrigin: "domestic",
-    technicalSpecs: { form: "Flakes", iv: "0.72 dl/g", moisture: "<1%", color: "Clear" },
+    technicalSpecs: {
+      form: "Flakes",
+      iv: "0.72 dl/g",
+      moisture: "<1%",
+      color: "Clear",
+    },
   }),
   blindGrade({
     id: "mkt-rhdpe-natural",
@@ -1495,7 +1645,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-08-31T08:00:00.000Z",
     popularityScore: 80,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "0.4 g/10 min", density: "0.955 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "0.4 g/10 min",
+      density: "0.955 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-rldpe-film",
@@ -1522,7 +1676,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-09-01T08:00:00.000Z",
     popularityScore: 77,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "0.8 g/10 min", density: "0.920 g/cm³", form: "Regrind" },
+    technicalSpecs: {
+      mfi: "0.8 g/10 min",
+      density: "0.920 g/cm³",
+      form: "Regrind",
+    },
   }),
   blindGrade({
     id: "mkt-rpp-raffia",
@@ -1549,7 +1707,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-09-02T08:00:00.000Z",
     popularityScore: 78,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "4.0 g/10 min", density: "0.910 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "4.0 g/10 min",
+      density: "0.910 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-rabs-black",
@@ -1576,7 +1738,12 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-09-03T08:00:00.000Z",
     popularityScore: 59,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "10 g/10 min", density: "1.05 g/cm³", form: "Pellets", color: "Black" },
+    technicalSpecs: {
+      mfi: "10 g/10 min",
+      density: "1.05 g/cm³",
+      form: "Pellets",
+      color: "Black",
+    },
   }),
 
   // ─── Extra polymers / specialty ─────────────────────────────────────────
@@ -1588,8 +1755,7 @@ export const blindGradesMock: MarketplaceProduct[] = [
     categoryId: "polymers",
     materialType: "Polypropylene",
     subCategory: "BOPP Film",
-    description:
-      "Homopolymer PP for biaxially oriented packaging film lines.",
+    description: "Homopolymer PP for biaxially oriented packaging film lines.",
     price: 101200,
     origin: "Western India Region",
     warehouseId: "wh-mundra",
@@ -1605,7 +1771,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-09-04T08:00:00.000Z",
     popularityScore: 84,
     supplyOrigin: "domestic",
-    technicalSpecs: { mfi: "2.5–3.5 g/10 min", density: "0.905 g/cm³", form: "Pellets" },
+    technicalSpecs: {
+      mfi: "2.5–3.5 g/10 min",
+      density: "0.905 g/cm³",
+      form: "Pellets",
+    },
   }),
   blindGrade({
     id: "mkt-pvc-paste",
@@ -1632,7 +1802,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-09-05T08:00:00.000Z",
     popularityScore: 67,
     supplyOrigin: "domestic",
-    technicalSpecs: { form: "Powder", kValue: "70–74", viscosity: "Paste grade" },
+    technicalSpecs: {
+      form: "Powder",
+      kValue: "70–74",
+      viscosity: "Paste grade",
+    },
   }),
   blindGrade({
     id: "mkt-pe-wax",
@@ -1659,7 +1833,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-09-06T08:00:00.000Z",
     popularityScore: 60,
     supplyOrigin: "domestic",
-    technicalSpecs: { form: "Powder", meltingPoint: "105–115 °C", particleSize: "Micronized" },
+    technicalSpecs: {
+      form: "Powder",
+      meltingPoint: "105–115 °C",
+      particleSize: "Micronized",
+    },
   }),
   blindGrade({
     id: "mkt-dotp",
@@ -1686,7 +1864,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-09-07T08:00:00.000Z",
     popularityScore: 79,
     supplyOrigin: "domestic",
-    technicalSpecs: { purity: "99.5%", form: "Liquid", viscosity: "63 cP @ 20°C" },
+    technicalSpecs: {
+      purity: "99.5%",
+      form: "Liquid",
+      viscosity: "63 cP @ 20°C",
+    },
   }),
   blindGrade({
     id: "mkt-base-oil-sn500",
@@ -1713,7 +1895,11 @@ export const blindGradesMock: MarketplaceProduct[] = [
     createdAt: "2026-09-08T08:00:00.000Z",
     popularityScore: 73,
     supplyOrigin: "domestic",
-    technicalSpecs: { viscosity: "90–110 cSt @ 40°C", form: "Liquid", vi: "90+" },
+    technicalSpecs: {
+      viscosity: "90–110 cSt @ 40°C",
+      form: "Liquid",
+      vi: "90+",
+    },
   }),
 ];
 

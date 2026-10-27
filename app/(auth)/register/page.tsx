@@ -4,7 +4,7 @@ import { RegisterHero } from "@/components/auth/register-hero";
 
 export const metadata: Metadata = {
   title: "Register",
-  description: "Create your PetroTrade corporate account",
+  description: "Create your PolyStoreX corporate account",
 };
 
 export default function RegisterPage() {

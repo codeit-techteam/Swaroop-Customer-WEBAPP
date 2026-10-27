@@ -60,7 +60,7 @@ export function ApprovedRequestsListPage() {
       ) : rows.length === 0 ? (
         <TrackingEmptyState
           title="No approved requests"
-          description="Approved requests appear here after PetroTrade confirms within the 15-minute window."
+          description="Approved requests appear here after PolyStoreX confirms within the 15-minute window."
         />
       ) : (
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">

@@ -86,7 +86,7 @@ function CreditEligibilityForm() {
       <StepHeader
         stepLabel="Step 05 · Financial Assessment"
         title="Credit Eligibility Assessment"
-        description="Upload financial records so PetroTrade Credit Partners can underwrite your trading credit line."
+        description="Upload financial records so PolyStoreX Credit Partners can underwrite your trading credit line."
       />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
@@ -228,7 +228,7 @@ function CreditEligibilityForm() {
               id="credit-limit-note"
               className="mt-2 text-xs italic text-slate-500"
             >
-              Final credit limits are subject to underwriting by PetroTrade
+              Final credit limits are subject to underwriting by PolyStoreX
               Credit Partners.
             </p>
           </SectionCard>
@@ -238,7 +238,7 @@ function CreditEligibilityForm() {
           <div className="rounded-xl bg-slate-900 p-5 text-white shadow-md">
             <div className="mb-3 flex items-center gap-2">
               <Shield className="h-5 w-5 text-sky-300" aria-hidden="true" />
-              <h3 className="font-semibold">PetroTrade Credit</h3>
+              <h3 className="font-semibold">PolyStoreX Credit</h3>
             </div>
             <p className="text-sm text-slate-300">
               Collateral-free credit lines up to{" "}

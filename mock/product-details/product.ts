@@ -100,7 +100,7 @@ export function buildProductDetail(
     sku: buildSku(product),
     name: product.name,
     brandName: product.brandName || "Verified Supply",
-    brandShortName: product.brandShortName || "PETROTRADE",
+    brandShortName: product.brandShortName || "POLYSTOREX",
     manufacturer: product.brandName || "Verified Supply",
     categoryId: product.categoryId,
     categoryName: category.name,
@@ -134,7 +134,7 @@ export function buildProductDetail(
     quality: {
       ...DEFAULT_QUALITY_ASSURANCE,
       subtitle:
-        "Issued Through PetroTrade Quality Assurance · Verified By PetroTrade QC · NABL Approved Laboratory",
+        "Issued Through PolyStoreX Quality Assurance · Verified By PolyStoreX QC · NABL Approved Laboratory",
     },
     specs: techSpecs,
     documents:

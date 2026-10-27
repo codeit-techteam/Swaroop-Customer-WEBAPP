@@ -1,5 +1,6 @@
 export const env = {
-  appName: process.env.NEXT_PUBLIC_APP_NAME ?? "PetroTrade Customer Portal",
+  appName: process.env.NEXT_PUBLIC_APP_NAME ?? "PolyStoreX Customer Portal",
+
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001",
   appEnv: process.env.NEXT_PUBLIC_APP_ENV ?? "development",
   apiBaseUrl:

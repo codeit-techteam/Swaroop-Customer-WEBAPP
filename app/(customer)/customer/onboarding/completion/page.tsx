@@ -89,7 +89,7 @@ function CompletionContent() {
           </h1>
           <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-500 sm:text-base">
             Your KYC has been submitted. Our team will review it within 24–48
-            business hours. You can now access the PetroTrade platform.
+            business hours. You can now access the PolyStoreX platform.
           </p>
 
           <div className="mt-8 flex w-full flex-col items-stretch justify-center gap-3 sm:w-auto sm:flex-row">

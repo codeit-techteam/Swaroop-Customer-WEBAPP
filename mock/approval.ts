@@ -9,7 +9,7 @@ export const REJECTION_REASONS = [
   {
     id: "pricing",
     reason:
-      "Market price moved outside the locked window before PetroTrade confirmation.",
+      "Market price moved outside the locked window before PolyStoreX confirmation.",
     suggestedAction:
       "Create a new purchase request to lock the current market price.",
   },
@@ -30,7 +30,7 @@ export const DEFAULT_REJECTION = REJECTION_REASONS[0];
 
 export const REJECTION_COPY = {
   title: "Request Declined",
-  subtitle: "PetroTrade could not confirm this purchase request.",
+  subtitle: "PolyStoreX could not confirm this purchase request.",
   modifyLabel: "Modify Request",
   browseLabel: "Browse Products",
 } as const;

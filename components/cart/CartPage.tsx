@@ -75,7 +75,11 @@ export function CartPage() {
           unitPrice: item.unitPrice,
         })),
       });
-      if (next.status === "INVALID" || !next.valid || next.quotes.length === 0) {
+      if (
+        next.status === "INVALID" ||
+        !next.valid ||
+        next.quotes.length === 0
+      ) {
         const issue = next.issues[0];
         const copy = commerceErrorCopy(issue?.code, issue?.message);
         setValidationIssue({ title: copy.title, message: copy.message });
@@ -94,7 +98,9 @@ export function CartPage() {
       if (code === "NETWORK_ERROR") {
         setShowNetworkModal(true);
       } else {
-        toast.error(checkoutErrorMessage(cause, "Unable to continue to checkout"));
+        toast.error(
+          checkoutErrorMessage(cause, "Unable to continue to checkout"),
+        );
       }
     } finally {
       checkoutLock.current = false;
@@ -203,7 +209,7 @@ export function CartPage() {
     <PageContainer>
       <PageHeader
         title="Cart"
-        description="Review products before checkout. Supplier identity stays hidden under the PetroTrade blind marketplace model."
+        description="Review products before checkout. Supplier identity stays hidden under the PolyStoreX blind marketplace model."
         breadcrumbs={[
           { label: "Marketplace", href: ROUTES.marketplace },
           { label: "Cart" },
@@ -212,8 +218,8 @@ export function CartPage() {
 
       <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs text-slate-600 shadow-sm">
         <span className="font-semibold text-slate-800">Next:</span>
-        Checkout with live PetroTrade pricing → place purchase request →
-        15-min seller confirmation
+        Checkout with live PolyStoreX pricing → place purchase request → 15-min
+        seller confirmation
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
@@ -237,7 +243,7 @@ export function CartPage() {
                         {item.materialType} · Grade {item.grade}
                       </p>
                       <p className="mt-1 text-xs text-slate-400">
-                        Fulfilled by PetroTrade Network · {item.regionLabel}
+                        Fulfilled by PolyStoreX Network · {item.regionLabel}
                       </p>
                     </div>
                     <p className="text-sm font-semibold text-brand">
@@ -330,7 +336,9 @@ export function CartPage() {
               disabled={checkingOut}
               onClick={() => void handleCheckout()}
             >
-              {checkingOut ? "Checking latest pricing..." : "Proceed to Checkout"}
+              {checkingOut
+                ? "Checking latest pricing..."
+                : "Proceed to Checkout"}
               <ArrowRight className="h-4 w-4" />
             </Button>
             <Button
@@ -369,7 +377,9 @@ export function CartPage() {
       <CheckoutValidationDialog
         open={Boolean(validationIssue)}
         title={validationIssue?.title ?? "Unable to continue"}
-        message={validationIssue?.message ?? "Please review your cart and try again."}
+        message={
+          validationIssue?.message ?? "Please review your cart and try again."
+        }
         confirmLabel="Review Cart"
         onConfirm={() => setValidationIssue(null)}
       />

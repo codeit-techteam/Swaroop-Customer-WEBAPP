@@ -171,7 +171,7 @@ export function CreditUploadStep({
                   className="cursor-pointer text-sm leading-relaxed text-slate-700"
                 >
                   I confirm that all submitted documents are genuine and
-                  authorize PetroTrade to verify my business details for credit
+                  authorize PolyStoreX to verify my business details for credit
                   assessment. <span className="text-red-500">*</span>
                 </Label>
                 {fieldErrors.declaration ? (

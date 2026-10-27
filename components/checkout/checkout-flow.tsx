@@ -525,7 +525,7 @@ export function CheckoutFlow() {
     <PageContainer>
       <PageHeader
         title="Checkout"
-        description="Review the live PetroTrade quote, confirm shipping, then place a purchase request. Payment is not collected yet."
+        description="Review the live PolyStoreX quote, confirm shipping, then place a purchase request. Payment is not collected yet."
         breadcrumbs={[
           { label: "Marketplace", href: ROUTES.marketplace },
           { label: "Cart", href: ROUTES.cart },
@@ -543,7 +543,7 @@ export function CheckoutFlow() {
         <span>
           Blind marketplace checkout — supplier identity stays with{" "}
           <strong className="font-semibold text-slate-800">
-            PetroTrade Network
+            PolyStoreX Network
           </strong>
           {" · "}
           15-minute seller confirmation after placement

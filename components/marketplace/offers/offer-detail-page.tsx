@@ -137,7 +137,7 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
         className="space-y-6"
       >
         <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 shadow-elevated">
-          <div className="relative min-h-[240px] md:min-h-[300px] bg-gradient-to-r from-brand to-brand-700">
+          <div className="relative min-h-[240px] bg-gradient-to-r from-brand to-brand-700 md:min-h-[300px]">
             {offer.bannerImage ? (
               <Image
                 src={offer.bannerImage}
@@ -200,7 +200,7 @@ export function OfferDetailPage({ offerId }: OfferDetailPageProps) {
                     {offer.productName}
                   </h3>
                   <p className="mt-1 text-sm text-slate-500">
-                    Grade {offer.grade} · Fulfilled by PetroTrade Supply Network
+                    Grade {offer.grade} · Fulfilled by PolyStoreX Supply Network
                   </p>
                   <div className="mt-3 flex flex-wrap gap-4 text-sm text-slate-600">
                     <span className="flex items-center gap-1.5">

@@ -1,6 +1,6 @@
 /**
  * Frontend-only dummy document downloads for shipment transport docs.
- * Blind marketplace: PetroTrade Logistics branding only.
+ * Blind marketplace: PolyStoreX Logistics branding only.
  */
 
 import type {
@@ -29,7 +29,7 @@ export function buildDocumentContent(
   doc: TransportDocument,
 ): string {
   return [
-    "PETROTRADE LOGISTICS — TRANSPORT DOCUMENT",
+    "POLYSTOREX LOGISTICS — TRANSPORT DOCUMENT",
     "=========================================",
     "",
     `Document Type : ${doc.title}`,
@@ -46,10 +46,10 @@ export function buildDocumentContent(
     `Destination   : ${shipment.destination}, ${shipment.destinationState}`,
     `Vehicle       : ${shipment.vehicleNumber}`,
     `Driver        : ${shipment.driverName}`,
-    `Logistics     : PetroTrade Logistics`,
+    `Logistics     : PolyStoreX Logistics`,
     "",
     "This is a frontend demo document. No backend generated.",
-    "© PetroTrade Customer Portal",
+    "© PolyStoreX Customer Portal",
   ].join("\n");
 }
 

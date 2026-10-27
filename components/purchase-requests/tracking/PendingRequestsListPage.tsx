@@ -70,7 +70,7 @@ export function PendingRequestsListPage() {
     <PageContainer>
       <PageHeader
         title="Pending Confirmation"
-        description="Requests inside the 15-minute PetroTrade confirmation window."
+        description="Requests inside the 15-minute PolyStoreX confirmation window."
         breadcrumbs={[
           { label: "Purchase Requests", href: ROUTES.purchaseRequests },
           { label: "Pending Approval" },
@@ -104,7 +104,7 @@ export function PendingRequestsListPage() {
       ) : rows.length === 0 ? (
         <TrackingEmptyState
           title="No pending approvals"
-          description="Submitted requests awaiting PetroTrade review will appear here with a live countdown."
+          description="Submitted requests awaiting PolyStoreX review will appear here with a live countdown."
         />
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">

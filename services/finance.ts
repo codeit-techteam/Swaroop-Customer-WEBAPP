@@ -75,7 +75,7 @@ export type BackendPurchaseOrder = {
     paymentOption?: string | null;
     paymentOptionLabel?: string;
     paymentStatus?: string;
-    verifiedByPetroTrade?: boolean;
+    verifiedByPolyStoreX?: boolean;
     amountPaid?: string;
     amountDue?: string;
   };
@@ -210,7 +210,7 @@ export function mapPurchaseOrder(
             ? 75
             : 25;
   const paymentStatus =
-    item.payment?.verifiedByPetroTrade ||
+    item.payment?.verifiedByPolyStoreX ||
     ["VERIFIED", "PAID", "AUTHORIZED"].includes(
       (item.payment?.paymentStatus ?? "").toUpperCase(),
     )
@@ -238,7 +238,7 @@ export function mapPurchaseOrder(
     paymentMethodTitle:
       item.payment?.paymentOptionLabel ??
       (paymentMethodId === "credit_15" || paymentMethodId === "credit_30"
-        ? "Credit — PetroTrade Managed"
+        ? "Credit — PolyStoreX Managed"
         : paymentMethodId.replaceAll("_", " ")),
     paymentStatus: displayStatus === "cancelled" ? "pending" : paymentStatus,
     displayStatus,
@@ -502,7 +502,7 @@ export function mapProformaToInvoice(item: BackendProforma): InvoiceDocument {
     warehouse: "Assigned hub",
     company: {
       ...BLANK_PARTY,
-      name: "PetroTrade Technologies Pvt Ltd",
+      name: "PolyStoreX Technologies Pvt Ltd",
       gstin: "27AABCP4821Q1ZV",
       state: "Maharashtra",
     },

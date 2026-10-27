@@ -65,7 +65,7 @@ export function PriceUpdatedDialog({
         <DialogHeader className="sm:text-center">
           <DialogTitle className="text-xl">Price Updated</DialogTitle>
           <DialogDescription className="text-[14px] leading-[21px]">
-            The latest PetroTrade price for this product has changed. Review the
+            The latest PolyStoreX price for this product has changed. Review the
             current market price before continuing.
           </DialogDescription>
         </DialogHeader>

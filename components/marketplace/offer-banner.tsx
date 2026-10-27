@@ -40,9 +40,7 @@ export function getTodaysOffers(
     if (a.isLimitedTime !== b.isLimitedTime) {
       return a.isLimitedTime ? -1 : 1;
     }
-    return (
-      new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime()
-    );
+    return new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime();
   });
   return prioritized.slice(0, limit);
 }
@@ -132,7 +130,7 @@ export function OfferBanner({
           Today&apos;s Offers
         </h2>
         <p className="mt-0.5 text-sm text-slate-500">
-          Limited-time promotions available through PetroTrade.
+          Limited-time promotions available through PolyStoreX.
         </p>
       </div>
 

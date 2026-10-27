@@ -339,7 +339,7 @@ export function publishedProductToDetail(
         ? product.qualityBadges
         : DEFAULT_QUALITY_ASSURANCE.badges,
       subtitle:
-        "Issued Through PetroTrade Quality Assurance · Verified By PetroTrade QC · NABL Approved Laboratory",
+        "Issued Through PolyStoreX Quality Assurance · Verified By PolyStoreX QC · NABL Approved Laboratory",
     },
     specs:
       specs.length > 0

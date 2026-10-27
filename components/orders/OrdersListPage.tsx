@@ -31,7 +31,7 @@ export function OrdersListPage() {
     <PageContainer>
       <PageHeader
         title="Orders"
-        description="Orders appear only after PetroTrade confirmation of a purchase request."
+        description="Orders appear only after PolyStoreX confirmation of a purchase request."
         breadcrumbs={[{ label: "Orders" }]}
       />
 
@@ -42,7 +42,7 @@ export function OrdersListPage() {
           <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
             <Package className="h-10 w-10 text-slate-300" />
             <p className="text-sm text-slate-500">
-              No orders yet. Submit a purchase request and wait for PetroTrade
+              No orders yet. Submit a purchase request and wait for PolyStoreX
               confirmation.
             </p>
             <Button

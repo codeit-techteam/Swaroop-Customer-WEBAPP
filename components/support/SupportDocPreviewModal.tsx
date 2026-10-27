@@ -64,7 +64,7 @@ export function SupportDocPreviewModal() {
           <div className="mx-auto min-h-[420px] max-w-2xl rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center gap-2 text-xs font-medium text-slate-400">
               <Expand className="h-3.5 w-3.5" />
-              Document preview · PetroTrade Enterprise
+              Document preview · PolyStoreX Enterprise
             </div>
             <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-slate-700">
               {preview.content}

@@ -417,7 +417,7 @@ export function CheckoutPage() {
     <PageContainer>
       <PageHeader
         title="Checkout"
-        description="Blind marketplace checkout — supplier identity stays with PetroTrade."
+        description="Blind marketplace checkout — supplier identity stays with PolyStoreX."
         breadcrumbs={[
           { label: "Cart", href: ROUTES.cart },
           { label: "Checkout" },
@@ -438,7 +438,7 @@ export function CheckoutPage() {
         <span>
           Fulfilled by{" "}
           <strong className="font-semibold text-slate-800">
-            PetroTrade Network
+            PolyStoreX Network
           </strong>
           {" · "}
           Verified Supply Partner · Estimated freight only until seller approval
@@ -1105,7 +1105,7 @@ export function CheckoutPage() {
               />
             </div>
             <p className="text-[11px] leading-relaxed text-slate-400">
-              Payment terms are shared with PetroTrade before seller approval.
+              Payment terms are shared with PolyStoreX before seller approval.
               Settlement happens after Proforma Invoice, based on your selected
               method. Actual freight is confirmed after approval.
             </p>

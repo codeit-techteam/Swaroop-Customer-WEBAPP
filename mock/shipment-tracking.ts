@@ -33,7 +33,7 @@ const PRODUCTS = [
 ] as const;
 
 const SELLERS = [
-  "PetroTrade Supply Network",
+  "PolyStoreX Supply Network",
   "West India Hub",
   "East India Hub",
   "North India Hub",

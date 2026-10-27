@@ -47,7 +47,7 @@ function ActionButtons({ className }: { className?: string }) {
 }
 
 export function EnterpriseFooter({
-  copyright = "© PetroTrade Solutions. Institutional Security Guaranteed.",
+  copyright = "© PolyStoreX Solutions. Institutional Security Guaranteed.",
   className,
   variant = "bar",
   showBrandPrefix = false,

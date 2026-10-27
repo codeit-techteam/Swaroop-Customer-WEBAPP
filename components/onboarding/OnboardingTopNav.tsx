@@ -34,7 +34,7 @@ export function OnboardingTopNav({
       role="banner"
     >
       <p className="shrink-0 text-base font-bold tracking-tight text-slate-900 sm:text-lg">
-        PetroTrade Portal
+        PolyStoreX Portal
       </p>
 
       <div className="flex items-center gap-3">

@@ -19,7 +19,7 @@ interface SuccessCardProps {
 
 export function SuccessCard({
   title = ORDER_CONFIRMATION_COPY.submittedTitle,
-  subtitle = "PetroTrade has 15 minutes to approve your purchase request.",
+  subtitle = "PolyStoreX has 15 minutes to approve your purchase request.",
   requestId,
   chip = ORDER_CONFIRMATION_COPY.submittedChip,
   className,

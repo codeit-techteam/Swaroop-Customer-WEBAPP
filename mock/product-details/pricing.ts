@@ -12,7 +12,7 @@ export function buildSpotPrice(pricePerMt: number): SpotPriceInfo {
     trendDirection: "up",
     currency: "INR",
     unit: "MT",
-    note: "Prices are exclusive of GST (18%). Final quote is generated after PetroTrade confirmation of your purchase request.",
+    note: "Prices are exclusive of GST (18%). Final quote is generated after PolyStoreX confirmation of your purchase request.",
   };
 }
 
@@ -63,17 +63,17 @@ export function buildPaymentOptions(creditEligible: boolean): PaymentOption[] {
     },
     {
       id: "credit_15",
-      title: "PetroTrade Credit — 15 Days",
+      title: "PolyStoreX Credit — 15 Days",
       description:
-        "PetroTrade managed working capital. Seller does not extend credit.",
+        "PolyStoreX managed working capital. Seller does not extend credit.",
       benefitLabel: "Approval Required",
       eligible: creditEligible,
     },
     {
       id: "credit_30",
-      title: "PetroTrade Credit — 30 Days",
+      title: "PolyStoreX Credit — 30 Days",
       description:
-        "PetroTrade managed working capital. Seller does not extend credit.",
+        "PolyStoreX managed working capital. Seller does not extend credit.",
       benefitLabel: "Approval Required",
       eligible: creditEligible,
     },

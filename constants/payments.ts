@@ -5,13 +5,14 @@ import type {
   TransferMethodId,
 } from "@/types/payments";
 
-export const PETROTRADE_TRANSFER_BANK: TransferBankDetails = {
-  beneficiaryName: "PetroTrade Technologies Pvt Ltd",
+export const POLYSTOREX_TRANSFER_BANK: TransferBankDetails = {
+  beneficiaryName: "PolyStoreX Technologies Pvt Ltd",
   bankName: "HDFC Bank",
   branch: "Bandra Kurla Complex, Mumbai",
   accountNumber: "50200034823421",
   ifsc: "HDFC0002231",
-  upiId: "payments@petrotrade",
+  upiId: "payments@polystorex.in",
+
   upiQrLabel: "Scan to pay via UPI",
 };
 
@@ -96,7 +97,7 @@ export const WAREHOUSES = [
 
 /** Blind marketplace supply sources — never real supplier company names. */
 export const SELLERS = [
-  "PetroTrade Supply Network",
+  "PolyStoreX Supply Network",
   "West India Hub",
   "East India Hub",
   "North India Hub",

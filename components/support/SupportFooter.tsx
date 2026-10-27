@@ -8,7 +8,7 @@ export function SupportFooter() {
       <div className="flex flex-col gap-3 text-xs text-slate-500 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <span className="font-semibold text-brand">
-            PetroTrade Enterprise
+            PolyStoreX Enterprise
           </span>
           <span className="inline-flex items-center gap-1.5 font-medium text-slate-600">
             <span className="relative flex h-2 w-2">
@@ -30,7 +30,7 @@ export function SupportFooter() {
           </Link>
         </nav>
         <p className="text-slate-400">
-          © PetroTrade Support Center. All rights reserved.
+          © PolyStoreX Support Center. All rights reserved.
         </p>
       </div>
     </footer>

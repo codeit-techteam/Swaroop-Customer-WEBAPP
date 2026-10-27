@@ -275,7 +275,7 @@ export function LoginForm() {
           ) : null}
 
           <p className="text-center text-sm text-muted-foreground">
-            New to PetroTrade?{" "}
+            New to PolyStoreX?{" "}
             <Link
               href={ROUTES.register}
               className="font-semibold text-accent-blue transition-colors hover:text-accent-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue"
