@@ -27,11 +27,8 @@ import { useAuthStore } from "@/store/authStore";
 import { ROUTES } from "@/constants";
 import { cn } from "@/lib/utils";
 
-/** Show demo credentials while OTP SMS is not production-locked. */
-const SHOW_DEMO_OTP =
-  process.env.NODE_ENV !== "production" ||
-  process.env.NEXT_PUBLIC_DEMO_OTP === "123456" ||
-  process.env.NEXT_PUBLIC_DEMO_OTP === "true";
+/** Show demo credentials during the development phase (until SMS is locked). */
+const SHOW_DEMO_OTP = process.env.NEXT_PUBLIC_DEMO_OTP !== "false";
 
 const LOGIN_METHOD_OPTIONS: Array<{
   value: LoginMethod;
