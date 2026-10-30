@@ -4,17 +4,14 @@ export function buildLogisticsEstimate(input: {
   warehouseLabel: string;
   eta: string;
 }): LogisticsEstimate {
-  const estimatedDelivery =
-    input.eta?.trim() ||
-    (input.warehouseLabel
-      ? `${input.warehouseLabel} · 4–6 Business Days`
-      : "4–6 Business Days");
+  const estimatedDelivery = input.eta?.trim() || null;
 
   return {
     warehouse: input.warehouseLabel,
     warehouseRegion: input.warehouseLabel,
-    deliveryLocation: "Buyer destination",
+    deliveryLocation: "",
     estimatedDelivery,
+    dispatchWindow: null,
     transportMode: "Road Freight (FTL)",
     freightLabel: "Freight estimate at quote",
     freightPerMt: 1250,

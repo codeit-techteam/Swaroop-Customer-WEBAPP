@@ -128,20 +128,20 @@ export function BuyingSummary({
   const discount = Number(quote.discountAmount);
   const rows = [
     {
-      label: "Price",
+      label: "Subtotal",
       value: formatInr(Number(quote.baseAmount), { compact: true }),
     },
     ...(discount > 0
       ? [
           {
-            label: "Discount",
+            label: "Advance discount",
             value: `−${formatInr(discount, { compact: true })}`,
             accent: true as const,
           },
         ]
       : []),
     {
-      label: "Estimated Freight",
+      label: "Delivery charges",
       value: formatInr(Number(quote.freightAmount), { compact: true }),
     },
     {
@@ -256,7 +256,7 @@ export function BuyingSummary({
         {!hideTotal ? (
           <div className="flex items-center justify-between gap-3 border-t border-slate-200 pt-2">
             <dt className="text-sm font-semibold text-slate-900">
-              Grand Total
+              Estimated total
             </dt>
             <dd className="text-sm font-bold tabular-nums text-brand">
               {formatInr(Number(quote.totalAmount), { compact: true })}

@@ -19,6 +19,7 @@ import {
   formatLimitInput,
 } from "@/lib/credit-application";
 import { useCreditApplicationStore } from "@/store/creditApplicationStore";
+import { useProfileStore } from "@/store/profileStore";
 import type {
   CreditTermOption,
   MonthlyPurchaseBand,
@@ -54,12 +55,14 @@ export function CreditApplyStep({
     (s) => s.setMonthlyPurchase,
   );
   const setPurpose = useCreditApplicationStore((s) => s.setPurpose);
+  const company = useProfileStore((s) => s.company);
+  const businessAddress = useProfileStore((s) => s.businessAddress);
 
   return (
     <Card className="border-slate-200 shadow-card">
       <CardHeader className="space-y-1">
         <p className="text-xs font-semibold uppercase tracking-wide text-brand">
-          Step 1 of 2 · Facility details
+          Step 1 of 2 · Business &amp; facility
         </p>
         <CardTitle className="text-base">
           {hasActiveFacility
@@ -72,6 +75,43 @@ export function CreditApplyStep({
         </p>
       </CardHeader>
       <CardContent className="space-y-5">
+        <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Business information
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Prefill from your verified profile. Corrections belong in company
+            KYC settings.
+          </p>
+          <dl className="mt-3 grid gap-2 sm:grid-cols-2">
+            {[
+              { label: "Legal business name", value: company.legalName },
+              { label: "GSTIN", value: company.gstNumber },
+              { label: "PAN", value: company.pan },
+              {
+                label: "Registered address",
+                value: [
+                  businessAddress.addressLine1,
+                  businessAddress.state,
+                  businessAddress.pincode,
+                ]
+                  .filter(Boolean)
+                  .join(", "),
+              },
+              { label: "Contact mobile", value: company.phone },
+              { label: "Business email", value: company.email },
+            ].map((row) => (
+              <div key={row.label}>
+                <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                  {row.label}
+                </dt>
+                <dd className="text-sm font-medium text-slate-800">
+                  {row.value?.trim() ? row.value : "Not on file"}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="credit-limit">

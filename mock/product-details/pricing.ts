@@ -5,14 +5,13 @@ import type {
 } from "@/types/product-details";
 
 export function buildSpotPrice(pricePerMt: number): SpotPriceInfo {
-  const yesterdayDelta = Math.round(pricePerMt * 0.0045);
   return {
     pricePerMt,
-    yesterdayDelta,
+    yesterdayDelta: 0,
     trendDirection: "up",
     currency: "INR",
     unit: "MT",
-    note: "Prices are exclusive of GST (18%). Final quote is generated after PolyStoreX confirmation of your purchase request.",
+    note: "Unit prices come from the live offer. Checkout totals are recalculated server-side.",
   };
 }
 
@@ -38,44 +37,50 @@ export function buildBulkPricing(
 }
 
 export function buildPaymentOptions(creditEligible: boolean): PaymentOption[] {
-  return [
+  const standard: PaymentOption[] = [
     {
       id: "advance",
       title: "Advance",
-      description: "Pay before dispatch for preferred pricing.",
-      benefitLabel: "Platform Discount Eligible",
-      discountRate: 0.05,
+      description: "Pay against the Proforma Invoice to lock the quoted price.",
+      dueLabel: "Due before dispatch",
       eligible: true,
     },
     {
       id: "on_loading",
       title: "On Loading",
-      description: "Pay after material loading confirmation.",
-      benefitLabel: "Standard Terms",
+      description:
+        "Pay once the material is loaded and the loading proof is shared.",
+      dueLabel: "Due at loading confirmation",
       eligible: true,
     },
     {
       id: "on_delivery",
       title: "On Delivery",
-      description: "Pay after delivery confirmation.",
-      benefitLabel: "Standard Terms",
+      description: "Pay when the material is delivered and acknowledged.",
+      dueLabel: "Due at delivery confirmation",
       eligible: true,
     },
+  ];
+  if (!creditEligible) return standard;
+  return [
+    ...standard,
     {
       id: "credit_15",
-      title: "PolyStoreX Credit — 15 Days",
+      title: "Credit 15 Days",
       description:
-        "PolyStoreX managed working capital. Seller does not extend credit.",
-      benefitLabel: "Approval Required",
-      eligible: creditEligible,
+        "Available on this grade. Request credit to unlock Net-15 at checkout.",
+      dueLabel: "Due 15 days after invoice",
+      benefitLabel: "Request Credit to unlock",
+      eligible: false,
     },
     {
       id: "credit_30",
-      title: "PolyStoreX Credit — 30 Days",
+      title: "Credit 30 Days",
       description:
-        "PolyStoreX managed working capital. Seller does not extend credit.",
-      benefitLabel: "Approval Required",
-      eligible: creditEligible,
+        "Available on this grade. Request credit to unlock Net-30 at checkout.",
+      dueLabel: "Due 30 days after invoice",
+      benefitLabel: "Request Credit to unlock",
+      eligible: false,
     },
   ];
 }

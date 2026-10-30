@@ -1,12 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { PageContainer } from "@/components/layout/page-container";
 import { AppBreadcrumb } from "@/components/navigation/app-breadcrumb";
 import { ROUTES } from "@/constants";
 import { useCustomerQuote } from "@/hooks/use-customer-quote";
+import { useAuthStore } from "@/store/authStore";
+import { useDeliveryLocationStore } from "@/store/deliveryLocationStore";
+import type { CreditCtaType } from "@/types/payment-eligibility";
+import { guestCreditAccess } from "@/types/payment-eligibility";
 import { formatInr } from "@/lib/format";
 import { useProductStore } from "@/store/productStore";
 import { MarketplaceEmptyState } from "@/components/marketplace/empty-state";
@@ -21,6 +25,7 @@ import { DeliveryCard } from "./delivery-card";
 import { TechnicalSpecificationAccordion } from "./technical-specification-accordion";
 import { DocumentDownloads } from "./document-downloads";
 import { MobileBuyBar, StickyPurchasePanel } from "./sticky-purchase-panel";
+import { TrustBadges } from "./trust-badges";
 import { RelatedProductsCarousel } from "./related-products-carousel";
 import { ProductDetailsPageSkeleton } from "./product-details-skeleton";
 import { usePurchaseActions } from "./use-purchase-actions";
@@ -30,7 +35,12 @@ interface ProductDetailsPageProps {
 }
 
 export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const destinationPincode = useDeliveryLocationStore(
+    (s) => s.selected?.pincode ?? null,
+  );
   const [quantity, setQuantity] = useState(25);
   const [paymentId, setPaymentId] = useState<PaymentMethodId>("advance");
   const [rfqNotes, setRfqNotes] = useState("");
@@ -58,6 +68,9 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
   const {
     quote,
     paymentOptions,
+    creditAccess,
+    creditStatus,
+    refreshCredit,
     loading: quoteLoading,
     error: quoteError,
   } = useCustomerQuote({
@@ -65,7 +78,10 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
     offerId: selectedProduct?.offerId,
     quantity,
     paymentId,
-    enabled: Boolean(selectedProduct),
+    enabled: Boolean(selectedProduct) && isAuthenticated,
+    amount: selectedProduct
+      ? selectedProduct.spotPrice.pricePerMt * quantity
+      : undefined,
   });
 
   const actions = usePurchaseActions({
@@ -83,6 +99,17 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
   useEffect(() => {
     void loadProduct(productId);
   }, [loadProduct, productId]);
+
+  useEffect(() => {
+    const options =
+      paymentOptions.length > 0
+        ? paymentOptions
+        : (selectedProduct?.paymentOptions ?? []);
+    const current = options.find((option) => option.id === paymentId);
+    if (current && current.eligible) return;
+    const next = options.find((option) => option.eligible);
+    if (next && next.id !== paymentId) setPaymentId(next.id);
+  }, [paymentId, paymentOptions, selectedProduct?.paymentOptions]);
 
   const product = selectedProduct;
   const ready = !isLoading;
@@ -144,6 +171,26 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
   const displaySpotPrice = quote
     ? { ...detail.spotPrice, pricePerMt: Number(quote.unitPrice) }
     : detail.spotPrice;
+
+  function handleCreditCta(type: CreditCtaType) {
+    if (!isAuthenticated) {
+      router.push(
+        `${ROUTES.login}?returnTo=${encodeURIComponent(ROUTES.paymentsRequestCredit)}`,
+      );
+      return;
+    }
+    if (type === "VIEW_APPLICATION" && creditAccess?.application?.id) {
+      router.push(
+        `${ROUTES.paymentsRequestCredit}?id=${encodeURIComponent(creditAccess.application.id)}`,
+      );
+      return;
+    }
+    if (type === "CONTACT_SUPPORT") {
+      router.push(ROUTES.support);
+      return;
+    }
+    router.push(ROUTES.paymentsRequestCredit);
+  }
 
   function handleSelectTier(tier: BulkPricingTier) {
     if (detail.stock <= 0) {
@@ -223,9 +270,21 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
           <StickyPurchasePanel
             spotPrice={displaySpotPrice}
             bulkPricing={detail.bulkPricing}
-            paymentOptions={paymentOptions}
+            paymentOptions={
+              paymentOptions.length > 0
+                ? paymentOptions
+                : detail.paymentOptions.filter((option) => option.title?.trim())
+            }
             paymentId={paymentId}
             onPaymentChange={setPaymentId}
+            creditAccess={
+              isAuthenticated
+                ? creditAccess
+                : guestCreditAccess(detail.productCredit)
+            }
+            creditStatus={isAuthenticated ? creditStatus : ("ready" as const)}
+            onRetryCredit={isAuthenticated ? refreshCredit : undefined}
+            onCreditCta={handleCreditCta}
             quote={quote}
             quoteLoading={quoteLoading}
             quoteError={quoteError}
@@ -235,7 +294,8 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
             moq={detail.moq}
             maxStock={detail.stock}
             availabilityLabel={detail.availabilityLabel}
-            eta={detail.eta}
+            fulfilment={detail.fulfilment}
+            destinationPincode={destinationPincode}
             quantity={quantity}
             onQuantityChange={setQuantity}
             onSelectTier={handleSelectTier}
@@ -247,10 +307,11 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
         <div className="min-w-0 space-y-6 xl:col-start-1 xl:row-start-2">
           <ProductInfoCard product={detail} />
           <DeliveryCard
-            origin={detail.origin}
-            eta={detail.eta}
-            logistics={detail.logistics}
+            fulfilment={detail.fulfilment}
+            availabilityLabel={detail.availabilityLabel}
+            destinationPincode={destinationPincode}
           />
+          <TrustBadges />
           <ProductFeatures features={detail.features} />
           <ProductApplications
             applications={detail.applications}

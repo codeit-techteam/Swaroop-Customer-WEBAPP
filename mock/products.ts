@@ -11,8 +11,6 @@ import type {
 /** Production catalog is loaded from PostgreSQL via Swaroop-Backend. */
 export const productsMock: MarketplaceProduct[] = [];
 
-
-
 export const DEFAULT_SPECS: ProductSpec[] = [
   {
     id: "mfr",
@@ -54,34 +52,37 @@ export const DEFAULT_SPECS: ProductSpec[] = [
 
 export const DEFAULT_TRUST_FEATURES: TrustFeature[] = [
   {
-    id: "quality",
-    title: "Quality Verified Material",
-    description: "Supply network vetted for 99.8% fulfill rate.",
+    id: "network",
+    title: "Verified Supply Network",
+    description: "Supplier verification follows platform onboarding checks.",
+    icon: "shield",
+  },
+  {
+    id: "docs",
+    title: "Quality Documentation",
+    description:
+      "COA and grade certificates are available when provided for the product.",
     icon: "check",
   },
   {
     id: "payment",
     title: "Secure Payment Protection",
-    description: "Escrow-based payment settlement.",
+    description:
+      "Payment protection follows the configured payment and settlement process.",
     icon: "shield",
-  },
-  {
-    id: "network",
-    title: "Verified Industrial Supply Network",
-    description: "Sourced via verified procurement partners.",
-    icon: "check",
-  },
-  {
-    id: "docs",
-    title: "Standard Quality Documentation",
-    description: "COA and grade certificates available.",
-    icon: "check",
   },
   {
     id: "inspection",
     title: "Quality Inspection Available",
-    description: "Optional third-party inspection on request.",
+    description: "Third-party inspection can be requested where supported.",
     icon: "shield",
+  },
+  {
+    id: "fulfilment",
+    title: "Order and Fulfilment Support",
+    description:
+      "Purchase requests, dispatch coordination, and order tracking are handled on the platform.",
+    icon: "check",
   },
 ];
 

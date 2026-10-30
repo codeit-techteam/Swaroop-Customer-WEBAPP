@@ -110,7 +110,7 @@ export function buildProductDetail(
     gradeId: product.gradeId,
     description: product.description,
     casNumber: product.casNumber,
-    hsnCode: "3902.10.00",
+    hsnCode: product.fulfilment?.hsnCode || "3902.10.00",
     application: product.applications[0] ?? product.materialType,
     applications: product.applications,
     features: getFeaturesForMaterial(product.materialType),
@@ -128,13 +128,14 @@ export function buildProductDetail(
     moq,
     moqLabel: `${moq} MT`,
     eta: product.eta,
+    fulfilment: product.fulfilment ?? null,
     availability: availability.level,
     availabilityLabel: availability.label,
     gallery: buildGalleryFromProduct(product.image, product.name),
     quality: {
       ...DEFAULT_QUALITY_ASSURANCE,
       subtitle:
-        "Issued Through PolyStoreX Quality Assurance · Verified By PolyStoreX QC · NABL Approved Laboratory",
+        "Quality documents are shown when the seller has provided them for this grade.",
     },
     specs: techSpecs,
     documents:
@@ -159,6 +160,10 @@ export function buildProductDetail(
     }),
     relatedProductIds,
     creditEligible: product.creditEligible,
+    productCredit: product.productCredit ?? {
+      supported: product.creditEligible !== false,
+      tenureDays: product.creditEligible === false ? [] : [15, 30],
+    },
     offerId: product.offerId,
   };
 }

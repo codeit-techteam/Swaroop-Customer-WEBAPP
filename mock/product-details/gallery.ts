@@ -7,10 +7,10 @@ import type {
 export const PRODUCT_GALLERY_IMAGES: ProductGalleryImage[] = [];
 
 export const DEFAULT_QUALITY_ASSURANCE: QualityAssurance = {
-  title: "Certified Quality",
+  title: "Quality documentation",
   subtitle:
-    "Issued Through PolyStoreX Quality Assurance · Verified By PolyStoreX QC",
-  badges: ["Quality Assured", "GST Compliant", "NABL Approved Lab"],
+    "Quality documents are shown when they have been provided for this grade.",
+  badges: ["GST Compliant"],
 };
 
 export function buildGalleryFromProduct(

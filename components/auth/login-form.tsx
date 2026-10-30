@@ -27,8 +27,8 @@ import { useAuthStore } from "@/store/authStore";
 import { ROUTES } from "@/constants";
 import { cn } from "@/lib/utils";
 
-/** Show demo credentials during the development phase (until SMS is locked). */
-const SHOW_DEMO_OTP = process.env.NEXT_PUBLIC_DEMO_OTP !== "false";
+/** Local dev only — never enable in production. */
+const SHOW_DEMO_OTP = process.env.NEXT_PUBLIC_DEMO_OTP === "true";
 
 const LOGIN_METHOD_OPTIONS: Array<{
   value: LoginMethod;

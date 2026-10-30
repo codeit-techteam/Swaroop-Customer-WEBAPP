@@ -54,21 +54,17 @@ const DEFAULT_FEATURES = [
 ];
 
 export const DEFAULT_PRODUCT_HIGHLIGHTS = [
-  "PolyStoreX Verified",
+  "Blind Marketplace",
   "Tax Invoice Available",
-  "Fast Dispatch",
-  "Credit Eligible",
-  "Quality Certified",
+  "Quality Documentation",
 ];
 
 export function getFeaturesForMaterial(materialType: string): string[] {
   return FEATURES_BY_MATERIAL[materialType] ?? DEFAULT_FEATURES;
 }
 
-export function buildProductHighlights(creditEligible: boolean): string[] {
-  return DEFAULT_PRODUCT_HIGHLIGHTS.map((item) =>
-    item === "Credit Eligible" && !creditEligible ? "Advance Preferred" : item,
-  );
+export function buildProductHighlights(_creditEligible: boolean): string[] {
+  return DEFAULT_PRODUCT_HIGHLIGHTS;
 }
 
 /** Optional product downloads — only TDS and MSDS are supported on PDP. */

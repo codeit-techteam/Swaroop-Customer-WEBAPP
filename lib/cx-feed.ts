@@ -199,22 +199,26 @@ function mapPaymentOptions(product: PublishedProduct): PaymentOption[] | null {
   if (!product.paymentTerms?.length) return null;
   return product.paymentTerms
     .filter((term) => term.enabled !== false)
-    .map((term) => ({
-      id: term.id,
-      title: term.title,
-      description: term.description,
-      surchargeLabel:
-        term.surchargePct != null ? `+${term.surchargePct}%` : undefined,
-      benefitLabel:
-        term.discountPct != null
-          ? `${term.discountPct}% Discount Eligible`
-          : term.id.startsWith("credit")
-            ? "Approval Required"
-            : "Standard Terms",
-      discountRate:
-        term.discountPct != null ? term.discountPct / 100 : undefined,
-      eligible: true,
-    }));
+    .map((term) => {
+      const isCredit = String(term.id).startsWith("credit");
+      return {
+        id: term.id,
+        title: term.title,
+        description: term.description,
+        surchargeLabel:
+          term.surchargePct != null ? `+${term.surchargePct}%` : undefined,
+        benefitLabel:
+          term.discountPct != null
+            ? `${term.discountPct}% Discount Eligible`
+            : isCredit
+              ? "Request Credit to unlock"
+              : "Standard Terms",
+        discountRate:
+          term.discountPct != null ? term.discountPct / 100 : undefined,
+        // Catalog credit rows stay visible; live eligibility comes from the API.
+        eligible: !isCredit,
+      };
+    });
 }
 
 function mapSpecs(product: PublishedProduct): ProductSpecRow[] | null {
@@ -323,6 +327,7 @@ export function publishedProductToDetail(
     moq,
     moqLabel: `${moq} MT (1 Truckload)`,
     eta: product.etaLabel,
+    fulfilment: null,
     availability: availability.level,
     availabilityLabel: availability.label,
     gallery:
@@ -339,7 +344,7 @@ export function publishedProductToDetail(
         ? product.qualityBadges
         : DEFAULT_QUALITY_ASSURANCE.badges,
       subtitle:
-        "Issued Through PolyStoreX Quality Assurance · Verified By PolyStoreX QC · NABL Approved Laboratory",
+        "Quality documents are shown when they have been provided for this grade.",
     },
     specs:
       specs.length > 0
@@ -372,6 +377,10 @@ export function publishedProductToDetail(
       .slice(0, 8)
       .map((item) => item.id),
     creditEligible,
+    productCredit: {
+      supported: creditEligible,
+      tenureDays: creditEligible ? [15, 30] : [],
+    },
   };
 }
 

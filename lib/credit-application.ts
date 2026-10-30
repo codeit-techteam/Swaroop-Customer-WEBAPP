@@ -51,13 +51,13 @@ export function creditTermFromTenureDays(
   return days === 15 ? "net_15" : "net_30";
 }
 
-/** Status card terms label — driven by the approved account, not the request. */
+/** Status card terms label — approved tenure, or advertised Net-15 / Net-30 before apply. */
 export function creditPaymentTermsLabel(
   creditTermDays: number | null | undefined,
 ): string {
   if (creditTermDays === 15) return "Net-15";
   if (creditTermDays === 30) return "Net-30";
-  return "PolyStoreX managed";
+  return "Net-15 / Net-30";
 }
 
 export function monthlyPurchaseLabel(band: MonthlyPurchaseBand | ""): string {

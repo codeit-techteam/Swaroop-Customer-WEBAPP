@@ -26,6 +26,7 @@ import { MarketplaceEmptyState } from "./empty-state";
 import { MarketplacePagination } from "./pagination";
 import { QuickViewDrawer } from "./quick-view-drawer";
 import { MarketplaceBrowseSkeleton } from "./marketplace-skeleton";
+import { MarketCatalogueResults } from "./market-catalogue-results";
 import { MARKETPLACE_SEARCH_PLACEHOLDER } from "@/mock/filters";
 import type { GradeOriginFilter } from "@/types/marketplace";
 import type { MarketplaceOffer } from "@/types/offers";
@@ -118,6 +119,11 @@ export function MarketplaceBrowse({
   }, [searchParams, setSearch, setOriginFilter]);
 
   const pagination = getPaginatedProducts();
+  const trimmedSearch = search.trim();
+  const isCatalogueSearch = trimmedSearch.length > 0;
+  const gradesDirectoryHref = trimmedSearch
+    ? `${ROUTES.marketplaceGrades}?q=${encodeURIComponent(trimmedSearch)}`
+    : ROUTES.marketplaceGrades;
 
   const activeCategoryId = useMemo(() => {
     if (selectedCategoryId) return selectedCategoryId;
@@ -175,7 +181,7 @@ export function MarketplaceBrowse({
     );
   }
 
-  if (loadError) {
+  if (loadError && products.length === 0 && !isCatalogueSearch) {
     return (
       <PageContainer>
         <PageHeader title={pageTitle} breadcrumbs={crumbItems} />
@@ -196,9 +202,11 @@ export function MarketplaceBrowse({
         breadcrumbs={crumbItems}
         actions={
           <Button asChild variant="outline" className="h-10 rounded-xl">
-            <Link href={ROUTES.marketplaceGrades}>
+            <Link href={gradesDirectoryHref}>
               <BookOpen className="h-4 w-4" aria-hidden />
-              Browse all grades
+              {trimmedSearch
+                ? `Search all grades for “${trimmedSearch}”`
+                : "Browse all grades"}
             </Link>
           </Button>
         }
@@ -220,115 +228,135 @@ export function MarketplaceBrowse({
             onChange={setSearch}
             placeholder={MARKETPLACE_SEARCH_PLACEHOLDER}
           />
-          <SortDropdown value={sortBy} onChange={setSortBy} />
+          {!isCatalogueSearch ? (
+            <SortDropdown value={sortBy} onChange={setSortBy} />
+          ) : null}
         </div>
 
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Material
-          </p>
-          <MaterialChips
-            activeCode={activeMaterial}
-            onSelect={(code) => {
-              setActiveMaterial(code);
-              setSearch(code ?? "");
-            }}
-          />
-        </div>
-
-        <MarketplaceCategoryChips
-          categories={categories}
-          activeCategoryId={activeCategoryId}
-          onSelect={handleSelectCategory}
-        />
-
-        <PromoBannerSlider placement="MARKETPLACE" compact />
-
-        <OfferBanner
-          offers={liveOffers}
-          activeOfferId={activeOfferId}
-          onViewProducts={handleViewOfferProducts}
-        />
-
-        <FilterTopBar
-          categories={categories}
-          brands={[]}
-          warehouses={warehouses}
-          draftFilters={draftFilters}
-          appliedFilters={filters}
-          activeCategoryId={activeCategoryId}
-          priceBounds={priceBounds}
-          showCategories={false}
-          onSelectCategory={handleSelectCategory}
-          onToggleBrand={toggleDraftBrand}
-          onPriceChange={setDraftPriceRange}
-          onWarehouseChange={setDraftWarehouse}
-          onCreditChange={setDraftCreditEligible}
-          onApply={handleApply}
-          onReset={handleReset}
-        />
-
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Origin:
-          </span>
-          {ORIGIN_FILTERS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setOriginFilter(option.value)}
-              className={cn(
-                "rounded-lg px-3 py-1.5 text-sm font-medium transition",
-                originFilter === option.value
-                  ? "bg-brand text-white shadow-sm"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200",
-              )}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-
-        <MarketplaceHeader
-          title={headingTitle}
-          resultCount={pagination.total}
-          actions={<ViewToggle value={viewMode} onChange={setViewMode} />}
-        />
-
-        {pagination.items.length === 0 ? (
-          <MarketplaceEmptyState
-            title={
-              activeOfferId
-                ? "No products available for this offer."
-                : undefined
-            }
-            description={
-              activeOfferId
-                ? "Try another offer or reset filters to browse all materials."
-                : undefined
-            }
-            onReset={handleReset}
-          />
-        ) : viewMode === "grid" ? (
-          <ProductGrid
-            products={pagination.items}
-            onQuickView={openQuickView}
+        {isCatalogueSearch ? (
+          <MarketCatalogueResults
+            search={search}
+            page={page}
+            onPageChange={setPage}
+            onClearSearch={() => setSearch("")}
           />
         ) : (
-          <ProductList
-            products={pagination.items}
-            onQuickView={openQuickView}
-          />
-        )}
+          <>
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Material
+              </p>
+              <MaterialChips
+                activeCode={activeMaterial}
+                onSelect={(code) => {
+                  setActiveMaterial(code);
+                  setSearch(code ?? "");
+                }}
+              />
+            </div>
 
-        <MarketplacePagination
-          page={Math.min(page, pagination.totalPages)}
-          totalPages={pagination.totalPages}
-          from={pagination.from}
-          to={pagination.to}
-          total={pagination.total}
-          onPageChange={setPage}
-        />
+            <MarketplaceCategoryChips
+              categories={categories}
+              activeCategoryId={activeCategoryId}
+              onSelect={handleSelectCategory}
+            />
+
+            <PromoBannerSlider placement="MARKETPLACE" compact />
+
+            <OfferBanner
+              offers={liveOffers}
+              activeOfferId={activeOfferId}
+              onViewProducts={handleViewOfferProducts}
+            />
+
+            <FilterTopBar
+              categories={categories}
+              brands={[]}
+              warehouses={warehouses}
+              draftFilters={draftFilters}
+              appliedFilters={filters}
+              activeCategoryId={activeCategoryId}
+              priceBounds={priceBounds}
+              showCategories={false}
+              onSelectCategory={handleSelectCategory}
+              onToggleBrand={toggleDraftBrand}
+              onPriceChange={setDraftPriceRange}
+              onWarehouseChange={setDraftWarehouse}
+              onCreditChange={setDraftCreditEligible}
+              onApply={handleApply}
+              onReset={handleReset}
+            />
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Origin:
+              </span>
+              {ORIGIN_FILTERS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setOriginFilter(option.value)}
+                  className={cn(
+                    "rounded-lg px-3 py-1.5 text-sm font-medium transition",
+                    originFilter === option.value
+                      ? "bg-brand text-white shadow-sm"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+
+            <MarketplaceHeader
+              title={headingTitle}
+              resultCount={pagination.total}
+              actions={<ViewToggle value={viewMode} onChange={setViewMode} />}
+            />
+
+            {pagination.items.length === 0 ? (
+              <MarketplaceEmptyState
+                title={
+                  activeOfferId
+                    ? "No products available for this offer."
+                    : "No live listings found"
+                }
+                description={
+                  activeOfferId
+                    ? "Try another offer or reset filters to browse all materials."
+                    : "Try a grade code, material, or manufacturer — matching catalogue grades appear as you type."
+                }
+                onReset={handleReset}
+                action={
+                  <Button asChild variant="outline" className="rounded-xl">
+                    <Link href={ROUTES.marketplaceGrades}>
+                      Browse all grades
+                    </Link>
+                  </Button>
+                }
+              />
+            ) : viewMode === "grid" ? (
+              <ProductGrid
+                products={pagination.items}
+                onQuickView={openQuickView}
+              />
+            ) : (
+              <ProductList
+                products={pagination.items}
+                onQuickView={openQuickView}
+              />
+            )}
+
+            <MarketplacePagination
+              page={Math.min(page, pagination.totalPages)}
+              totalPages={pagination.totalPages}
+              from={pagination.from}
+              to={pagination.to}
+              total={pagination.total}
+              onPageChange={setPage}
+            />
+          </>
+        )}
       </motion.div>
 
       <QuickViewDrawer

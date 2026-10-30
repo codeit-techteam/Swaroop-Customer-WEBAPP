@@ -21,9 +21,20 @@ export function DelhiPriceListBadge({
   );
 }
 
-export function LiveOfferCount({ count }: { count: number }) {
+export function LiveOfferCount({
+  count,
+  labelWhenEmpty = false,
+}: {
+  count: number;
+  /** When true, empty state reads “No live offers” (Market search parity with the app). */
+  labelWhenEmpty?: boolean;
+}) {
   if (count <= 0) {
-    return <span className="text-xs font-medium text-slate-400">None</span>;
+    return (
+      <span className="text-xs font-medium text-slate-400">
+        {labelWhenEmpty ? "No live offers" : "None"}
+      </span>
+    );
   }
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold tabular-nums text-emerald-700">

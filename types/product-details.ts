@@ -3,6 +3,9 @@
  * ProductDetails + MarketplaceProduct catalog rows.
  */
 
+import type { FulfilmentInfo } from "@/lib/fulfilment";
+import type { ProductCreditConfig } from "@/types/payment-eligibility";
+
 export type PriceTrendDirection = "up" | "down";
 
 export type ProductAvailabilityLevel =
@@ -55,8 +58,9 @@ export interface PaymentOption {
   id: PaymentMethodId;
   title: string;
   description: string;
+  dueLabel?: string;
   surchargeLabel?: string;
-  /** Shown when selected — e.g. "5% Discount Eligible" / "Approval Required" */
+  /** Shown when selected — e.g. "Save 5% with advance payment" */
   benefitLabel?: string;
   /** Fractional discount applied to material subtotal when selected (e.g. 0.05) */
   discountRate?: number;
@@ -78,7 +82,8 @@ export interface LogisticsEstimate {
   warehouse: string;
   warehouseRegion: string;
   deliveryLocation: string;
-  estimatedDelivery: string;
+  estimatedDelivery: string | null;
+  dispatchWindow: string | null;
   transportMode: string;
   freightLabel: string;
   freightPerMt: number;
@@ -133,6 +138,7 @@ export interface ProductDetailRecord {
   moq: number;
   moqLabel: string;
   eta: string;
+  fulfilment: FulfilmentInfo | null;
   availability: ProductAvailabilityLevel;
   availabilityLabel: string;
   gallery: ProductGalleryImage[];
@@ -145,5 +151,6 @@ export interface ProductDetailRecord {
   logistics: LogisticsEstimate;
   relatedProductIds: string[];
   creditEligible: boolean;
+  productCredit?: ProductCreditConfig;
   offerId?: string;
 }

@@ -1,3 +1,4 @@
+import type { FulfilmentInfo } from "@/lib/fulfilment";
 import type {
   MarketplaceBrand,
   MarketplaceCategory,
@@ -8,6 +9,7 @@ import type {
   ProductTechnicalSpecs,
 } from "@/types/marketplace";
 import type { MarketplaceOffer, OfferPaymentType } from "@/types/offers";
+import type { ProductCreditConfig } from "@/types/payment-eligibility";
 
 export type BlindListing = {
   offerId: string;
@@ -17,6 +19,8 @@ export type BlindListing = {
   moq?: number | string | null;
   quantityAvailable?: number | string | null;
   leadTime?: string | null;
+  fulfilment?: FulfilmentInfo | null;
+  productCredit?: ProductCreditConfig;
   priceTiers?: Array<{
     minQty?: number | string | null;
     maxQty?: number | string | null;
@@ -163,9 +167,13 @@ export function toMarketplaceProduct(
   const stockStatus =
     stock <= 0 ? "out_of_stock" : stock < 100 ? "limited" : "in_stock";
 
-  const warehouseLabel = String(specs.warehouseLabel ?? "Verified Hub");
-  const leadTime = String(listing?.leadTime ?? specs.eta ?? "").trim();
-  const eta = leadTime || estimateDeliveryFromWarehouse(warehouseLabel);
+  const warehouseLabel = String(
+    listing?.fulfilment?.warehouse?.label ?? specs.warehouseLabel ?? "",
+  ).trim();
+  const leadTime = String(
+    listing?.fulfilment?.deliveryEstimate?.label ?? listing?.leadTime ?? "",
+  ).trim();
+  const eta = leadTime;
 
   const priceTiers = listing?.priceTiers ?? [];
   const bulkPricing =
@@ -268,6 +276,7 @@ export function toMarketplaceProduct(
     stock,
     moq: num(listing?.moq),
     eta,
+    fulfilment: listing?.fulfilment ?? null,
     badge: (typeof specs.badge === "string"
       ? specs.badge
       : "Best Value") as MarketplaceProduct["badge"],
@@ -275,7 +284,9 @@ export function toMarketplaceProduct(
     images: [],
     casNumber: String(specs.casNumber ?? ""),
     applications,
-    creditEligible: Boolean(specs.creditEligible),
+    productCredit: listing?.productCredit,
+    creditEligible:
+      listing?.productCredit?.supported ?? specs.creditEligible !== false,
     stockStatus,
     createdAt: new Date().toISOString(),
     popularityScore: num(specs.popularityScore, 50),

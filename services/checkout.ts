@@ -4,6 +4,11 @@ import type { Envelope } from "@/lib/api-envelope";
 import { commerceErrorCopy, isNetworkError } from "@/lib/commerce-errors";
 import { ROUTES } from "@/constants";
 import type { PaymentMethodId } from "@/types/product-details";
+import type {
+  CreditAccessView,
+  ProductCreditConfig,
+} from "@/types/payment-eligibility";
+import { GUEST_CREDIT_ACCESS } from "@/types/payment-eligibility";
 
 export type PlatformPaymentOptionCode =
   | "ADVANCE"
@@ -64,11 +69,14 @@ export type CheckoutAddress = {
 
 export type CheckoutPaymentOption = {
   paymentOption: string;
+  kind?: "STANDARD" | "CREDIT";
   title: string;
   description: string;
-  benefitLabel: string;
+  dueLabel?: string | null;
+  benefitLabel: string | null;
   eligible: boolean;
   discountBps: number;
+  tenureDays?: number | null;
 };
 
 export type CartPriceChange = {
@@ -232,23 +240,34 @@ export async function fetchCustomerCheckoutAddresses(): Promise<
   return payload.data ?? [];
 }
 
-export async function fetchCustomerPaymentOptions(amount?: number): Promise<{
+export async function fetchCustomerPaymentOptions(input?: {
+  amount?: number;
+  productId?: string;
+  offerId?: string;
+}): Promise<{
   options: CheckoutPaymentOption[];
-  credit: { eligible: boolean; approvedLimit: string; availableLimit: string };
+  productCredit?: ProductCreditConfig;
+  credit: CreditAccessView;
 }> {
+  const params: Record<string, string | number> = {};
+  if (input?.amount != null) params.amount = input.amount;
+  if (input?.productId) params.productId = input.productId;
+  if (input?.offerId) params.offerId = input.offerId;
   const payload = await apiClient.get<
     Envelope<{
       options: CheckoutPaymentOption[];
-      credit: {
-        eligible: boolean;
-        approvedLimit: string;
-        availableLimit: string;
-      };
+      productCredit?: ProductCreditConfig;
+      credit: CreditAccessView;
     }>
   >("/customer/checkout/payment-options", {
-    params: amount != null ? { amount } : undefined,
+    params: Object.keys(params).length > 0 ? params : undefined,
   });
-  return payload.data;
+  const data = payload.data;
+  return {
+    options: data?.options ?? [],
+    productCredit: data?.productCredit,
+    credit: data?.credit ?? GUEST_CREDIT_ACCESS,
+  };
 }
 
 export async function placeCustomerPurchaseRequest(input: {

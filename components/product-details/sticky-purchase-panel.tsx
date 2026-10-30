@@ -18,11 +18,17 @@ import { Input } from "@/components/ui/input";
 import { formatInr } from "@/lib/format";
 import type { CheckoutQuote } from "@/services/checkout";
 import type {
+  CreditAccessView,
+  CreditCtaType,
+  CreditLoadState,
+} from "@/types/payment-eligibility";
+import type {
   BulkPricingTier,
   PaymentMethodId,
   PaymentOption,
   SpotPriceInfo,
 } from "@/types/product-details";
+import { deliveryEstimateCopy, type FulfilmentInfo } from "@/lib/fulfilment";
 import { cn } from "@/lib/utils";
 import { BulkPricingCard } from "./bulk-pricing-card";
 import { BuyingSummary } from "./buying-summary";
@@ -38,6 +44,10 @@ interface StickyPurchasePanelProps {
   paymentOptions: PaymentOption[];
   paymentId: PaymentMethodId;
   onPaymentChange: (id: PaymentMethodId) => void;
+  creditAccess?: CreditAccessView | null;
+  creditStatus?: CreditLoadState;
+  onRetryCredit?: () => void;
+  onCreditCta?: (type: CreditCtaType) => void;
   quote: CheckoutQuote | null;
   quoteLoading: boolean;
   quoteError: string | null;
@@ -47,7 +57,8 @@ interface StickyPurchasePanelProps {
   moq: number;
   maxStock: number;
   availabilityLabel: string;
-  eta: string;
+  fulfilment?: FulfilmentInfo | null;
+  destinationPincode?: string | null;
   quantity: number;
   onQuantityChange: (quantity: number) => void;
   onSelectTier: (tier: BulkPricingTier) => void;
@@ -158,6 +169,10 @@ export function StickyPurchasePanel({
   paymentOptions,
   paymentId,
   onPaymentChange,
+  creditAccess,
+  creditStatus,
+  onRetryCredit,
+  onCreditCta,
   quote,
   quoteLoading,
   quoteError,
@@ -167,7 +182,8 @@ export function StickyPurchasePanel({
   moq,
   maxStock,
   availabilityLabel,
-  eta,
+  fulfilment = null,
+  destinationPincode = null,
   quantity,
   onQuantityChange,
   onSelectTier,
@@ -314,6 +330,10 @@ export function StickyPurchasePanel({
               options={paymentOptions}
               selectedId={paymentId}
               onSelect={onPaymentChange}
+              creditAccess={creditAccess}
+              creditStatus={creditStatus}
+              onRetryCredit={onRetryCredit}
+              onCreditCta={onCreditCta}
               compact
             />
 
@@ -323,10 +343,12 @@ export function StickyPurchasePanel({
                 aria-hidden="true"
               />
               <p className="text-xs text-slate-600">
-                Delivery in{" "}
-                <span className="font-semibold text-slate-900">
-                  {eta?.trim() || "4–6 Business Days"}
-                </span>
+                {
+                  deliveryEstimateCopy({
+                    fulfilment,
+                    destinationPincode,
+                  }).label
+                }
               </p>
             </div>
 
@@ -349,7 +371,7 @@ export function StickyPurchasePanel({
               />
             ) : null}
 
-            <TrustBadges className="border-0 p-0 !shadow-none" />
+            <TrustBadges compact className="border-0 p-0 !shadow-none" />
 
             <p className="text-[11px] leading-relaxed text-slate-400">
               Totals come from the latest PolyStoreX quote. Payment is collected
@@ -382,7 +404,7 @@ export function StickyPurchasePanel({
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                Grand Total
+                Estimated total
               </p>
               <p className="truncate text-[11px] text-slate-500">
                 {quantity} MT · incl. GST &amp; freight
@@ -503,7 +525,7 @@ export function MobileBuyBar({
           <div className="mx-auto flex max-w-lg items-center gap-2">
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                Total · {quantity} MT
+                Estimated total · {quantity} MT
               </p>
               <p className="truncate text-base font-bold tabular-nums text-brand">
                 {totalLabel}

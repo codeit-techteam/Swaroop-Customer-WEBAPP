@@ -3,6 +3,9 @@
  * MarketProduct / ProductDetails shapes, adapted for desktop Purchase Request flow.
  */
 
+import type { FulfilmentInfo } from "@/lib/fulfilment";
+import type { ProductCreditConfig } from "@/types/payment-eligibility";
+
 export type MarketplaceParentCategoryId =
   "polymers" | "chemicals" | "additives" | "base-oils";
 
@@ -145,12 +148,14 @@ export interface MarketplaceProduct {
   stock: number;
   moq: number;
   eta: string;
+  fulfilment?: FulfilmentInfo | null;
   badge: MarketplaceAvailabilityBadge;
   image: string;
   images: string[];
   casNumber: string;
   applications: string[];
   creditEligible: boolean;
+  productCredit?: ProductCreditConfig;
   stockStatus: ProductStockStatus;
   createdAt: string;
   popularityScore: number;

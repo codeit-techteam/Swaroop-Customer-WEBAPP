@@ -83,41 +83,17 @@ export async function sendAuthOtp(
   return payload.data;
 }
 
-const DEMO_PHONE_LAST10 = "8240890242";
-const DEMO_OTP = "123456";
-const DEMO_PASSWORD = "Test@12345";
-
-/** Development-phase demo phone + OTP 123456 (all customer panels). */
-export function isDevDemoOtp(identifier: string, otp: string): boolean {
-  if (otp !== DEMO_OTP) return false;
-  const digits = identifier.replace(/\D/g, "").slice(-10);
-  return digits === DEMO_PHONE_LAST10;
-}
-
 export async function verifyAuthOtp(
   identifier: string,
   otp: string,
   purpose: "LOGIN" | "SIGNUP" | "PASSWORD_RESET" = "LOGIN",
 ): Promise<AuthSessionPayload> {
-  try {
-    const payload = await apiClient.post<Envelope<AuthSessionPayload>>(
-      "/auth/otp/verify",
-      { ...identifierPayload(identifier), otp, purpose, roleHint: "CUSTOMER" },
-      { skipAuth: true, skipRefresh: true },
-    );
-    return payload.data;
-  } catch (error) {
-    // Development phase: demo phone + 123456 falls back to known password when
-    // the API has not yet enabled fixed OTP (pre-redeploy / AUTH_STRICT_OTP off).
-    if (purpose === "PASSWORD_RESET" || !isDevDemoOtp(identifier, otp)) {
-      throw error;
-    }
-    try {
-      return await loginWithPassword(identifier, DEMO_PASSWORD);
-    } catch {
-      throw error;
-    }
-  }
+  const payload = await apiClient.post<Envelope<AuthSessionPayload>>(
+    "/auth/otp/verify",
+    { ...identifierPayload(identifier), otp, purpose, roleHint: "CUSTOMER" },
+    { skipAuth: true, skipRefresh: true },
+  );
+  return payload.data;
 }
 
 export async function fetchCurrentUser(): Promise<BackendAuthUser> {

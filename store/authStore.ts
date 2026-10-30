@@ -25,11 +25,6 @@ import {
   type BackendAuthUser,
 } from "@/services/auth";
 
-export const DEV_OTP = "123456";
-export const DEV_PHONE = "8240890242";
-export const DEV_USER_NAME = "Karan Veer";
-export const DEV_CUSTOMER_EMAIL = "customer@test.local";
-export const DEV_PASSWORD = "Test@12345";
 export { AUTH_COOKIE_NAME };
 
 export interface AuthUser {

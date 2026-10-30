@@ -16,7 +16,6 @@ const INFO_CELLS: {
     | "stockLabel"
     | "moqLabel"
     | "packaging"
-    | "eta"
     | "materialType"
     | "casNumber"
     | "hsnCode"
@@ -26,10 +25,9 @@ const INFO_CELLS: {
 }[] = [
   { key: "origin", label: "Origin" },
   { key: "warehouseLabel", label: "Warehouse" },
-  { key: "stockLabel", label: "Stock" },
+  { key: "stockLabel", label: "Available stock" },
   { key: "moqLabel", label: "MOQ" },
   { key: "packaging", label: "Packaging" },
-  { key: "eta", label: "Delivery Time" },
   { key: "materialType", label: "Material" },
   { key: "application", label: "Application" },
   { key: "casNumber", label: "CAS Number" },
@@ -50,7 +48,7 @@ export function ProductInfoCard({ product, className }: ProductInfoCardProps) {
       )}
     >
       <h2 className="text-sm font-semibold text-slate-900">
-        Product Information
+        Product specifications
       </h2>
       <dl className="mt-3 grid grid-cols-2 gap-2.5">
         {cells.map((cell) => (
