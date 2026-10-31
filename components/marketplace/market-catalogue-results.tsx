@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, BookOpen } from "lucide-react";
+import { ArrowRight, BookOpen, FilePlus2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -105,18 +105,33 @@ export function MarketCatalogueResults({
       ) : items.length === 0 ? (
         <MarketplaceEmptyState
           title={`No grades found for “${trimmed}”`}
-          description="Try a grade code, material, or manufacturer."
+          description="Try a grade code, material, or manufacturer — or request the grade and we will source it."
           action={
-            onClearSearch ? (
+            <>
               <Button
-                type="button"
-                variant="outline"
-                className="rounded-xl"
-                onClick={onClearSearch}
+                asChild
+                className="rounded-xl bg-brand hover:bg-brand-700"
               >
-                Clear search
+                <Link
+                  href={`${ROUTES.marketplaceGradeRequestNew}${
+                    trimmed ? `?q=${encodeURIComponent(trimmed)}` : ""
+                  }`}
+                >
+                  <FilePlus2 className="mr-2 h-4 w-4" aria-hidden />
+                  Request a new grade
+                </Link>
               </Button>
-            ) : undefined
+              {onClearSearch ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-xl"
+                  onClick={onClearSearch}
+                >
+                  Clear search
+                </Button>
+              ) : null}
+            </>
           }
         />
       ) : (
@@ -182,6 +197,22 @@ export function MarketCatalogueResults({
               total={total}
               onPageChange={onPageChange}
             />
+          ) : null}
+          {page >= totalPages ? (
+            <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 px-4 py-5 text-center">
+              <p className="text-sm text-slate-500">
+                Can&apos;t find your grade?
+              </p>
+              <Button asChild variant="link" className="h-auto p-0 text-brand">
+                <Link
+                  href={`${ROUTES.marketplaceGradeRequestNew}${
+                    trimmed ? `?q=${encodeURIComponent(trimmed)}` : ""
+                  }`}
+                >
+                  Request a new grade
+                </Link>
+              </Button>
+            </div>
           ) : null}
         </>
       )}

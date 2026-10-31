@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { SupportContactLink } from "@/components/auth/support-contact-link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { ArrowRight } from "lucide-react";
@@ -32,12 +32,9 @@ export function PasswordResetSuccessContent() {
       footer={
         <p className="text-center text-sm text-muted-foreground">
           Having trouble?{" "}
-          <Link
-            href="mailto:security@petrotrade.com"
-            className="font-medium text-accent-blue transition-colors hover:text-accent-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue"
-          >
+          <SupportContactLink className="font-medium text-accent-blue transition-colors hover:text-accent-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue">
             Contact Security Support
-          </Link>
+          </SupportContactLink>
         </p>
       }
     >

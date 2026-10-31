@@ -89,6 +89,15 @@ export function getNotificationActionLabel(
 export function getNotificationHref(n: AppNotification): string {
   if (n.href && !n.href.startsWith("/notifications")) return n.href;
 
+  // Grade-request deep link when href was not persisted (older local cache).
+  if (
+    n.category === "marketplace" &&
+    (n.title.toLowerCase().includes("grade request") ||
+      n.referenceNumber?.startsWith("NGR-"))
+  ) {
+    return ROUTES.marketplaceGradeRequests;
+  }
+
   const action = resolveNotificationActionType(n);
   switch (action) {
     case "viewOrder":

@@ -174,7 +174,7 @@ export function GradeDetailPage({ gradeId }: GradeDetailPageProps) {
           ) : null}
           {grade.inTodaysDelhiPriceList ? <DelhiPriceListBadge /> : null}
           <span className="ml-auto">
-            <LiveOfferCount count={grade.liveOfferCount} />
+            <LiveOfferCount count={grade.liveOfferCount} labelWhenEmpty />
           </span>
         </div>
 

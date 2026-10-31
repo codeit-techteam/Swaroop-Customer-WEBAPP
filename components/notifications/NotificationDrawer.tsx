@@ -12,6 +12,10 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  fetchBackendCustomerNotifications,
+  mapBackendNotificationToApp,
+} from "@/lib/backend-notifications";
 import { getNotificationHref } from "@/lib/notification-actions";
 import { cn } from "@/lib/utils";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -39,6 +43,9 @@ export function NotificationDrawer({
   const markRead = useNotificationsCatalogStore((s) => s.markRead);
   const markAllRead = useNotificationStore((s) => s.markAllRead);
   const setHydrated = useNotificationsCatalogStore((s) => s.setHydrated);
+  const upsertBackendNotifications = useNotificationsCatalogStore(
+    (s) => s.upsertBackendNotifications,
+  );
   const isHydrated = useNotificationsCatalogStore((s) => s.isHydrated);
 
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -54,6 +61,24 @@ export function NotificationDrawer({
   useEffect(() => {
     if (open) setVisibleCount(PAGE_SIZE);
   }, [open]);
+
+  // Production sync: pull live backend notifications (grade requests, orders, …).
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const rows = await fetchBackendCustomerNotifications();
+        if (cancelled) return;
+        upsertBackendNotifications(rows.map(mapBackendNotificationToApp));
+      } catch {
+        // Keep the local catalogue if the API is unreachable.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, upsertBackendNotifications]);
 
   const feed = getMvpFeedNotifications(notifications);
   const unreadCount = getUnreadCount(notifications);

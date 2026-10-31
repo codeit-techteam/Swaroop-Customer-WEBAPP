@@ -1,5 +1,6 @@
 "use client";
 
+import { SupportContactLink } from "@/components/auth/support-contact-link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -109,12 +110,9 @@ export function ForgotPasswordForm() {
               </p>
               <p className="leading-relaxed text-muted-foreground">
                 Contact your regional IT administrator or reach out to our{" "}
-                <a
-                  href="mailto:security@petrotrade.com"
-                  className="font-medium text-accent-blue transition-colors hover:text-accent-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue"
-                >
+                <SupportContactLink className="font-medium text-accent-blue transition-colors hover:text-accent-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue">
                   Institutional Security Support
-                </a>
+                </SupportContactLink>
                 .
               </p>
             </div>

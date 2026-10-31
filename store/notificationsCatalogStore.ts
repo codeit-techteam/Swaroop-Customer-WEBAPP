@@ -52,6 +52,8 @@ export interface NotificationsCatalogStoreState {
   deleteSelected: () => void;
   archiveNotification: (id: string) => void;
   ingestAdminPushes: (items: AppNotification[]) => number;
+  /** Merge live backend notifications (keeps mock history, refreshes backend rows by id). */
+  upsertBackendNotifications: (items: AppNotification[]) => number;
   setPreferences: (patch: Partial<NotificationPreferences>) => void;
   resetPreferences: () => void;
 }
@@ -356,6 +358,18 @@ export const useNotificationsCatalogStore =
             notifications: [...incoming, ...s.notifications],
           }));
           return incoming.length;
+        },
+
+        upsertBackendNotifications: (items) => {
+          if (!items.length) return 0;
+          const byId = new Map(items.map((n) => [n.id, n]));
+          set((s) => {
+            const kept = s.notifications.map((n) => byId.get(n.id) ?? n);
+            const existing = new Set(kept.map((n) => n.id));
+            const incoming = items.filter((n) => !existing.has(n.id));
+            return { notifications: [...incoming, ...kept] };
+          });
+          return items.length;
         },
 
         setPreferences: (patch) =>

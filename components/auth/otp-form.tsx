@@ -1,5 +1,6 @@
 "use client";
 
+import { SupportContactLink } from "@/components/auth/support-contact-link";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -210,12 +211,7 @@ export function OtpForm() {
 
         <p className="pt-4 text-center text-xs leading-relaxed text-muted-foreground">
           Having trouble? Contact our institutional support at{" "}
-          <a
-            href="mailto:support@petrotrade.com"
-            className="font-medium text-accent-blue hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue"
-          >
-            support@petrotrade.com
-          </a>
+          <SupportContactLink className="font-medium text-accent-blue hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue" />
         </p>
       </motion.div>
     </div>

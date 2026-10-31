@@ -510,6 +510,22 @@ export function GradeDirectoryPage() {
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
           />
+          {page >= totalPages ? (
+            <div className="mt-6 flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 px-4 py-5 text-center">
+              <p className="text-sm text-slate-500">
+                Can&apos;t find your grade?
+              </p>
+              <Button asChild variant="link" className="h-auto p-0 text-brand">
+                <Link
+                  href={`${ROUTES.marketplaceGradeRequestNew}${
+                    filters.q ? `?q=${encodeURIComponent(filters.q)}` : ""
+                  }`}
+                >
+                  Request a new grade
+                </Link>
+              </Button>
+            </div>
+          ) : null}
         </>
       )}
     </PageContainer>
@@ -631,7 +647,10 @@ function GradeTable({
                     {grade.manufacturer ?? "—"}
                   </TableCell>
                   <TableCell className="text-right">
-                    <LiveOfferCount count={grade.liveOfferCount} />
+                    <LiveOfferCount
+                      count={grade.liveOfferCount}
+                      labelWhenEmpty
+                    />
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
@@ -692,7 +711,7 @@ function GradeTable({
                   </div>
                 ) : null}
               </div>
-              <LiveOfferCount count={grade.liveOfferCount} />
+              <LiveOfferCount count={grade.liveOfferCount} labelWhenEmpty />
             </Link>
           </li>
         ))}
