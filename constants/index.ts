@@ -21,6 +21,8 @@ export const ROUTES = {
   marketplaceCategory: "/marketplace/category",
   marketplaceProduct: "/marketplace/product",
   marketplaceGrades: "/marketplace/grades",
+  marketplaceGradeRequests: "/marketplace/grade-requests",
+  marketplaceGradeRequestNew: "/marketplace/grade-requests/new",
   marketplaceOffers: "/marketplace/offers",
   marketplaceMyOffers: "/marketplace/offers/my-offers",
   marketplaceOfferDetail: "/marketplace/offers",
@@ -190,6 +192,11 @@ export const CUSTOMER_NAV: NavItem[] = [
         title: "Browse Grades",
         href: ROUTES.marketplaceGrades,
       },
+      {
+        id: "marketplace-grade-requests",
+        title: "Grade Requests",
+        href: ROUTES.marketplaceGradeRequests,
+      },
     ],
   },
   {
@@ -357,7 +364,6 @@ export {
 
 export {
   SUPPORT_ROUTES,
-  SUPPORT_CONTACT,
   MVP_TICKET_CATEGORY_OPTIONS,
   TICKET_CATEGORY_LABELS,
   ALLOWED_ATTACHMENT_ACCEPT,

@@ -140,3 +140,36 @@ export async function openContactSupport(
   }
   openBlank(withTopic(LIVE_SUPPORT_URL, options?.topic));
 }
+
+export type SupportEnquiryInput = {
+  name: string;
+  email: string;
+  message: string;
+  pagePath?: string;
+};
+
+/** Sends a real enquiry to the PolyStoreX support inbox (no auth; same API the website uses). */
+export async function submitSupportEnquiry(
+  input: SupportEnquiryInput,
+): Promise<{ referenceNumber: string }> {
+  const res = await fetch(`${env.apiBaseUrl}/public/enquiries`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({
+      name: input.name.trim(),
+      email: input.email.trim(),
+      topic: "OTHER",
+      message: input.message.trim(),
+      pagePath: input.pagePath?.slice(0, 200),
+    }),
+  });
+  const body = (await res.json().catch(() => ({}))) as {
+    data?: { referenceNumber?: string };
+    message?: string | string[];
+  };
+  if (!res.ok) {
+    const raw = Array.isArray(body.message) ? body.message[0] : body.message;
+    throw new Error(raw || "We could not send your message. Please try again.");
+  }
+  return { referenceNumber: body.data?.referenceNumber ?? "" };
+}

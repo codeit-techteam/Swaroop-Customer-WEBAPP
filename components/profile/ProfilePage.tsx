@@ -80,13 +80,15 @@ export function ProfilePage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-1.5">
-                <Badge
-                  variant="info"
-                  className="gap-1 rounded-md border border-sky-100 font-medium"
-                >
-                  <BadgeCheck className="h-3 w-3" />
-                  Verified Enterprise
-                </Badge>
+                {profile.gstVerified ? (
+                  <Badge
+                    variant="info"
+                    className="gap-1 rounded-md border border-sky-100 font-medium"
+                  >
+                    <BadgeCheck className="h-3 w-3" />
+                    Verified Business
+                  </Badge>
+                ) : null}
                 {profile.gstVerified ? (
                   <Badge
                     variant="success"

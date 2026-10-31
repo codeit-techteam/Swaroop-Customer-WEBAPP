@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { HelpCircle, MapPin, Mail, Phone } from "lucide-react";
+import { useEffect, useState } from "react";
+import { HelpCircle, Mail, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
-import { ONBOARDING_SUPPORT_CONTACT } from "@/constants/onboarding";
+import {
+  fetchLegalLinks,
+  openContactSupport,
+  submitSupportEnquiry,
+  type LegalLinks,
+} from "@/lib/legal-links";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,6 +34,13 @@ export function HelpCard({ variant = "card", className }: HelpCardProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [links, setLinks] = useState<LegalLinks | null>(null);
+
+  useEffect(() => {
+    if (!open || links) return;
+    void fetchLegalLinks().then(setLinks);
+  }, [open, links]);
 
   function resetForm() {
     setName("");
@@ -36,17 +48,46 @@ export function HelpCard({ variant = "card", className }: HelpCardProps) {
     setMessage("");
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !message.trim()) {
-      toast.error("Please fill in all fields");
+    if (sending) return;
+    if (name.trim().length < 2) {
+      toast.error("Please enter your name");
       return;
     }
-    toast.success("Message sent", {
-      description: "Our support team will get back to you shortly.",
-    });
-    resetForm();
-    setOpen(false);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    if (message.trim().length < 20) {
+      toast.error("Please describe the issue in at least 20 characters");
+      return;
+    }
+    setSending(true);
+    try {
+      const { referenceNumber } = await submitSupportEnquiry({
+        name,
+        email,
+        message: `[Onboarding help] ${message}`,
+        pagePath:
+          typeof window !== "undefined" ? window.location.pathname : undefined,
+      });
+      toast.success("Message sent", {
+        description: referenceNumber
+          ? `Reference ${referenceNumber}. Our support team will get back to you.`
+          : "Our support team will get back to you.",
+      });
+      resetForm();
+      setOpen(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "We could not send your message. Please try again.",
+      );
+    } finally {
+      setSending(false);
+    }
   }
 
   const triggerButton =
@@ -104,49 +145,38 @@ export function HelpCard({ variant = "card", className }: HelpCardProps) {
         <DialogHeader>
           <DialogTitle>Need Help?</DialogTitle>
           <DialogDescription>
-            Reach PolyStoreX support by phone, email, or send us a message.
+            Reach PolyStoreX support or send us a message.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <a
-            href={ONBOARDING_SUPPORT_CONTACT.phoneHref}
-            className="flex items-start gap-3 text-sm text-slate-700 transition-colors hover:text-slate-900"
-          >
-            <Phone
-              className="mt-0.5 h-4 w-4 shrink-0 text-slate-500"
-              aria-hidden="true"
-            />
-            <span>
-              <span className="block font-medium text-slate-900">
-                {ONBOARDING_SUPPORT_CONTACT.phone}
+          {links?.supportEmail ? (
+            <a
+              href={`mailto:${links.supportEmail}`}
+              className="flex items-start gap-3 text-sm text-slate-700 transition-colors hover:text-slate-900"
+            >
+              <Mail
+                className="mt-0.5 h-4 w-4 shrink-0 text-slate-500"
+                aria-hidden="true"
+              />
+              <span className="font-medium text-slate-900">
+                {links.supportEmail}
               </span>
-              <span className="text-xs text-slate-500">
-                {ONBOARDING_SUPPORT_CONTACT.hours}
-              </span>
-            </span>
-          </a>
-
-          <a
-            href={ONBOARDING_SUPPORT_CONTACT.emailHref}
-            className="flex items-start gap-3 text-sm text-slate-700 transition-colors hover:text-slate-900"
+            </a>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => void openContactSupport({ topic: "BUY_MATERIALS" })}
+            className="flex items-start gap-3 text-left text-sm text-slate-700 transition-colors hover:text-slate-900"
           >
-            <Mail
+            <ExternalLink
               className="mt-0.5 h-4 w-4 shrink-0 text-slate-500"
               aria-hidden="true"
             />
             <span className="font-medium text-slate-900">
-              {ONBOARDING_SUPPORT_CONTACT.email}
+              Open the support page
             </span>
-          </a>
-
-          <div className="flex items-start gap-3 text-sm text-slate-700">
-            <MapPin
-              className="mt-0.5 h-4 w-4 shrink-0 text-slate-500"
-              aria-hidden="true"
-            />
-            <span>{ONBOARDING_SUPPORT_CONTACT.address}</span>
-          </div>
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -189,8 +219,12 @@ export function HelpCard({ variant = "card", className }: HelpCardProps) {
             >
               Cancel
             </Button>
-            <Button type="submit" className="bg-slate-900 hover:bg-slate-800">
-              Send Message
+            <Button
+              type="submit"
+              disabled={sending}
+              className="bg-slate-900 hover:bg-slate-800"
+            >
+              {sending ? "Sending…" : "Send Message"}
             </Button>
           </DialogFooter>
         </form>

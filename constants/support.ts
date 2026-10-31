@@ -70,17 +70,6 @@ export const TICKET_PRIORITY_OPTIONS: Array<{
   { value: "critical", label: "Critical" },
 ];
 
-/** MVP Help Center contact details */
-export const SUPPORT_CONTACT = {
-  phone: "+91 98765 43210",
-  phoneHref: "tel:+919876543210",
-  email: "support@petrotrade.com",
-  emailHref: "mailto:support@petrotrade.com",
-  businessHours: "Monday – Saturday",
-  businessHoursTime: "9:00 AM – 7:00 PM IST",
-  emergencyNote: "For urgent shipment issues please call directly.",
-} as const;
-
 export const TICKET_CATEGORY_LABELS: Record<TicketCategory, string> = {
   payment: "Payment",
   orders: "Order",

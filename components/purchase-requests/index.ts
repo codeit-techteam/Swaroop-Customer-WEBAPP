@@ -18,8 +18,6 @@ export { RejectedCard } from "./RejectedCard";
 export { ApprovalTimeline } from "./ApprovalTimeline";
 export { ApprovalTimer } from "./ApprovalTimer";
 export { OrderGeneratedCard } from "./OrderGeneratedCard";
-export { PurchaseRequestForm } from "./PurchaseRequestForm";
-export { CreatePurchaseRequestPage } from "./CreatePurchaseRequestPage";
 export { ReviewPurchaseRequestPage } from "./ReviewPurchaseRequestPage";
 export { PaymentSelectionPage } from "./PaymentSelectionPage";
 export { SubmitPurchaseRequestPage } from "./SubmitPurchaseRequestPage";

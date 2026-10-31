@@ -10,7 +10,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, Search, Store, X } from "lucide-react";
+import { ArrowRight, FilePlus2, Search, Store, X } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -213,12 +213,20 @@ export function GradeDirectoryPage() {
           { label: "Grade Directory" },
         ]}
         actions={
-          <Button asChild variant="outline" className="h-10 rounded-xl">
-            <Link href={ROUTES.marketplace}>
-              <Store className="h-4 w-4" aria-hidden />
-              Live listings
-            </Link>
-          </Button>
+          <>
+            <Button asChild variant="outline" className="h-10 rounded-xl">
+              <Link href={ROUTES.marketplaceGradeRequestNew}>
+                <FilePlus2 className="h-4 w-4" aria-hidden />
+                Request a new grade
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-10 rounded-xl">
+              <Link href={ROUTES.marketplace}>
+                <Store className="h-4 w-4" aria-hidden />
+                Live listings
+              </Link>
+            </Button>
+          </>
         }
       />
 
@@ -460,14 +468,29 @@ export function GradeDirectoryPage() {
           title="No grades found"
           description={
             hasActiveFilters
-              ? "No grades match your current filters. Try a different search or clear filters."
+              ? "No grades match your current filters. Try a different search, clear filters, or request the grade and we will source it."
               : "No grades are available in the directory yet."
           }
           onReset={hasActiveFilters ? clearFilters : undefined}
           action={
-            <Button asChild variant="outline" className="rounded-xl">
-              <Link href={ROUTES.marketplace}>Browse live listings</Link>
-            </Button>
+            <>
+              <Button
+                asChild
+                className="rounded-xl bg-brand hover:bg-brand-700"
+              >
+                <Link
+                  href={`${ROUTES.marketplaceGradeRequestNew}${
+                    filters.q ? `?q=${encodeURIComponent(filters.q)}` : ""
+                  }`}
+                >
+                  <FilePlus2 className="mr-2 h-4 w-4" aria-hidden />
+                  Request a new grade
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="rounded-xl">
+                <Link href={ROUTES.marketplace}>Browse live listings</Link>
+              </Button>
+            </>
           }
         />
       ) : (
