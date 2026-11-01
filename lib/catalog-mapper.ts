@@ -223,9 +223,9 @@ export function toMarketplaceProduct(
     firstReadable(gradeDisplay, product.grade?.name, productName) ||
     productName;
   const manufacturer =
+    (product.grade as { manufacturer?: string | null } | null)?.manufacturer ||
     product.manufacturer ||
     product.brand ||
-    (product.grade as { manufacturer?: string | null } | null)?.manufacturer ||
     undefined;
 
   const readableCategory =

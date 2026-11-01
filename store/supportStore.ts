@@ -2,15 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import {
-  ACCOUNT_MANAGER,
-  DEFAULT_SUPPORT_FILTERS,
-  MOCK_FAQS,
-  MOCK_KNOWLEDGE_ARTICLES,
-  MOCK_SUPPORT_ACTIVITIES,
-  MOCK_SUPPORT_DOCS,
-  MOCK_SUPPORT_SUMMARY,
-} from "@/mock/support";
+import { DEFAULT_SUPPORT_FILTERS } from "@/mock/support";
 import {
   createCustomerSupportTicket,
   getCustomerSupportTicket,
@@ -34,7 +26,21 @@ import type {
   TicketStatus,
 } from "@/types/support";
 
-const STORAGE_KEY = "petrotrade.support-center.v3";
+const STORAGE_KEY = "polystorex.support-center.v4";
+
+const EMPTY_ACCOUNT_MANAGER: AccountManager = {
+  id: "",
+  name: "",
+  designation: "",
+  department: "",
+  phone: "",
+  email: "",
+  availability: "",
+  online: false,
+  photoInitials: "",
+  location: "",
+  responseSla: "",
+};
 const CHAT_TICKET_SUBJECT = "Live chat support";
 
 function isOpenTicket(ticket: SupportTicket) {
@@ -221,8 +227,8 @@ export function filterArticles(
 function rebuildSummary(tickets: SupportTicket[]): SupportStatusSummary {
   return {
     openTickets: computeOpenTicketCount(tickets),
-    paymentVerificationPending: MOCK_SUPPORT_SUMMARY.paymentVerificationPending,
-    shipmentIssuesActive: MOCK_SUPPORT_SUMMARY.shipmentIssuesActive,
+    paymentVerificationPending: 0,
+    shipmentIssuesActive: 0,
     resolvedThisMonth: tickets.filter((t) => t.status === "resolved").length,
   };
 }
@@ -231,13 +237,18 @@ export const useSupportStore = create<SupportStoreState>()(
   persist(
     (set, get) => ({
       tickets: [],
-      faqs: MOCK_FAQS,
-      docs: MOCK_SUPPORT_DOCS,
-      articles: MOCK_KNOWLEDGE_ARTICLES,
+      faqs: [],
+      docs: [],
+      articles: [],
       chatMessages: [],
-      activities: MOCK_SUPPORT_ACTIVITIES,
-      accountManager: ACCOUNT_MANAGER,
-      summary: { ...MOCK_SUPPORT_SUMMARY, openTickets: 0 },
+      activities: [],
+      accountManager: EMPTY_ACCOUNT_MANAGER,
+      summary: {
+        openTickets: 0,
+        paymentVerificationPending: 0,
+        shipmentIssuesActive: 0,
+        resolvedThisMonth: 0,
+      },
       filters: { ...DEFAULT_SUPPORT_FILTERS },
       globalSearch: "",
       preferences: {

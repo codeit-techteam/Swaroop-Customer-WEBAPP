@@ -21,6 +21,8 @@ export function AccountManagerCard({
   const manager = useSupportStore((s) => s.accountManager);
   const scheduleMeeting = useSupportStore((s) => s.scheduleMeeting);
 
+  if (!manager.email && !manager.phone) return null;
+
   function handleCall() {
     toast.success(`Calling ${manager.name}`, {
       description: manager.phone,
