@@ -56,6 +56,7 @@ export function MarketplaceBrowse({
   const [activeMaterial, setActiveMaterial] = useState<string | null>(null);
 
   const categories = useMarketplaceStore((s) => s.categories);
+  const brands = useMarketplaceStore((s) => s.brands);
   const warehouses = useMarketplaceStore((s) => s.warehouses);
   const draftFilters = useMarketplaceStore((s) => s.draftFilters);
   const filters = useMarketplaceStore((s) => s.filters);
@@ -271,7 +272,7 @@ export function MarketplaceBrowse({
 
             <FilterTopBar
               categories={categories}
-              brands={[]}
+              brands={brands}
               warehouses={warehouses}
               draftFilters={draftFilters}
               appliedFilters={filters}

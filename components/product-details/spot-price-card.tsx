@@ -36,7 +36,7 @@ export function SpotPriceCard({
         />
         <div className="relative flex items-start justify-between gap-3">
           <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/70">
-            Current Spot Price
+            Material Price
           </p>
           {badge}
         </div>
@@ -50,6 +50,9 @@ export function SpotPriceCard({
           <span className="ml-1 text-[10px] font-normal text-white/55">
             (÷ 1,000)
           </span>
+        </p>
+        <p className="relative mt-1 text-[11px] font-medium text-white/70">
+          Excludes delivery and GST — see estimated order total below
         </p>
         {delta !== 0 ? (
           <p

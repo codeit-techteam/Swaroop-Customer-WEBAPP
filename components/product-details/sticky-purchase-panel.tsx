@@ -404,10 +404,18 @@ export function StickyPurchasePanel({
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                Estimated total
+                Estimated order total
               </p>
               <p className="truncate text-[11px] text-slate-500">
-                {quantity} MT · incl. GST &amp; freight
+                {quantity} MT · material + delivery + GST
+              </p>
+              <p className="mt-0.5 truncate text-[11px] font-medium text-slate-600">
+                Material{" "}
+                {formatInr(
+                  quote ? Number(quote.unitPrice) : spotPrice.pricePerMt,
+                  { compact: true },
+                )}{" "}
+                / MT
               </p>
             </div>
             <div className="flex items-center gap-1.5" aria-live="polite">

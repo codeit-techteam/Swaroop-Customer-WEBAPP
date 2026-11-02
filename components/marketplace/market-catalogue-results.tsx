@@ -12,6 +12,7 @@ import { ROUTES, marketplaceGradePath } from "@/constants";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useGradeDirectory } from "@/hooks/use-grade-directory";
 import { gradeDirectoryErrorMessage } from "@/services/grade-directory";
+import { formatGradeGroupLabel } from "@/lib/master-label";
 import { cn } from "@/lib/utils";
 import type { GradeDirectoryItem } from "@/types/grade-directory";
 
@@ -165,7 +166,7 @@ export function MarketCatalogueResults({
                           variant="secondary"
                           className="rounded-md text-[10px]"
                         >
-                          {grade.gradeGroup}
+                          {formatGradeGroupLabel(grade.gradeGroup)}
                         </Badge>
                       ) : null}
                     </div>

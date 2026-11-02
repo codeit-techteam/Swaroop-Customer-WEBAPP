@@ -34,6 +34,7 @@ import { ROUTES, marketplaceGradePath } from "@/constants";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useGradeDirectory, useGradeFacets } from "@/hooks/use-grade-directory";
 import { gradeDirectoryErrorMessage } from "@/services/grade-directory";
+import { formatGradeGroupLabel } from "@/lib/master-label";
 import { cn } from "@/lib/utils";
 import type { GradeDirectoryItem } from "@/types/grade-directory";
 import { FacetCombobox } from "./facet-combobox";
@@ -151,7 +152,7 @@ export function GradeDirectoryPage() {
     () =>
       (facets.data?.gradeGroups ?? []).map((g) => ({
         value: g.name,
-        label: g.name,
+        label: formatGradeGroupLabel(g.name),
         count: g.gradeCount,
       })),
     [facets.data?.gradeGroups],
@@ -641,7 +642,7 @@ function GradeTable({
                     {grade.category?.displayName ?? "—"}
                   </TableCell>
                   <TableCell className="text-sm text-slate-600">
-                    {grade.gradeGroup ?? "—"}
+                    {formatGradeGroupLabel(grade.gradeGroup) || "—"}
                   </TableCell>
                   <TableCell className="text-sm text-slate-600">
                     {grade.manufacturer ?? "—"}
@@ -702,7 +703,7 @@ function GradeTable({
                         variant="secondary"
                         className="rounded-md text-[10px]"
                       >
-                        {grade.gradeGroup}
+                        {formatGradeGroupLabel(grade.gradeGroup)}
                       </Badge>
                     ) : null}
                     {grade.inTodaysDelhiPriceList ? (

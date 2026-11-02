@@ -1,7 +1,11 @@
 "use client";
 
 import { create } from "zustand";
-import { DEFAULT_MARKETPLACE_FILTERS, MARKETPLACE_PAGE_SIZE, PRICE_RANGE_BOUNDS } from "@/mock/filters";
+import {
+  DEFAULT_MARKETPLACE_FILTERS,
+  MARKETPLACE_PAGE_SIZE,
+  PRICE_RANGE_BOUNDS,
+} from "@/mock/filters";
 import { fetchMarketplaceCatalog } from "@/services/catalog";
 import type {
   GradeOriginFilter,
@@ -107,13 +111,43 @@ function matchesSearch(product: MarketplaceProduct, query: string): boolean {
   return haystack.includes(q);
 }
 
+function priceBoundsFromProducts(
+  products: MarketplaceProduct[],
+): typeof PRICE_RANGE_BOUNDS {
+  const prices = products
+    .map((p) => p.price)
+    .filter((p) => Number.isFinite(p) && p > 0);
+  if (prices.length === 0) return PRICE_RANGE_BOUNDS;
+  const min = Math.floor(Math.min(...prices));
+  const max = Math.ceil(Math.max(...prices));
+  // Keep a usable slider even when every listing shares one price.
+  if (min >= max) {
+    return {
+      min: Math.max(0, min - PRICE_RANGE_BOUNDS.step),
+      max: max + PRICE_RANGE_BOUNDS.step,
+      step: PRICE_RANGE_BOUNDS.step,
+    };
+  }
+  return { min, max, step: PRICE_RANGE_BOUNDS.step };
+}
+
+/** Price filter is inactive while the slider still spans the full observed range. */
+function isPriceFilterActive(
+  filters: MarketplaceFiltersState,
+  bounds: typeof PRICE_RANGE_BOUNDS,
+): boolean {
+  return filters.priceMin > bounds.min || filters.priceMax < bounds.max;
+}
+
 function applyCatalogFilters(
   products: MarketplaceProduct[],
   filters: MarketplaceFiltersState,
   search: string,
   originFilter: GradeOriginFilter,
   selectedCategoryId: MarketplaceParentCategoryId | null,
+  priceBounds: typeof PRICE_RANGE_BOUNDS,
 ): MarketplaceProduct[] {
+  const priceActive = isPriceFilterActive(filters, priceBounds);
   return products.filter((product) => {
     if (!matchesSearch(product, search)) return false;
 
@@ -142,8 +176,16 @@ function applyCatalogFilters(
       return false;
     }
 
-    if (product.price < filters.priceMin || product.price > filters.priceMax) {
-      return false;
+    // Only constrain price when the user narrowed the slider. RFQ / unpriced
+    // rows stay visible until a real price bound is applied.
+    if (priceActive) {
+      if (!(product.price > 0)) return false;
+      if (
+        product.price < filters.priceMin ||
+        product.price > filters.priceMax
+      ) {
+        return false;
+      }
     }
 
     if (
@@ -218,12 +260,35 @@ export const useMarketplaceStore = create<MarketplaceStoreState>(
       set({ isLoading: true, loadError: null });
       try {
         const catalog = await fetchMarketplaceCatalog();
+        const nextBounds = priceBoundsFromProducts(catalog.products);
+        const state = get();
+        // Keep a user-narrowed price filter; otherwise snap defaults to the
+        // live catalogue range so Apply / Clear stay meaningful.
+        const priceWasCustom = isPriceFilterActive(
+          state.filters,
+          state.priceBounds,
+        );
+        const nextPrice = priceWasCustom
+          ? {
+              priceMin: Math.max(
+                nextBounds.min,
+                Math.min(state.filters.priceMin, nextBounds.max),
+              ),
+              priceMax: Math.min(
+                nextBounds.max,
+                Math.max(state.filters.priceMax, nextBounds.min),
+              ),
+            }
+          : { priceMin: nextBounds.min, priceMax: nextBounds.max };
         set({
           products: catalog.products,
           categories: catalog.categories,
           brands: catalog.brands,
           warehouses: catalog.warehouses,
           catalogTotal: catalog.total,
+          priceBounds: nextBounds,
+          filters: { ...state.filters, ...nextPrice },
+          draftFilters: { ...state.draftFilters, ...nextPrice },
           isLoading: false,
           hasLoaded: true,
           loadError: null,
@@ -339,14 +404,21 @@ export const useMarketplaceStore = create<MarketplaceStoreState>(
     },
 
     resetFilters: () =>
-      set({
-        filters: { ...DEFAULT_MARKETPLACE_FILTERS },
-        draftFilters: { ...DEFAULT_MARKETPLACE_FILTERS },
-        selectedCategoryId: null,
-        selectedWarehouse: null,
-        creditEligible: false,
-        originFilter: "all",
-        page: 1,
+      set((state) => {
+        const cleared = {
+          ...DEFAULT_MARKETPLACE_FILTERS,
+          priceMin: state.priceBounds.min,
+          priceMax: state.priceBounds.max,
+        };
+        return {
+          filters: cleared,
+          draftFilters: cleared,
+          selectedCategoryId: null,
+          selectedWarehouse: null,
+          creditEligible: false,
+          originFilter: "all" as const,
+          page: 1,
+        };
       }),
 
     hydrateCategorySlug: (slug) => {
@@ -371,6 +443,7 @@ export const useMarketplaceStore = create<MarketplaceStoreState>(
         state.originFilter,
         // When filters already include categories, selectedCategoryId is reflected there
         state.filters.categories.length > 0 ? null : state.selectedCategoryId,
+        state.priceBounds,
       );
       return sortProducts(filtered, state.sortBy);
     },

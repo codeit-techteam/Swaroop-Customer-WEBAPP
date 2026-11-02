@@ -140,7 +140,22 @@ export interface MarketplaceProduct {
   brandName: string;
   brandShortName: string;
   description: string;
+  /** Authoritative material price ₹/MT from Offer.basePrice. */
   price: number;
+  /**
+   * Backend landed-cost preview at MOQ (ADVANCE).
+   * Never display finalAmountPerMT as the material price.
+   */
+  pricingPreview?: {
+    materialPricePerMT: string;
+    freightPerMT: string;
+    finalAmount: string;
+    finalAmountPerMT: string;
+    quantityMT: string;
+    needsPriceReview?: boolean;
+    currency?: string;
+    pricingUnit?: string;
+  } | null;
   unit: "MT";
   origin: string;
   warehouseId: string;

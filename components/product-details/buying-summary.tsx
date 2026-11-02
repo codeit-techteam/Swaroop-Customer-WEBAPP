@@ -128,7 +128,7 @@ export function BuyingSummary({
   const discount = Number(quote.discountAmount);
   const rows = [
     {
-      label: "Subtotal",
+      label: "Material subtotal",
       value: formatInr(Number(quote.baseAmount), { compact: true }),
     },
     ...(discount > 0
@@ -174,15 +174,20 @@ export function BuyingSummary({
       <div className="mt-2 grid grid-cols-2 gap-2 rounded-lg border border-slate-100 bg-white/80 p-2.5">
         <div>
           <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
-            ₹ / MT
+            Material ₹ / MT
           </p>
           <p className="mt-0.5 text-sm font-semibold tabular-nums text-slate-900">
             {isInr ? money(unitMt) : `${currency} ${unitMt ?? "—"}`}
           </p>
+          {estimate?.pricing?.finalAmountPerMT && isInr ? (
+            <p className="mt-1 text-[11px] font-medium text-slate-500">
+              Est. landed {money(estimate.pricing.finalAmountPerMT)} / MT
+            </p>
+          ) : null}
         </div>
         <div>
           <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
-            ₹ / kg
+            Material ₹ / kg
           </p>
           <p className="mt-0.5 text-sm font-semibold tabular-nums text-slate-900">
             {unitKg

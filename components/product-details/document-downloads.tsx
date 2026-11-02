@@ -16,16 +16,25 @@ interface DocumentDownloadsProps {
   className?: string;
 }
 
-function isProductTechnicalDoc(doc: ComplianceDocument): boolean {
+/** Listing-specific docs only — grade-library TDS is shown via GradeTdsSection. */
+function isListingSecondaryDoc(doc: ComplianceDocument): boolean {
   const title = doc.title.trim().toUpperCase();
   const type = String(doc.type).toLowerCase();
-  return (
+  const isTds =
     type === "tds" ||
-    type === "msds" ||
+    type === "product_tds" ||
     title.includes("TDS") ||
+    title.includes("TECHNICAL DATA");
+  if (isTds) return false;
+  return (
+    type === "msds" ||
     title.includes("MSDS") ||
     title.includes("MATERIAL SAFETY") ||
-    title.includes("TECHNICAL DATA")
+    type === "coa" ||
+    type === "iso" ||
+    type === "other" ||
+    title.includes("CERTIFICATE") ||
+    title.includes("SPECIFICATION")
   );
 }
 
@@ -37,38 +46,23 @@ export function DocumentDownloads({
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const visibleDocuments = useMemo(
-    () => documents.filter(isProductTechnicalDoc),
+    () => documents.filter(isListingSecondaryDoc),
     [documents],
   );
 
   if (visibleDocuments.length === 0) {
-    return (
-      <section
-        className={cn(
-          "rounded-2xl border border-slate-200 bg-white p-4 shadow-card",
-          className,
-        )}
-      >
-        <h2 className="text-sm font-semibold text-slate-900">
-          Technical Documents (TDS / MSDS)
-        </h2>
-        <p className="mt-2 text-xs text-slate-500">
-          TDS unavailable — no approved Technical Data Sheet is on file for this
-          product yet.
-        </p>
-      </section>
-    );
+    return null;
   }
 
   const openDocument = async (doc: ComplianceDocument) => {
     const pid = productId ?? doc.productId;
     if (!pid) {
-      toast.error("TDS unavailable");
+      toast.error("Document unavailable");
       return;
     }
     if (!getAccessToken()) {
       const next = `${window.location.pathname}${window.location.search}`;
-      toast.message("Sign in to download TDS", {
+      toast.message("Sign in to download documents", {
         description: "You will return to this product after login.",
       });
       router.push(`${ROUTES.login}?next=${encodeURIComponent(next)}`);
@@ -77,13 +71,15 @@ export function DocumentDownloads({
     setLoadingId(doc.id);
     try {
       const payload = await fetchProductDocumentUrl(pid, doc.id);
-      if (!payload.url) throw new Error("TDS unavailable");
+      if (!payload.url) throw new Error("Document unavailable");
       window.open(payload.url, "_blank", "noopener,noreferrer");
       toast.success(`${doc.title} opened`, {
         description: "Verified Product Document",
       });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "TDS unavailable");
+      toast.error(
+        error instanceof Error ? error.message : "Document unavailable",
+      );
     } finally {
       setLoadingId(null);
     }
@@ -97,10 +93,10 @@ export function DocumentDownloads({
       )}
     >
       <h2 className="text-sm font-semibold text-slate-900">
-        Technical Documents
+        Additional Documents
       </h2>
       <p className="mt-0.5 text-xs text-slate-500">
-        Verified product documents from PolyStoreX
+        Listing-specific MSDS and related documents
       </p>
       <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {visibleDocuments.map((doc) => (

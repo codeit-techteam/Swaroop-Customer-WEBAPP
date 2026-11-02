@@ -23,6 +23,7 @@ import { ProductFeatures } from "./product-features";
 import { ProductApplications } from "./product-applications";
 import { DeliveryCard } from "./delivery-card";
 import { TechnicalSpecificationAccordion } from "./technical-specification-accordion";
+import { GradeTdsSection } from "@/components/marketplace/grades/grade-tds-section";
 import { DocumentDownloads } from "./document-downloads";
 import { MobileBuyBar, StickyPurchasePanel } from "./sticky-purchase-panel";
 import { TrustBadges } from "./trust-badges";
@@ -318,6 +319,7 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
             industry={detail.industry}
           />
           <TechnicalSpecificationAccordion specs={detail.specs} />
+          <GradeTdsSection productId={detail.id} gradeId={detail.gradeId} />
           <DocumentDownloads
             documents={detail.documents}
             productId={detail.id}

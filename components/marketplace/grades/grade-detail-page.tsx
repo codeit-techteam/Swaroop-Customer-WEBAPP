@@ -21,6 +21,7 @@ import {
   useGradeProducts,
 } from "@/hooks/use-grade-directory";
 import { IMPORT_ROUTES } from "@/lib/import/config";
+import { formatGradeGroupLabel } from "@/lib/master-label";
 import {
   gradeDirectoryErrorMessage,
   isGradeNotFound,
@@ -169,7 +170,7 @@ export function GradeDetailPage({ gradeId }: GradeDetailPageProps) {
           ) : null}
           {grade.gradeGroup ? (
             <Badge variant="outline" className="rounded-md">
-              {grade.gradeGroup}
+              {formatGradeGroupLabel(grade.gradeGroup)}
             </Badge>
           ) : null}
           {grade.inTodaysDelhiPriceList ? <DelhiPriceListBadge /> : null}
@@ -186,7 +187,9 @@ export function GradeDetailPage({ gradeId }: GradeDetailPageProps) {
             {grade.code}
           </Field>
           <Field label="Manufacturer">{grade.manufacturer}</Field>
-          <Field label="Grade group">{grade.gradeGroup}</Field>
+          <Field label="Grade group">
+            {formatGradeGroupLabel(grade.gradeGroup) || grade.gradeGroup}
+          </Field>
           <Field label="Category">
             {grade.category
               ? `${grade.category.displayName} (${grade.category.code})`

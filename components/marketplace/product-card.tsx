@@ -158,14 +158,24 @@ export function ProductCard({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-            Price Per MT
+            Material Price / MT
           </p>
           <p className="text-xl font-bold tabular-nums text-brand">
-            {formatInr(product.price)}
+            {product.price > 0 ? formatInr(product.price) : "—"}
             <span className="ml-1 text-sm font-semibold text-slate-400">
               / MT
             </span>
           </p>
+          {product.pricingPreview?.finalAmountPerMT ? (
+            <p className="mt-1 text-[12px] font-medium text-slate-600">
+              Est. landed{" "}
+              {formatInr(Number(product.pricingPreview.finalAmountPerMT))} / MT
+            </p>
+          ) : (
+            <p className="mt-1 text-[11px] font-medium text-slate-400">
+              Final price calculated at checkout
+            </p>
+          )}
           <p className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
             <Lock className="h-3 w-3" aria-hidden />
             Seller Identity Protected

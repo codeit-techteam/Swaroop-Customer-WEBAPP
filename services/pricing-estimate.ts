@@ -2,6 +2,27 @@ import apiClient from "@/lib/apiClient";
 import type { Envelope } from "@/lib/api-envelope";
 import { marketplaceApiBase } from "@/lib/marketplace-api-base";
 
+export type PricingEstimateBreakdown = {
+  materialPricePerMT: string;
+  freightPerMT: string;
+  advanceDiscountPercent: number;
+  gstPercent: number;
+  quantityMT: string;
+  materialSubtotal: string;
+  freightTotal: string;
+  discountAmount: string;
+  taxableAmount: string;
+  gstAmount: string;
+  finalAmount: string;
+  finalAmountPerMT: string;
+  currency: string;
+  pricingUnit: string;
+  offerId: string;
+  priceVersion: string;
+  needsPriceReview?: boolean;
+  priceReviewReason?: string | null;
+};
+
 export type PricingEstimate = {
   binding: boolean;
   currency: string;
@@ -11,6 +32,7 @@ export type PricingEstimate = {
   paymentMethod?: string;
   note?: string;
   amounts?: null;
+  pricing?: PricingEstimateBreakdown | null;
   exTax?: {
     material: string;
     discount: string;

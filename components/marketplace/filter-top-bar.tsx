@@ -112,11 +112,13 @@ export function FilterTopBar({
         valueMax={draftFilters.priceMax}
         onChange={onPriceChange}
       />
-      <WarehouseFilter
-        warehouses={warehouses}
-        value={draftFilters.warehouseId}
-        onChange={onWarehouseChange}
-      />
+      {warehouses.length > 0 ? (
+        <WarehouseFilter
+          warehouses={warehouses}
+          value={draftFilters.warehouseId}
+          onChange={onWarehouseChange}
+        />
+      ) : null}
       <CreditToggle
         checked={draftFilters.creditEligibleOnly}
         onChange={onCreditChange}
@@ -126,7 +128,10 @@ export function FilterTopBar({
           type="button"
           variant="outline"
           className="h-10 flex-1 rounded-xl text-sm"
-          onClick={onReset}
+          onClick={() => {
+            onReset();
+            setMobileOpen(false);
+          }}
         >
           Clear All
         </Button>
@@ -197,19 +202,21 @@ export function FilterTopBar({
             <PopoverActions onApply={handleApply} onReset={onReset} />
           </FilterPill>
 
-          <FilterPill
-            label="Warehouse"
-            active={warehouseActive}
-            open={warehouseOpen}
-            onOpenChange={setWarehouseOpen}
-          >
-            <WarehouseFilter
-              warehouses={warehouses}
-              value={draftFilters.warehouseId}
-              onChange={onWarehouseChange}
-            />
-            <PopoverActions onApply={handleApply} onReset={onReset} />
-          </FilterPill>
+          {warehouses.length > 0 ? (
+            <FilterPill
+              label="Warehouse"
+              active={warehouseActive}
+              open={warehouseOpen}
+              onOpenChange={setWarehouseOpen}
+            >
+              <WarehouseFilter
+                warehouses={warehouses}
+                value={draftFilters.warehouseId}
+                onChange={onWarehouseChange}
+              />
+              <PopoverActions onApply={handleApply} onReset={onReset} />
+            </FilterPill>
+          ) : null}
 
           <FilterPill
             label="Credit"
@@ -230,7 +237,19 @@ export function FilterTopBar({
             <Button
               type="button"
               variant="outline"
-              className="h-9 rounded-full border-slate-200 px-4 text-sm font-medium md:hidden"
+              className="h-9 rounded-full border-slate-200 px-4 text-sm font-medium"
+              aria-label={
+                hasSecondaryFilters
+                  ? `Open filters (${[
+                      brandActive && "brand",
+                      priceActive && "price",
+                      warehouseActive && "warehouse",
+                      creditActive && "credit",
+                    ]
+                      .filter(Boolean)
+                      .join(", ")})`
+                  : "Open filters"
+              }
             >
               <SlidersHorizontal
                 className="mr-1.5 h-4 w-4"
@@ -239,12 +258,20 @@ export function FilterTopBar({
               Filters
               {hasSecondaryFilters ? (
                 <span className="ml-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-white">
-                  !
+                  {[
+                    brandActive ? appliedFilters.brands.length || 1 : 0,
+                    priceActive ? 1 : 0,
+                    warehouseActive ? 1 : 0,
+                    creditActive ? 1 : 0,
+                  ].reduce((a, b) => a + b, 0)}
                 </span>
               ) : null}
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
+          <SheetContent
+            side="right"
+            className="w-full overflow-y-auto sm:max-w-md"
+          >
             <SheetHeader>
               <SheetTitle>Filters</SheetTitle>
             </SheetHeader>

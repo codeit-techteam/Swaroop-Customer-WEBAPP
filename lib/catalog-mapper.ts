@@ -11,6 +11,17 @@ import type {
 import type { MarketplaceOffer, OfferPaymentType } from "@/types/offers";
 import type { ProductCreditConfig } from "@/types/payment-eligibility";
 
+export type BlindListingPricingPreview = {
+  materialPricePerMT?: string;
+  freightPerMT?: string;
+  finalAmount?: string;
+  finalAmountPerMT?: string;
+  quantityMT?: string;
+  needsPriceReview?: boolean;
+  currency?: string;
+  pricingUnit?: string;
+};
+
 export type BlindListing = {
   offerId: string;
   price: number | string;
@@ -27,6 +38,7 @@ export type BlindListing = {
     price?: number | string | null;
     currency?: string;
   }>;
+  pricingPreview?: BlindListingPricingPreview | null;
 };
 
 export type BlindProduct = {
@@ -269,6 +281,24 @@ export function toMarketplaceProduct(
     brandShortName: manufacturer ? manufacturer.slice(0, 3).toUpperCase() : "—",
     description: product.description ?? "",
     price: num(listing?.price),
+    pricingPreview: listing?.pricingPreview
+      ? {
+          materialPricePerMT: String(
+            listing.pricingPreview.materialPricePerMT ?? listing.price,
+          ),
+          freightPerMT: String(listing.pricingPreview.freightPerMT ?? ""),
+          finalAmount: String(listing.pricingPreview.finalAmount ?? ""),
+          finalAmountPerMT: String(
+            listing.pricingPreview.finalAmountPerMT ?? "",
+          ),
+          quantityMT: String(
+            listing.pricingPreview.quantityMT ?? listing.moq ?? "",
+          ),
+          needsPriceReview: Boolean(listing.pricingPreview.needsPriceReview),
+          currency: listing.pricingPreview.currency,
+          pricingUnit: listing.pricingPreview.pricingUnit,
+        }
+      : null,
     unit: "MT",
     origin: String(specs.origin ?? product.countryOfOrigin ?? ""),
     warehouseId: String(specs.warehouseId ?? "wh-all"),
