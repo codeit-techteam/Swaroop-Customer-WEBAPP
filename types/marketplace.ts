@@ -169,6 +169,8 @@ export interface MarketplaceProduct {
   images: string[];
   casNumber: string;
   applications: string[];
+  /** Grade Master / seller feature checklist when provided by API. */
+  features?: string[];
   creditEligible: boolean;
   productCredit?: ProductCreditConfig;
   stockStatus: ProductStockStatus;

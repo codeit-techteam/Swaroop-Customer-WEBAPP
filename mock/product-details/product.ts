@@ -110,13 +110,21 @@ export function buildProductDetail(
     gradeId: product.gradeId,
     description: product.description,
     casNumber: product.casNumber,
-    hsnCode: product.fulfilment?.hsnCode || "3902.10.00",
+    hsnCode: product.fulfilment?.hsnCode?.trim() || "",
     application: product.applications[0] ?? product.materialType,
-    applications: product.applications,
-    features: getFeaturesForMaterial(product.materialType),
+    applications:
+      product.applications.length > 0
+        ? product.applications
+        : product.materialType
+          ? [product.materialType]
+          : [],
+    features:
+      product.features && product.features.length > 0
+        ? product.features
+        : getFeaturesForMaterial(product.materialType),
     highlights: buildProductHighlights(product.creditEligible),
     industry: "Petrochemicals & Packaging",
-    packaging: product.packaging ?? "25 KG Bags",
+    packaging: product.packaging?.trim() || "25 KG Bags",
     origin: product.origin,
     warehouseId: product.warehouseId,
     warehouseLabel: product.warehouseLabel,

@@ -314,6 +314,12 @@ export function toMarketplaceProduct(
     images: [],
     casNumber: String(specs.casNumber ?? ""),
     applications,
+    features: Array.isArray(specs.features)
+      ? (specs.features as unknown[]).filter(
+          (item): item is string =>
+            typeof item === "string" && item.trim().length > 0,
+        )
+      : undefined,
     productCredit: listing?.productCredit,
     creditEligible:
       listing?.productCredit?.supported ?? specs.creditEligible !== false,

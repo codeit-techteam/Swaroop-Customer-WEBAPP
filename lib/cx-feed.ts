@@ -72,6 +72,7 @@ export interface PublishedProduct {
   hsnCode?: string;
   application?: string;
   applications?: string[];
+  features?: string[];
   industry?: string;
   creditEligible?: boolean;
   highlights?: string[];
@@ -302,7 +303,7 @@ export function publishedProductToDetail(
     grade: product.grade,
     description: product.description,
     casNumber: product.casNumber ?? "",
-    hsnCode: product.hsnCode ?? "3902.10.00",
+    hsnCode: product.hsnCode?.trim() || "",
     application:
       product.application || product.applications?.[0] || materialType,
     applications: product.applications?.length
@@ -310,7 +311,10 @@ export function publishedProductToDetail(
       : product.application
         ? [product.application]
         : [product.packaging],
-    features: getFeaturesForMaterial(materialType),
+    features:
+      product.features && product.features.length > 0
+        ? product.features
+        : getFeaturesForMaterial(materialType),
     highlights: product.highlights?.length
       ? product.highlights
       : buildProductHighlights(creditEligible),

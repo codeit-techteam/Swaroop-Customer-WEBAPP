@@ -98,18 +98,49 @@ export function GradeTdsSection({ productId, gradeId }: GradeTdsSectionProps) {
       return;
     }
     setBusyId(doc.id);
+    const loadingId = toast.loading(
+      mode === "download" ? "Preparing download…" : "Opening TDS…",
+    );
     try {
       const payload = await fetchGradeTdsDocumentUrl(resolvedGradeId, doc.id);
       if (!payload.url) {
-        toast.error("TDS unavailable");
+        toast.error("TDS unavailable", { id: loadingId });
         return;
       }
-      window.open(payload.url, "_blank", "noopener,noreferrer");
-      toast.success(
-        mode === "download" ? "TDS download started" : "TDS opened",
-      );
+      if (mode === "download") {
+        const anchor = document.createElement("a");
+        anchor.href = payload.url;
+        anchor.download =
+          payload.fileName || doc.fileName || `${doc.title || "TDS"}.pdf`;
+        anchor.rel = "noopener noreferrer";
+        anchor.target = "_blank";
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        toast.success("Download started", {
+          id: loadingId,
+          description: doc.title ?? "Technical Data Sheet",
+        });
+      } else {
+        const opened = window.open(
+          payload.url,
+          "_blank",
+          "noopener,noreferrer",
+        );
+        if (!opened) {
+          toast.message("Allow pop-ups to view the TDS", { id: loadingId });
+          window.location.assign(payload.url);
+          return;
+        }
+        toast.success("Opened in a new tab", {
+          id: loadingId,
+          description: doc.title ?? "Technical Data Sheet",
+        });
+      }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "TDS unavailable");
+      toast.error(error instanceof Error ? error.message : "TDS unavailable", {
+        id: loadingId,
+      });
     } finally {
       setBusyId(null);
     }
