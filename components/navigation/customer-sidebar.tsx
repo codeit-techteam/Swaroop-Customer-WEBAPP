@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
-import Image from "next/image";
 import { CUSTOMER_NAV, ROUTES, APP_SHORT_NAME } from "@/constants";
+import { Logo } from "@/components/auth/logo";
 
 import { Sidebar } from "@/components/layout/sidebar";
 import { SidebarItem } from "@/components/navigation/sidebar-item";
@@ -199,26 +199,18 @@ export function CustomerSidebar({
           )}
           onClick={handleNavigate}
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-[0_8px_18px_rgba(0,0,0,0.18)]">
-            <Image
-              src="/brand/polystorex-logo.png"
-              alt={APP_SHORT_NAME}
-              width={36}
-              height={36}
-              className="h-9 w-9 object-contain"
-              priority
+          {collapsed ? (
+            <Logo variant="light" size="sm" lockup="mark" />
+          ) : (
+            <Logo
+              variant="light"
+              size="sm"
+              showTagline
+              tagline={
+                onboardingIncomplete ? "Complete setup" : "Customer portal"
+              }
             />
-          </span>
-          {!collapsed ? (
-            <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold tracking-tight text-white">
-                {APP_SHORT_NAME}
-              </span>
-              <span className="block text-[10px] font-medium uppercase tracking-[0.16em] text-white/45">
-                {onboardingIncomplete ? "Complete setup" : "Customer portal"}
-              </span>
-            </span>
-          ) : null}
+          )}
         </Link>
 
         {forceExpanded ? (

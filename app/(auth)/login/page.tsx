@@ -5,7 +5,7 @@ import { LoginHero } from "@/components/auth/login-hero";
 
 export const metadata: Metadata = {
   title: "Login",
-  description: "Sign in to PolyStoreX Customer Portal",
+  description: "Sign in to PolyStoreX Customer Portal with OTP verification",
 };
 
 export default function LoginPage() {

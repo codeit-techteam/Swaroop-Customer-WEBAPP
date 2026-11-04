@@ -37,8 +37,18 @@ export const phoneLoginIdentifierSchema = z
     message: "Enter a valid 10-digit mobile number",
   });
 
+/** OTP-only customer login — mobile number required. */
+export const otpLoginSchema = z.object({
+  phone: phoneLoginIdentifierSchema,
+  rememberMe: z.boolean(),
+});
+
+export type OtpLoginFormValues = z.infer<typeof otpLoginSchema>;
+
+/** @deprecated Prefer otpLoginSchema — password login removed from customer portal. */
 export type LoginMethod = "email" | "phone";
 
+/** @deprecated Prefer otpLoginSchema */
 export function createLoginSchema(method: LoginMethod) {
   return z.object({
     identifier:
@@ -50,8 +60,10 @@ export function createLoginSchema(method: LoginMethod) {
   });
 }
 
-export const loginSchema = createLoginSchema("email");
+/** @deprecated Prefer otpLoginSchema */
+export const loginSchema = createLoginSchema("phone");
 
+/** @deprecated Prefer OtpLoginFormValues */
 export type LoginFormValues = z.infer<ReturnType<typeof createLoginSchema>>;
 
 export const registerSchema = z

@@ -31,7 +31,7 @@ function formatContact(contact: string | null): string {
 
 function backLabel(contact: string | null): string {
   if (!contact) return "Go Back";
-  return contact.includes("@") ? "Change Email" : "Change Number";
+  return contact.includes("@") ? "Change Contact" : "Change Number";
 }
 
 function formatTimer(seconds: number): string {
