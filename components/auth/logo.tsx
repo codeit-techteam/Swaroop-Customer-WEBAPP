@@ -14,6 +14,10 @@ interface LogoProps {
   size?: "sm" | "md";
 }
 
+/**
+ * Production brand lockup: orbit mark + PolyStoreX wordmark (transparent asset).
+ * Avoids the old square "P" tile and black plate behind the logo.
+ */
 export function Logo({
   variant = "light",
   showTagline = false,
@@ -23,40 +27,31 @@ export function Logo({
   size = "md",
 }: LogoProps) {
   const isLight = variant === "light";
-  const iconSize = size === "sm" ? 32 : 36;
+  const height = size === "sm" ? 36 : 44;
 
   const content = (
-    <div className={cn("flex items-center gap-2.5", className)}>
+    <div className={cn("flex flex-col", className)}>
       <Image
         src="/brand/polystorex-logo.png"
         alt={APP_SHORT_NAME}
-        width={iconSize}
-        height={iconSize}
-        className="shrink-0 object-contain"
+        width={size === "sm" ? 160 : 200}
+        height={height}
+        className={cn(
+          "w-auto object-contain object-left",
+          size === "sm" ? "h-9" : "h-11",
+        )}
         priority
       />
-      <div className="flex flex-col leading-tight">
+      {showTagline ? (
         <span
           className={cn(
-            "font-semibold tracking-tight",
-            size === "sm" ? "text-sm" : "text-base",
-            isLight ? "text-white" : "text-brand",
+            "mt-1 text-[10px] font-medium uppercase tracking-[0.14em]",
+            isLight ? "text-white/70" : "text-muted-foreground",
           )}
         >
-          {APP_SHORT_NAME}
-          {showTagline ? "" : " Portal"}
+          {tagline}
         </span>
-        {showTagline ? (
-          <span
-            className={cn(
-              "text-[10px] font-medium uppercase tracking-[0.12em]",
-              isLight ? "text-white/70" : "text-muted-foreground",
-            )}
-          >
-            {tagline}
-          </span>
-        ) : null}
-      </div>
+      ) : null}
     </div>
   );
 
