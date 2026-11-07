@@ -70,14 +70,14 @@ export function LoginForm() {
             Welcome Back
           </h1>
           <p className="text-sm text-muted-foreground">
-            Verify with OTP to access your industrial trade dashboard
+            Sign in with your mobile number and OTP
           </p>
         </div>
 
         <form onSubmit={onSendOtp} className="space-y-4" noValidate>
           <div className="inline-flex items-center gap-2 rounded-full bg-accent-blue/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-accent-blue">
             <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
-            OTP verification
+            Mobile OTP login
           </div>
 
           <Controller

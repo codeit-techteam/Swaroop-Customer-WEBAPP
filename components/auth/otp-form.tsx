@@ -20,18 +20,12 @@ import { useOnboardingStore } from "@/store/onboardingStore";
 const FALLBACK_OTP_COUNTDOWN = 60;
 
 function formatContact(contact: string | null): string {
-  if (!contact) return "your registered contact";
-  if (contact.includes("@")) return contact;
+  if (!contact) return "your mobile number";
   const digits = contact.replace(/\D/g, "").slice(-10);
   if (digits.length === 10) {
     return `+91 ******${digits.slice(-4)}`;
   }
   return contact;
-}
-
-function backLabel(contact: string | null): string {
-  if (!contact) return "Go Back";
-  return contact.includes("@") ? "Change Contact" : "Change Number";
 }
 
 function formatTimer(seconds: number): string {
@@ -173,7 +167,7 @@ export function OtpForm() {
         className="mb-8 inline-flex items-center gap-1.5 text-sm font-medium text-accent-blue transition-colors hover:text-accent-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden />
-        {backLabel(pendingContact)}
+        Change Number
       </Link>
 
       <motion.div
@@ -184,10 +178,10 @@ export function OtpForm() {
       >
         <div className="space-y-2">
           <h1 className="text-2xl font-bold tracking-tight text-brand">
-            Two-Step Verification
+            Verify OTP
           </h1>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            We&apos;ve sent a 6-digit verification code to{" "}
+            Enter the 6-digit code sent to{" "}
             <span className="font-medium text-foreground">
               {formatContact(pendingContact)}
             </span>

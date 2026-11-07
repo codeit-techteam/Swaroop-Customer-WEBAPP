@@ -12,27 +12,10 @@ function isValidIndianMobile(value: string) {
   return false;
 }
 
-/** Email or 10-digit Indian mobile */
-export const identifierSchema = z
-  .string()
-  .trim()
-  .min(1, "Email or phone is required")
-  .refine(
-    (value) =>
-      emailSchema.safeParse(value).success || isValidIndianMobile(value),
-    { message: "Enter a valid email or 10-digit mobile number" },
-  );
-
-export const emailLoginIdentifierSchema = z
-  .string()
-  .trim()
-  .min(1, "Email is required")
-  .pipe(emailSchema);
-
 export const phoneLoginIdentifierSchema = z
   .string()
   .trim()
-  .min(1, "Phone is required")
+  .min(1, "Mobile number is required")
   .refine(isValidIndianMobile, {
     message: "Enter a valid 10-digit mobile number",
   });
@@ -45,46 +28,19 @@ export const otpLoginSchema = z.object({
 
 export type OtpLoginFormValues = z.infer<typeof otpLoginSchema>;
 
-/** @deprecated Prefer otpLoginSchema — password login removed from customer portal. */
-export type LoginMethod = "email" | "phone";
-
-/** @deprecated Prefer otpLoginSchema */
-export function createLoginSchema(method: LoginMethod) {
-  return z.object({
-    identifier:
-      method === "email"
-        ? emailLoginIdentifierSchema
-        : phoneLoginIdentifierSchema,
-    password: requiredString("Password is required"),
-    rememberMe: z.boolean(),
-  });
-}
-
-/** @deprecated Prefer otpLoginSchema */
-export const loginSchema = createLoginSchema("phone");
-
-/** @deprecated Prefer OtpLoginFormValues */
-export type LoginFormValues = z.infer<ReturnType<typeof createLoginSchema>>;
-
-export const registerSchema = z
-  .object({
-    businessName: requiredString("Business name is required"),
-    email: emailSchema,
-    phone: z
-      .string()
-      .trim()
-      .transform((v) => v.replace(/\D/g, "").slice(-10))
-      .pipe(phoneSchema),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: requiredString("Confirm your password"),
-    acceptTerms: z.boolean().refine((val) => val === true, {
-      message: "You must accept the terms to continue",
-    }),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+/** OTP-only registration — password is never collected. */
+export const registerSchema = z.object({
+  businessName: requiredString("Business name is required"),
+  email: emailSchema,
+  phone: z
+    .string()
+    .trim()
+    .transform((v) => v.replace(/\D/g, "").slice(-10))
+    .pipe(phoneSchema),
+  acceptTerms: z.boolean().refine((val) => val === true, {
+    message: "You must accept the terms to continue",
+  }),
+});
 
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 
@@ -97,6 +53,7 @@ export const otpSchema = z.object({
 
 export type OtpFormValues = z.infer<typeof otpSchema>;
 
+/** Kept for legacy password-reset UI components that redirect away. */
 export const forgotPasswordSchema = z.object({
   email: emailSchema,
 });

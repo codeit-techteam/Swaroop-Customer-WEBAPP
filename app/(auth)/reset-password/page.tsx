@@ -1,11 +1,7 @@
-import type { Metadata } from "next";
-import { ResetPasswordPageShell } from "@/components/auth/reset-password-page-shell";
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
-export const metadata: Metadata = {
-  title: "Reset Password",
-  description: "Create a new password for your PolyStoreX account",
-};
-
+/** Password reset is retired — customers sign in with mobile OTP only. */
 export default function ResetPasswordPage() {
-  return <ResetPasswordPageShell />;
+  redirect(ROUTES.login);
 }

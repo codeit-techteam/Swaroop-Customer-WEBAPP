@@ -13,12 +13,11 @@ import {
   clearCustomerData,
 } from "@/lib/customer-data-reset";
 import { env } from "@/lib/env";
-import { isOtpPasscode, looksLikeEmail } from "@/lib/phone";
+import { indianMobileDigits } from "@/lib/phone";
 import {
   authErrorMessage,
   fetchCurrentUser,
   isOtpRateLimited,
-  loginWithPassword,
   otpRetryAfterSeconds,
   resendAuthOtp,
   sendAuthOtp,
@@ -44,7 +43,6 @@ export interface RegisterPayload {
   businessName: string;
   email: string;
   phone: string;
-  password: string;
 }
 
 export type AuthActionResult = {
@@ -73,19 +71,17 @@ export interface AuthStoreState {
 }
 
 export interface AuthStoreActions {
-  login: (
-    identifier: string,
-    password: string,
-    rememberMe?: boolean,
-  ) => Promise<AuthActionResult>;
   continueWithOTP: (identifier: string) => Promise<AuthActionResult>;
   register: (payload: RegisterPayload) => Promise<AuthActionResult>;
   verifyOTP: (otp: string) => Promise<{ success: boolean; message?: string }>;
   resendOTP: () => Promise<AuthActionResult>;
+  /** @deprecated Password reset retired — mobile OTP login only. */
   sendResetCode: (email: string) => Promise<boolean>;
+  /** @deprecated Password reset retired — mobile OTP login only. */
   verifyResetOTP: (
     otp: string,
   ) => Promise<{ success: boolean; message?: string }>;
+  /** @deprecated Password reset retired — mobile OTP login only. */
   resetPassword: (password: string) => Promise<boolean>;
   clearResetFlow: () => void;
   logout: () => void;
@@ -170,35 +166,16 @@ export const useAuthStore = create<AuthStore>()(
         applyAuthSession(set, session, rememberMe);
       },
 
-      login: async (identifier, password, rememberMe = false) => {
-        set({ isLoading: true, rememberMe });
-        try {
-          if (!looksLikeEmail(identifier) && isOtpPasscode(password)) {
-            try {
-              await sendAuthOtp(identifier, "LOGIN");
-            } catch {
-              /* OTP may already be in-flight from a previous send */
-            }
-            const session = await verifyAuthOtp(identifier, password, "LOGIN");
-            applyAuthSession(set, session, rememberMe);
-            return { ok: true };
-          }
-
-          const session = await loginWithPassword(identifier, password);
-          applyAuthSession(set, session, rememberMe);
-          return { ok: true };
-        } catch (error) {
+      continueWithOTP: async (identifier) => {
+        set({ isLoading: true });
+        const contact = indianMobileDigits(identifier);
+        if (contact.length !== 10) {
           set({ isLoading: false });
           return {
             ok: false,
-            message: authErrorMessage(error, "Invalid credentials"),
+            message: "Enter a valid 10-digit mobile number",
           };
         }
-      },
-
-      continueWithOTP: async (identifier) => {
-        set({ isLoading: true });
-        const contact = identifier.trim();
         try {
           const sent = await sendAuthOtp(contact, "LOGIN");
           const cooldown = sent.resendCooldownSeconds ?? DEFAULT_OTP_COOLDOWN;
@@ -238,22 +215,27 @@ export const useAuthStore = create<AuthStore>()(
 
       register: async (payload) => {
         set({ isLoading: true });
+        const contact = indianMobileDigits(payload.phone);
+        if (contact.length !== 10) {
+          set({ isLoading: false });
+          return {
+            ok: false,
+            message: "Enter a valid 10-digit mobile number",
+          };
+        }
         try {
-          const sent = await sendAuthOtp(
-            payload.phone || payload.email,
-            "SIGNUP",
-          );
+          const sent = await sendAuthOtp(contact, "SIGNUP");
           const cooldown = sent.resendCooldownSeconds ?? DEFAULT_OTP_COOLDOWN;
           set({
             isLoading: false,
-            pendingContact: payload.phone || payload.email,
+            pendingContact: contact,
             otpSource: "register",
             otpResendCooldownSeconds: cooldown,
             user: {
               id: "",
               name: payload.businessName,
               email: payload.email,
-              phone: payload.phone,
+              phone: contact,
               companyName: payload.businessName,
             },
           });
@@ -264,7 +246,7 @@ export const useAuthStore = create<AuthStore>()(
               otpRetryAfterSeconds(error) ?? DEFAULT_OTP_COOLDOWN;
             set({
               isLoading: false,
-              pendingContact: payload.phone || payload.email,
+              pendingContact: contact,
               otpSource: "register",
               otpResendCooldownSeconds: cooldown,
             });
@@ -350,64 +332,12 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      sendResetCode: async (email) => {
-        set({ isLoading: true });
-        const normalized = email.trim().toLowerCase();
-        try {
-          await sendAuthOtp(normalized, "PASSWORD_RESET");
-          set({
-            isLoading: false,
-            forgotPasswordEmail: normalized,
-            pendingContact: normalized,
-            otpSource: "forgot-password",
-            otpVerified: false,
-            passwordResetCompleted: false,
-          });
-          return true;
-        } catch {
-          set({
-            isLoading: false,
-            forgotPasswordEmail: normalized,
-            pendingContact: normalized,
-            otpSource: "forgot-password",
-          });
-          return true;
-        }
-      },
-
-      verifyResetOTP: async (otp) => {
-        set({ isLoading: true });
-        try {
-          const contact = get().forgotPasswordEmail ?? get().pendingContact;
-          if (!contact) {
-            set({ isLoading: false });
-            return { success: false, message: "Start reset again." };
-          }
-          await verifyAuthOtp(contact, otp, "PASSWORD_RESET");
-          set({ isLoading: false, otpVerified: true });
-          return { success: true };
-        } catch (error) {
-          set({ isLoading: false });
-          return {
-            success: false,
-            message: authErrorMessage(error, "Invalid verification code"),
-          };
-        }
-      },
-
-      resetPassword: async (_password) => {
-        set({
-          isLoading: true,
-          passwordResetCompleted: true,
-          otpVerified: false,
-        });
-        set({
-          isLoading: false,
-          otpSource: null,
-          pendingContact: null,
-        });
-        return true;
-      },
+      sendResetCode: async () => false,
+      verifyResetOTP: async () => ({
+        success: false,
+        message: "Password login is disabled. Sign in with mobile OTP.",
+      }),
+      resetPassword: async () => false,
 
       clearResetFlow: () => {
         set({

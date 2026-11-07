@@ -1,11 +1,7 @@
-import type { Metadata } from "next";
-import { ForgotOtpPageShell } from "@/components/auth/forgot-otp-page-shell";
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
-export const metadata: Metadata = {
-  title: "OTP Verification",
-  description: "Verify your identity to reset your PolyStoreX password",
-};
-
+/** Password reset OTP is retired — use mobile OTP login instead. */
 export default function ForgotPasswordOtpPage() {
-  return <ForgotOtpPageShell />;
+  redirect(ROUTES.login);
 }

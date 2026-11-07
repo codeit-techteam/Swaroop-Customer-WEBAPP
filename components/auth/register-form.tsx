@@ -10,7 +10,6 @@ import {
   AuthCheckbox,
   AuthInput,
   FormError,
-  PasswordInput,
   PrimaryButton,
 } from "@/components/auth";
 import { registerSchema, type RegisterFormValues } from "@/lib/auth-schemas";
@@ -36,8 +35,6 @@ export function RegisterForm() {
       businessName: "",
       email: "",
       phone: "",
-      password: "",
-      confirmPassword: "",
       acceptTerms: false,
     },
   });
@@ -52,7 +49,6 @@ export function RegisterForm() {
       businessName: values.businessName,
       email: values.email,
       phone: values.phone,
-      password: values.password,
     });
     if (!result.ok) {
       setError("root", {
@@ -70,7 +66,8 @@ export function RegisterForm() {
           Corporate Registration
         </h1>
         <p className="text-sm text-muted-foreground">
-          Complete your enterprise profile to access the trading terminal.
+          Verify your mobile with OTP to access the trading terminal — no
+          password required.
         </p>
       </div>
 
@@ -102,27 +99,6 @@ export function RegisterForm() {
             error={errors.phone?.message}
             disabled={loading}
             {...register("phone")}
-          />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <PasswordInput
-            label="Create Password"
-            placeholder="••••••••"
-            autoComplete="new-password"
-            showLockIcon={false}
-            error={errors.password?.message}
-            disabled={loading}
-            {...register("password")}
-          />
-          <PasswordInput
-            label="Confirm Password"
-            placeholder="••••••••"
-            autoComplete="new-password"
-            showLockIcon={false}
-            error={errors.confirmPassword?.message}
-            disabled={loading}
-            {...register("confirmPassword")}
           />
         </div>
 
@@ -174,7 +150,7 @@ export function RegisterForm() {
           className="mt-2"
           icon={<ArrowRight className="h-4 w-4" aria-hidden />}
         >
-          Register & Continue
+          Send OTP & Continue
         </PrimaryButton>
 
         <p className="pt-1 text-center text-sm text-muted-foreground">
@@ -183,7 +159,7 @@ export function RegisterForm() {
             href={ROUTES.login}
             className="font-semibold text-accent-blue transition-colors hover:text-accent-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue"
           >
-            Login
+            Login with OTP
           </Link>
         </p>
       </form>

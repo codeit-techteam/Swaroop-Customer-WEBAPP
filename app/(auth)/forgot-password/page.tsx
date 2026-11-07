@@ -1,21 +1,7 @@
-import type { Metadata } from "next";
-import { AuthLayout } from "@/components/auth";
-import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
-import { ForgotPasswordHero } from "@/components/auth/forgot-password-hero";
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/constants";
 
-export const metadata: Metadata = {
-  title: "Forgot Password",
-  description: "Reset your PolyStoreX institutional account password",
-};
-
+/** Password login is removed — customers sign in with mobile OTP only. */
 export default function ForgotPasswordPage() {
-  return (
-    <AuthLayout
-      backgroundImage="/assets/images/auth-industrial-day.jpg"
-      side={<ForgotPasswordHero />}
-      contentClassName="items-stretch justify-start py-6 sm:py-8"
-    >
-      <ForgotPasswordForm />
-    </AuthLayout>
-  );
+  redirect(ROUTES.login);
 }

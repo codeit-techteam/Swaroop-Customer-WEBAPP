@@ -24,7 +24,10 @@ export type AuthSessionPayload = AuthTokens & {
   user: BackendAuthUser;
 };
 
-type LoginBody = { password: string; email?: string; phone?: string };
+/** Customer portal login is mobile OTP only — always send E.164 phone. */
+function phonePayload(phone: string): { phone: string } {
+  return { phone: toE164IndianPhone(phone) };
+}
 
 function identifierPayload(identifier: string): {
   email?: string;
@@ -33,7 +36,7 @@ function identifierPayload(identifier: string): {
   if (looksLikeEmail(identifier)) {
     return { email: identifier.trim().toLowerCase() };
   }
-  return { phone: toE164IndianPhone(identifier) };
+  return phonePayload(identifier);
 }
 
 export function isOtpRateLimited(error: unknown): boolean {
@@ -70,58 +73,80 @@ export function authErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
-export async function loginWithPassword(
-  identifier: string,
-  password: string,
-): Promise<AuthSessionPayload> {
-  const payload = await apiClient.post<Envelope<AuthSessionPayload>>(
-    "/auth/login",
-    { ...identifierPayload(identifier), password } satisfies LoginBody,
-    { skipAuth: true, skipRefresh: true },
-  );
-  return payload.data;
-}
-
 export type AuthOtpSendResult = {
   message: string;
   devOtp?: string;
   resendCooldownSeconds?: number;
   expiresInSeconds?: number;
+  smsDispatched?: boolean;
+  correlationId?: string;
 };
 
+function assertSmsDispatched(data: AuthOtpSendResult): AuthOtpSendResult {
+  // Production clients must not advance when the backend used a local/no-SMS stub.
+  // Local/demo backends may set smsDispatched=false intentionally.
+  if (data.smsDispatched === false && process.env.NODE_ENV === "production") {
+    throw new Error(
+      "SMS could not be dispatched. Please try again in a moment.",
+    );
+  }
+  return data;
+}
+
+export type AuthOtpPurpose = "LOGIN" | "SIGNUP" | "PASSWORD_RESET";
+
+/**
+ * Send OTP for customer auth.
+ * LOGIN / SIGNUP always use mobile number (never email).
+ */
 export async function sendAuthOtp(
   identifier: string,
-  purpose: "LOGIN" | "SIGNUP" | "PASSWORD_RESET" = "LOGIN",
+  purpose: AuthOtpPurpose = "LOGIN",
 ): Promise<AuthOtpSendResult> {
+  const body =
+    purpose === "PASSWORD_RESET"
+      ? { ...identifierPayload(identifier), purpose }
+      : { ...phonePayload(identifier), purpose };
+
   const payload = await apiClient.post<Envelope<AuthOtpSendResult>>(
     "/auth/otp/send",
-    { ...identifierPayload(identifier), purpose },
+    body,
     { skipAuth: true, skipRefresh: true },
   );
-  return payload.data;
+  return assertSmsDispatched(payload.data);
 }
 
 /** Fresh OTP — invalidates the previous challenge server-side. */
 export async function resendAuthOtp(
   identifier: string,
-  purpose: "LOGIN" | "SIGNUP" | "PASSWORD_RESET" = "LOGIN",
+  purpose: AuthOtpPurpose = "LOGIN",
 ): Promise<AuthOtpSendResult> {
+  const body =
+    purpose === "PASSWORD_RESET"
+      ? { ...identifierPayload(identifier), purpose }
+      : { ...phonePayload(identifier), purpose };
+
   const payload = await apiClient.post<Envelope<AuthOtpSendResult>>(
     "/auth/otp/resend",
-    { ...identifierPayload(identifier), purpose },
+    body,
     { skipAuth: true, skipRefresh: true },
   );
-  return payload.data;
+  return assertSmsDispatched(payload.data);
 }
 
 export async function verifyAuthOtp(
   identifier: string,
   otp: string,
-  purpose: "LOGIN" | "SIGNUP" | "PASSWORD_RESET" = "LOGIN",
+  purpose: AuthOtpPurpose = "LOGIN",
 ): Promise<AuthSessionPayload> {
+  const contact =
+    purpose === "PASSWORD_RESET"
+      ? identifierPayload(identifier)
+      : phonePayload(identifier);
+
   const payload = await apiClient.post<Envelope<AuthSessionPayload>>(
     "/auth/otp/verify",
-    { ...identifierPayload(identifier), otp, purpose, roleHint: "CUSTOMER" },
+    { ...contact, otp, purpose, roleHint: "CUSTOMER" },
     { skipAuth: true, skipRefresh: true },
   );
   return payload.data;
