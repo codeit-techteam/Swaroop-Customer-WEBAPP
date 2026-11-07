@@ -69,8 +69,9 @@ function redirectToLogin(
   router: ReturnType<typeof useRouter>,
   nextPath: string,
 ) {
-  toast.message("Sign in to continue", {
-    description: "Your quantity and offer will be restored after you return.",
+  toast.message("Sign in required", {
+    description:
+      "Sign in to your PolyStoreX buyer account to continue with your purchase.",
   });
   router.push(`${ROUTES.login}?next=${encodeURIComponent(nextPath)}`);
 }

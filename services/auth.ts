@@ -69,14 +69,32 @@ export async function loginWithPassword(
   return payload.data;
 }
 
+export type AuthOtpSendResult = {
+  message: string;
+  devOtp?: string;
+  resendCooldownSeconds?: number;
+  expiresInSeconds?: number;
+};
+
 export async function sendAuthOtp(
   identifier: string,
   purpose: "LOGIN" | "SIGNUP" | "PASSWORD_RESET" = "LOGIN",
-): Promise<{ message: string; devOtp?: string }> {
-  const payload = await apiClient.post<
-    Envelope<{ message: string; devOtp?: string }>
-  >(
+): Promise<AuthOtpSendResult> {
+  const payload = await apiClient.post<Envelope<AuthOtpSendResult>>(
     "/auth/otp/send",
+    { ...identifierPayload(identifier), purpose },
+    { skipAuth: true, skipRefresh: true },
+  );
+  return payload.data;
+}
+
+/** Fresh OTP — invalidates the previous challenge server-side. */
+export async function resendAuthOtp(
+  identifier: string,
+  purpose: "LOGIN" | "SIGNUP" | "PASSWORD_RESET" = "LOGIN",
+): Promise<AuthOtpSendResult> {
+  const payload = await apiClient.post<Envelope<AuthOtpSendResult>>(
+    "/auth/otp/resend",
     { ...identifierPayload(identifier), purpose },
     { skipAuth: true, skipRefresh: true },
   );

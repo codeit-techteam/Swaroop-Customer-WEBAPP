@@ -17,14 +17,14 @@ import { ROUTES } from "@/constants";
 import { getPostAuthDestination } from "@/lib/post-auth-redirect";
 import { useOnboardingStore } from "@/store/onboardingStore";
 
-const OTP_COUNTDOWN = 30;
+const OTP_COUNTDOWN = 60;
 
 function formatContact(contact: string | null): string {
   if (!contact) return "your registered contact";
   if (contact.includes("@")) return contact;
   const digits = contact.replace(/\D/g, "").slice(-10);
   if (digits.length === 10) {
-    return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+    return `+91 ******${digits.slice(-4)}`;
   }
   return contact;
 }

@@ -21,7 +21,7 @@ import {
 import { useAuthStore } from "@/store/authStore";
 import { ROUTES } from "@/constants";
 
-const OTP_COUNTDOWN = 30;
+const OTP_COUNTDOWN = 60;
 
 function formatTimer(seconds: number): string {
   const m = Math.floor(seconds / 60);

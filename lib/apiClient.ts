@@ -32,6 +32,7 @@ type AuthRequestConfig = InternalAxiosRequestConfig & {
 const PUBLIC_AUTH_PATHS = [
   "/auth/login",
   "/auth/otp/send",
+  "/auth/otp/resend",
   "/auth/otp/verify",
   "/auth/refresh",
   "/auth/password/forgot",

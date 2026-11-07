@@ -96,7 +96,23 @@ export function SessionHydrator() {
         loadError: null,
         products: [],
       });
-      const next = window.location.pathname + window.location.search;
+
+      const path = window.location.pathname;
+      // Public catalogue routes stay usable after a quiet JWT expiry —
+      // reload as guest instead of forcing login mid-browse.
+      const isPublicBrowse =
+        path === ROUTES.marketplace ||
+        path.startsWith(`${ROUTES.marketplace}/`) ||
+        path === ROUTES.product ||
+        path.startsWith(`${ROUTES.product}/`);
+
+      if (isPublicBrowse) {
+        void useAuthStore.getState().logout();
+        void useMarketplaceStore.getState().fetchCatalog();
+        return;
+      }
+
+      const next = path + window.location.search;
       const loginUrl =
         next && next !== ROUTES.login
           ? `${ROUTES.login}?next=${encodeURIComponent(next)}`

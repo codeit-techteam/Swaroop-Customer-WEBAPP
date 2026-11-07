@@ -19,6 +19,7 @@ import {
   fetchCurrentUser,
   isOtpRateLimited,
   loginWithPassword,
+  resendAuthOtp,
   sendAuthOtp,
   verifyAuthOtp,
   type AuthSessionPayload,
@@ -276,10 +277,13 @@ export const useAuthStore = create<AuthStore>()(
           };
         }
         try {
-          await sendAuthOtp(
-            contact,
-            get().otpSource === "forgot-password" ? "PASSWORD_RESET" : "LOGIN",
-          );
+          const purpose =
+            get().otpSource === "forgot-password"
+              ? "PASSWORD_RESET"
+              : get().otpSource === "register"
+                ? "SIGNUP"
+                : "LOGIN";
+          await resendAuthOtp(contact, purpose);
           return { ok: true };
         } catch (error) {
           return {
