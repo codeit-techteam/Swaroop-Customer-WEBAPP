@@ -43,6 +43,19 @@ export function isOtpRateLimited(error: unknown): boolean {
   );
 }
 
+/** Seconds to wait before another send — from AUTH_OTP_RATE_LIMITED details. */
+export function otpRetryAfterSeconds(error: unknown): number | undefined {
+  if (
+    !isAxiosError<{
+      details?: { retryAfterSeconds?: number };
+    }>(error)
+  ) {
+    return undefined;
+  }
+  const retry = error.response?.data?.details?.retryAfterSeconds;
+  return typeof retry === "number" && retry > 0 ? Math.ceil(retry) : undefined;
+}
+
 export function authErrorMessage(error: unknown, fallback: string): string {
   if (isAxiosError<{ message?: string | string[]; code?: string }>(error)) {
     const payload = error.response?.data;

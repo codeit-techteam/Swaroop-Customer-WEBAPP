@@ -1,7 +1,7 @@
 "use client";
 
 import { SupportContactLink } from "@/components/auth/support-contact-link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,7 +17,7 @@ import { ROUTES } from "@/constants";
 import { getPostAuthDestination } from "@/lib/post-auth-redirect";
 import { useOnboardingStore } from "@/store/onboardingStore";
 
-const OTP_COUNTDOWN = 60;
+const FALLBACK_OTP_COUNTDOWN = 60;
 
 function formatContact(contact: string | null): string {
   if (!contact) return "your registered contact";
@@ -45,6 +45,9 @@ export function OtpForm() {
   const searchParams = useSearchParams();
   const pendingContact = useAuthStore((s) => s.pendingContact);
   const otpSource = useAuthStore((s) => s.otpSource);
+  const otpResendCooldownSeconds = useAuthStore(
+    (s) => s.otpResendCooldownSeconds,
+  );
   const verifyOTP = useAuthStore((s) => s.verifyOTP);
   const resendOTP = useAuthStore((s) => s.resendOTP);
   const isLoading = useAuthStore((s) => s.isLoading);
@@ -52,8 +55,11 @@ export function OtpForm() {
 
   const [otp, setOtp] = useState("");
   const [error, setError] = useState<string | undefined>();
-  const [secondsLeft, setSecondsLeft] = useState(OTP_COUNTDOWN);
+  const [secondsLeft, setSecondsLeft] = useState(
+    otpResendCooldownSeconds || FALLBACK_OTP_COUNTDOWN,
+  );
   const [success, setSuccess] = useState(false);
+  const verifyingRef = useRef(false);
 
   useEffect(() => {
     if (!pendingContact) {
@@ -70,7 +76,7 @@ export function OtpForm() {
   }, [secondsLeft]);
 
   const handleResend = useCallback(async () => {
-    if (secondsLeft > 0) return;
+    if (secondsLeft > 0 || verifyingRef.current) return;
     const sent = await resendOTP();
     if (!sent.ok) {
       setError(sent.message ?? "Unable to resend OTP");
@@ -78,36 +84,59 @@ export function OtpForm() {
     }
     setOtp("");
     setError(undefined);
-    setSecondsLeft(OTP_COUNTDOWN);
-    showSuccessToast("OTP Sent Successfully");
-  }, [resendOTP, secondsLeft]);
+    setSecondsLeft(
+      sent.resendCooldownSeconds ??
+        otpResendCooldownSeconds ??
+        FALLBACK_OTP_COUNTDOWN,
+    );
+    showSuccessToast(
+      sent.alreadySent
+        ? "Please wait — use the OTP already sent to your phone"
+        : "OTP Sent Successfully",
+    );
+  }, [otpResendCooldownSeconds, resendOTP, secondsLeft]);
 
-  const handleVerify = async () => {
-    if (otp.length !== 6) {
-      setError("Enter the 6-digit verification code");
-      return;
-    }
+  const handleVerify = useCallback(
+    async (code: string) => {
+      // Mirror mobile L-10: auto-submit + button must not double-fire.
+      if (code.length !== 6 || verifyingRef.current || success) {
+        return;
+      }
+      verifyingRef.current = true;
+      setError(undefined);
 
-    setError(undefined);
-    const source = otpSource;
-    const result = await verifyOTP(otp);
+      const source = otpSource;
+      const result = await verifyOTP(code);
 
-    if (!result.success) {
-      setError(result.message ?? "Invalid OTP");
-      return;
-    }
+      if (!result.success) {
+        setError(result.message ?? "Invalid OTP");
+        verifyingRef.current = false;
+        return;
+      }
 
-    // Brand-new registrations always start onboarding from step 1
-    if (source === "register") {
-      resetOnboarding();
-    }
+      if (source === "register") {
+        resetOnboarding();
+      }
 
-    setSuccess(true);
-    const next = searchParams.get("next");
-    window.setTimeout(() => {
-      router.push(getPostAuthDestination(next));
-    }, 900);
-  };
+      setSuccess(true);
+      const next = searchParams.get("next");
+      window.setTimeout(() => {
+        router.push(getPostAuthDestination(next));
+      }, 900);
+    },
+    [otpSource, resetOnboarding, router, searchParams, success, verifyOTP],
+  );
+
+  const handleOtpChange = useCallback(
+    (value: string) => {
+      setOtp(value);
+      if (error) setError(undefined);
+      if (value.length === 6) {
+        void handleVerify(value);
+      }
+    },
+    [error, handleVerify],
+  );
 
   return (
     <div className="relative mx-auto w-full max-w-md">
@@ -168,10 +197,7 @@ export function OtpForm() {
         <div className="space-y-3">
           <OtpInput
             value={otp}
-            onChange={(value) => {
-              setOtp(value);
-              if (error) setError(undefined);
-            }}
+            onChange={handleOtpChange}
             disabled={isLoading || success}
             error={!!error}
           />
@@ -201,7 +227,7 @@ export function OtpForm() {
 
         <PrimaryButton
           type="button"
-          onClick={handleVerify}
+          onClick={() => void handleVerify(otp)}
           loading={isLoading}
           disabled={success}
           icon={<ShieldCheck className="h-4 w-4" aria-hidden />}

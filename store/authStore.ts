@@ -19,6 +19,7 @@ import {
   fetchCurrentUser,
   isOtpRateLimited,
   loginWithPassword,
+  otpRetryAfterSeconds,
   resendAuthOtp,
   sendAuthOtp,
   verifyAuthOtp,
@@ -46,7 +47,14 @@ export interface RegisterPayload {
   password: string;
 }
 
-export type AuthActionResult = { ok: boolean; message?: string };
+export type AuthActionResult = {
+  ok: boolean;
+  message?: string;
+  /** From MSG91 send/resend — drives the Resend countdown. */
+  resendCooldownSeconds?: number;
+  /** True when send was blocked because an OTP was already issued. */
+  alreadySent?: boolean;
+};
 
 export interface AuthStoreState {
   isAuthenticated: boolean;
@@ -56,6 +64,8 @@ export interface AuthStoreState {
   isLoading: boolean;
   pendingContact: string | null;
   otpSource: "login" | "register" | "otp-continue" | "forgot-password" | null;
+  /** Last server-reported resend cooldown (not persisted). */
+  otpResendCooldownSeconds: number;
   rememberMe: boolean;
   forgotPasswordEmail: string | null;
   otpVerified: boolean;
@@ -88,6 +98,8 @@ export interface AuthStoreActions {
 
 export type AuthStore = AuthStoreState & AuthStoreActions;
 
+const DEFAULT_OTP_COOLDOWN = 60;
+
 const initialState: AuthStoreState = {
   isAuthenticated: false,
   user: null,
@@ -96,6 +108,7 @@ const initialState: AuthStoreState = {
   isLoading: false,
   pendingContact: null,
   otpSource: null,
+  otpResendCooldownSeconds: DEFAULT_OTP_COOLDOWN,
   rememberMe: false,
   forgotPasswordEmail: null,
   otpVerified: false,
@@ -185,29 +198,37 @@ export const useAuthStore = create<AuthStore>()(
 
       continueWithOTP: async (identifier) => {
         set({ isLoading: true });
+        const contact = identifier.trim();
         try {
-          await sendAuthOtp(identifier, "LOGIN");
+          const sent = await sendAuthOtp(contact, "LOGIN");
+          const cooldown = sent.resendCooldownSeconds ?? DEFAULT_OTP_COOLDOWN;
           set({
             isLoading: false,
-            pendingContact: identifier.trim(),
+            pendingContact: contact,
             otpSource: "otp-continue",
+            otpResendCooldownSeconds: cooldown,
             isAuthenticated: false,
           });
-          return { ok: true };
+          return { ok: true, resendCooldownSeconds: cooldown };
         } catch (error) {
           if (isOtpRateLimited(error)) {
+            const cooldown =
+              otpRetryAfterSeconds(error) ?? DEFAULT_OTP_COOLDOWN;
             set({
               isLoading: false,
-              pendingContact: identifier.trim(),
+              pendingContact: contact,
               otpSource: "otp-continue",
+              otpResendCooldownSeconds: cooldown,
+              isAuthenticated: false,
             });
-            return { ok: true };
+            return {
+              ok: true,
+              alreadySent: true,
+              resendCooldownSeconds: cooldown,
+              message: "An OTP was already sent. Enter the code from your SMS.",
+            };
           }
-          set({
-            isLoading: false,
-            pendingContact: identifier.trim(),
-            otpSource: "otp-continue",
-          });
+          set({ isLoading: false });
           return {
             ok: false,
             message: authErrorMessage(error, "Unable to send OTP"),
@@ -218,11 +239,16 @@ export const useAuthStore = create<AuthStore>()(
       register: async (payload) => {
         set({ isLoading: true });
         try {
-          await sendAuthOtp(payload.phone || payload.email, "SIGNUP");
+          const sent = await sendAuthOtp(
+            payload.phone || payload.email,
+            "SIGNUP",
+          );
+          const cooldown = sent.resendCooldownSeconds ?? DEFAULT_OTP_COOLDOWN;
           set({
             isLoading: false,
             pendingContact: payload.phone || payload.email,
             otpSource: "register",
+            otpResendCooldownSeconds: cooldown,
             user: {
               id: "",
               name: payload.businessName,
@@ -231,8 +257,24 @@ export const useAuthStore = create<AuthStore>()(
               companyName: payload.businessName,
             },
           });
-          return { ok: true };
+          return { ok: true, resendCooldownSeconds: cooldown };
         } catch (error) {
+          if (isOtpRateLimited(error)) {
+            const cooldown =
+              otpRetryAfterSeconds(error) ?? DEFAULT_OTP_COOLDOWN;
+            set({
+              isLoading: false,
+              pendingContact: payload.phone || payload.email,
+              otpSource: "register",
+              otpResendCooldownSeconds: cooldown,
+            });
+            return {
+              ok: true,
+              alreadySent: true,
+              resendCooldownSeconds: cooldown,
+              message: "An OTP was already sent. Enter the code from your SMS.",
+            };
+          }
           set({ isLoading: false });
           return {
             ok: false,
@@ -283,9 +325,24 @@ export const useAuthStore = create<AuthStore>()(
               : get().otpSource === "register"
                 ? "SIGNUP"
                 : "LOGIN";
-          await resendAuthOtp(contact, purpose);
-          return { ok: true };
+          const sent = await resendAuthOtp(contact, purpose);
+          const cooldown = sent.resendCooldownSeconds ?? DEFAULT_OTP_COOLDOWN;
+          set({ otpResendCooldownSeconds: cooldown });
+          return { ok: true, resendCooldownSeconds: cooldown };
         } catch (error) {
+          if (isOtpRateLimited(error)) {
+            const cooldown =
+              otpRetryAfterSeconds(error) ??
+              get().otpResendCooldownSeconds ??
+              DEFAULT_OTP_COOLDOWN;
+            set({ otpResendCooldownSeconds: cooldown });
+            return {
+              ok: true,
+              alreadySent: true,
+              resendCooldownSeconds: cooldown,
+              message: "Please wait before requesting another OTP.",
+            };
+          }
           return {
             ok: false,
             message: authErrorMessage(error, "Unable to resend OTP"),
