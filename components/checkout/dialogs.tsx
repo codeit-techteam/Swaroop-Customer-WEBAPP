@@ -323,4 +323,73 @@ export function AddressSelectSheet({
   );
 }
 
+export function PlacePurchaseConfirmDialog({
+  open,
+  totalAmount,
+  paymentLabel,
+  productName,
+  quantity,
+  unit,
+  submitting,
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  totalAmount: string;
+  paymentLabel: string;
+  productName: string;
+  quantity: string;
+  unit: string;
+  submitting?: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={(next) => !next && onCancel()}>
+      <DialogContent className="max-w-md sm:rounded-2xl">
+        <DialogIcon tone="blue">
+          <Truck className="h-8 w-8" />
+        </DialogIcon>
+        <DialogHeader className="sm:text-center">
+          <DialogTitle className="text-xl">
+            Confirm purchase request
+          </DialogTitle>
+          <DialogDescription className="text-[14px] leading-[21px]">
+            Review totals before we send this to sellers. This is separate from
+            adding items to your cart.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm text-slate-700">
+          <p className="font-semibold text-slate-900">{productName}</p>
+          <p className="mt-1 text-slate-600">
+            {quantity} {unit} · {paymentLabel}
+          </p>
+          <p className="mt-3 text-lg font-semibold text-slate-900">
+            Total payable {totalAmount}
+          </p>
+        </div>
+        <DialogFooter className="gap-2 sm:justify-center">
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-xl"
+            disabled={submitting}
+            onClick={onCancel}
+          >
+            Go back
+          </Button>
+          <Button
+            type="button"
+            className="rounded-xl bg-brand hover:bg-brand-700"
+            disabled={submitting}
+            onClick={onConfirm}
+          >
+            {submitting ? "Submitting…" : "Confirm & submit request"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export { AddAddressDialog } from "@/components/location/add-address-dialog";

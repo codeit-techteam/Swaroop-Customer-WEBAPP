@@ -10,14 +10,23 @@ interface QualityCardProps {
 }
 
 export function QualityCard({ quality, className }: QualityCardProps) {
+  const hasDocs = quality.badges.length > 0;
   return (
     <div
       className={cn(
-        "flex items-start gap-3 rounded-2xl border border-sky-100 bg-sky-50/80 p-4",
+        "flex items-start gap-3 rounded-2xl border p-4",
+        hasDocs
+          ? "border-sky-100 bg-sky-50/80"
+          : "border-slate-200 bg-slate-50/80",
         className,
       )}
     >
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-sm">
+      <div
+        className={cn(
+          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white shadow-sm",
+          hasDocs ? "bg-brand" : "bg-slate-400",
+        )}
+      >
         <BadgeCheck className="h-5 w-5" aria-hidden="true" />
       </div>
       <div className="min-w-0 space-y-2">
@@ -29,16 +38,18 @@ export function QualityCard({ quality, className }: QualityCardProps) {
             {quality.subtitle}
           </p>
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {quality.badges.map((badge) => (
-            <span
-              key={badge}
-              className="rounded-md bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand shadow-sm"
-            >
-              {badge}
-            </span>
-          ))}
-        </div>
+        {hasDocs ? (
+          <div className="flex flex-wrap gap-1.5">
+            {quality.badges.map((badge) => (
+              <span
+                key={badge}
+                className="rounded-md bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand shadow-sm"
+              >
+                {badge}
+              </span>
+            ))}
+          </div>
+        ) : null}
       </div>
     </div>
   );

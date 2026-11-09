@@ -344,11 +344,10 @@ export function publishedProductToDetail(
         : buildGalleryFromProduct(galleryImages[0] ?? "", product.name),
     quality: {
       ...DEFAULT_QUALITY_ASSURANCE,
-      badges: product.qualityBadges?.length
-        ? product.qualityBadges
-        : DEFAULT_QUALITY_ASSURANCE.badges,
-      subtitle:
-        "Quality documents are shown when they have been provided for this grade.",
+      badges: product.qualityBadges?.length ? product.qualityBadges : [],
+      subtitle: product.qualityBadges?.length
+        ? "Verified quality documents are available for download below."
+        : "Technical Data Sheet not available yet for this grade.",
     },
     specs:
       specs.length > 0

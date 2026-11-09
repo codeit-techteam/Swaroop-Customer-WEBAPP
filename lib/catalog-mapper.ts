@@ -11,6 +11,41 @@ import type {
 import type { MarketplaceOffer, OfferPaymentType } from "@/types/offers";
 import type { ProductCreditConfig } from "@/types/payment-eligibility";
 
+const BLIND_MANUFACTURER = "PRIVATE";
+
+/**
+ * Best Value only for commercially eligible live offers.
+ * Review-flagged / unpriced listings never get the recommendation badge.
+ */
+export function resolveMarketplaceBadge(
+  raw: unknown,
+  opts: { price: number; needsPriceReview?: boolean; stock?: number },
+): MarketplaceProduct["badge"] {
+  if (opts.needsPriceReview || !(opts.price > 0)) {
+    return opts.stock != null && opts.stock > 0 && opts.stock < 100
+      ? "Limited Stock"
+      : "High Demand";
+  }
+  if (typeof raw === "string" && raw.trim()) {
+    return raw as MarketplaceProduct["badge"];
+  }
+  return "Best Value";
+}
+
+/** Buyer-facing manufacturer — never expose raw supplier identities. */
+export function resolveBlindManufacturer(
+  ...candidates: Array<string | null | undefined>
+): string {
+  for (const candidate of candidates) {
+    const value = candidate?.trim();
+    if (!value) continue;
+    if (value.toUpperCase() === BLIND_MANUFACTURER) return BLIND_MANUFACTURER;
+    // Non-PRIVATE strings from nested grade payloads are treated as internal.
+    return BLIND_MANUFACTURER;
+  }
+  return BLIND_MANUFACTURER;
+}
+
 export type BlindListingPricingPreview = {
   materialPricePerMT?: string;
   freightPerMT?: string;
@@ -234,11 +269,11 @@ export function toMarketplaceProduct(
       : "") ||
     firstReadable(gradeDisplay, product.grade?.name, productName) ||
     productName;
-  const manufacturer =
-    (product.grade as { manufacturer?: string | null } | null)?.manufacturer ||
-    product.manufacturer ||
-    product.brand ||
-    undefined;
+  const manufacturer = resolveBlindManufacturer(
+    (product.grade as { manufacturer?: string | null } | null)?.manufacturer,
+    product.manufacturer,
+    product.brand,
+  );
 
   const readableCategory =
     firstReadable(
@@ -307,9 +342,11 @@ export function toMarketplaceProduct(
     moq: num(listing?.moq),
     eta,
     fulfilment: listing?.fulfilment ?? null,
-    badge: (typeof specs.badge === "string"
-      ? specs.badge
-      : "Best Value") as MarketplaceProduct["badge"],
+    badge: resolveMarketplaceBadge(specs.badge, {
+      price: num(listing?.price),
+      needsPriceReview: Boolean(listing?.pricingPreview?.needsPriceReview),
+      stock,
+    }),
     image: "",
     images: [],
     casNumber: String(specs.casNumber ?? ""),

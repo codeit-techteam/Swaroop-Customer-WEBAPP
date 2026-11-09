@@ -199,6 +199,7 @@ export function mapPurchaseOrder(
   );
   const quantity = num(item.quantity ?? primary?.quantity);
   const unitPrice = quantity > 0 ? total / quantity : num(primary?.unitPrice);
+  // Align with backend STAGE_PERCENT (PLACED=10 … DELIVERY=100).
   const progress =
     typeof item.progress?.percentage === "number"
       ? item.progress.percentage
@@ -208,7 +209,7 @@ export function mapPurchaseOrder(
           ? 75
           : displayStatus === "ready"
             ? 75
-            : 25;
+            : 10;
   const paymentStatus =
     item.payment?.verifiedByPolyStoreX ||
     ["VERIFIED", "PAID", "AUTHORIZED"].includes(

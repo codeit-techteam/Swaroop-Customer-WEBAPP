@@ -28,6 +28,7 @@ import { useCartStore } from "@/store/cartStore";
 import { useDeliveryLocationStore } from "@/store/deliveryLocationStore";
 import { usePurchaseRequestTrackingStore } from "@/store/purchaseRequestTrackingStore";
 import { isPersistedAddressId } from "@/constants/locations";
+import { formatInr } from "@/lib/format";
 import { formatCheckoutPackaging } from "./constants";
 import { CheckoutSkeleton } from "./checkout-skeleton";
 import {
@@ -35,6 +36,7 @@ import {
   AddressSelectSheet,
   CheckoutValidationDialog,
   NetworkErrorDialog,
+  PlacePurchaseConfirmDialog,
   PriceUpdatedDialog,
   QuoteExpiredDialog,
 } from "./dialogs";
@@ -130,6 +132,7 @@ export function CheckoutFlow() {
   } | null>(null);
   const [addressSheetOpen, setAddressSheetOpen] = useState(false);
   const [addAddressOpen, setAddAddressOpen] = useState(false);
+  const [confirmPlaceOpen, setConfirmPlaceOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
   const quote = quotes[0] ?? null;
@@ -343,6 +346,21 @@ export function CheckoutFlow() {
     }
   }, [extraIds, load, quote, quoteIdParam, quotes, router, selectedAddressId]);
 
+  const requestPlaceOrder = useCallback(() => {
+    if (quotes.length === 0 || placingRef.current) return;
+    if (!selectedAddressId || !isPersistedAddressId(selectedAddressId)) {
+      setValidationIssue({
+        title: "Delivery address required",
+        message:
+          "Select a saved delivery address (or save your current location) before placing a purchase request.",
+      });
+      if (addresses.length === 0) setAddAddressOpen(true);
+      else setAddressSheetOpen(true);
+      return;
+    }
+    setConfirmPlaceOpen(true);
+  }, [addresses.length, quotes.length, selectedAddressId]);
+
   const handlePlaceOrder = useCallback(async () => {
     if (quotes.length === 0 || placingRef.current) return;
     if (!selectedAddressId || !isPersistedAddressId(selectedAddressId)) {
@@ -355,6 +373,7 @@ export function CheckoutFlow() {
       else setAddressSheetOpen(true);
       return;
     }
+    setConfirmPlaceOpen(false);
     placingRef.current = true;
     setSubmitting(true);
     try {
@@ -575,9 +594,9 @@ export function CheckoutFlow() {
             <Button
               className="h-12 w-full rounded-xl bg-brand text-[15px] hover:bg-brand-700"
               disabled={submitting}
-              onClick={() => void handlePlaceOrder()}
+              onClick={() => requestPlaceOrder()}
             >
-              {submitting ? "Submitting..." : "Verify & Place Purchase Request"}
+              {submitting ? "Submitting..." : "Review & place request"}
               <ArrowRight className="h-4 w-4" />
             </Button>
             <p className="mt-3 text-center text-[11px] leading-relaxed text-slate-400">
@@ -592,9 +611,9 @@ export function CheckoutFlow() {
         <Button
           className="h-12 w-full rounded-xl bg-brand text-[15px] hover:bg-brand-700"
           disabled={submitting}
-          onClick={() => void handlePlaceOrder()}
+          onClick={() => requestPlaceOrder()}
         >
-          {submitting ? "Submitting..." : "Verify & Place Purchase Request"}
+          {submitting ? "Submitting..." : "Review & place request"}
           <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
@@ -627,6 +646,19 @@ export function CheckoutFlow() {
           selectSavedDeliveryAddress(address);
           void refreshDeliveryAddresses();
         }}
+      />
+      <PlacePurchaseConfirmDialog
+        open={confirmPlaceOpen}
+        totalAmount={formatInr(
+          orderSummary?.totalPayable ?? money(quote.totalAmount),
+        )}
+        paymentLabel={quote.paymentLabel}
+        productName={quote.product.name}
+        quantity={quote.quantity}
+        unit={quote.unit}
+        submitting={submitting}
+        onCancel={() => setConfirmPlaceOpen(false)}
+        onConfirm={() => void handlePlaceOrder()}
       />
       <PriceUpdatedDialog
         open={showPriceModal}

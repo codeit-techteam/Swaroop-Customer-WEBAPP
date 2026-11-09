@@ -140,11 +140,6 @@ export function buildProductDetail(
     availability: availability.level,
     availabilityLabel: availability.label,
     gallery: buildGalleryFromProduct(product.image, product.name),
-    quality: {
-      ...DEFAULT_QUALITY_ASSURANCE,
-      subtitle:
-        "Quality documents are shown when the seller has provided them for this grade.",
-    },
     specs: techSpecs,
     documents:
       product.documents && product.documents.length > 0
@@ -159,6 +154,24 @@ export function buildProductDetail(
             productId: product.id,
           }))
         : [],
+    quality: (() => {
+      const hasDocs = Boolean(
+        product.documents && product.documents.length > 0,
+      );
+      if (!hasDocs) {
+        return {
+          title: "Quality documentation",
+          subtitle: "Technical Data Sheet not available yet for this grade.",
+          badges: [] as string[],
+        };
+      }
+      return {
+        ...DEFAULT_QUALITY_ASSURANCE,
+        badges: ["Document on file"],
+        subtitle:
+          "Verified quality documents are available for download below.",
+      };
+    })(),
     spotPrice: buildSpotPrice(product.price),
     bulkPricing: buildBulkPricing(product.price, product.bulkPricing),
     paymentOptions: buildPaymentOptions(product.creditEligible),

@@ -12,13 +12,15 @@ export function IndustrialBanner() {
           alt="Industrial petrochemical facility"
           className="h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-brand/15" />
-        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-white via-white/85 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 px-5 pb-5 pt-8">
+        <div className="absolute inset-0 bg-slate-950/25" />
+        <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-white via-white/95 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 px-5 pb-5 pt-10 sm:px-6">
           {CHECKOUT_INDUSTRIAL_BANNER.features.map((feature) => (
-            <div key={feature} className="mb-1 flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent-blue" />
-              <p className="text-xs font-medium text-slate-800">{feature}</p>
+            <div key={feature} className="mb-1.5 flex items-center gap-2">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
+              <p className="text-[13px] font-semibold leading-snug text-slate-900">
+                {feature}
+              </p>
             </div>
           ))}
         </div>

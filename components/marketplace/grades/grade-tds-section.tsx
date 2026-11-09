@@ -255,7 +255,7 @@ export function GradeTdsSection({ productId, gradeId }: GradeTdsSectionProps) {
         <div className="space-y-3">
           <p className="text-sm text-slate-500">
             {data?.message?.trim() ||
-              "Technical Data Sheet is currently unavailable for this grade."}
+              "Technical Data Sheet not available yet for this grade."}
           </p>
           {canRequest ? (
             <Button
