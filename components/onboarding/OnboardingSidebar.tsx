@@ -1,9 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Check, Factory } from "lucide-react";
+import { Check } from "lucide-react";
 import { ONBOARDING_STEPS } from "@/constants/onboarding";
 import { useOnboardingStore } from "@/store/onboardingStore";
 import { HelpCard } from "@/components/onboarding/HelpCard";
@@ -31,18 +32,18 @@ export function OnboardingSidebar({
       )}
       aria-label="Onboarding progress"
     >
-      <div className="border-b border-slate-200 px-5 py-5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white">
-            <Factory className="h-4 w-4" aria-hidden="true" />
-          </div>
-          <div>
-            <p className="text-sm font-bold text-slate-900">
-              Onboarding Wizard
-            </p>
-            <p className="text-xs text-slate-500">6 Steps to Verification</p>
-          </div>
-        </div>
+      <div className="border-b border-slate-200 px-5 py-4">
+        <Image
+          src="/brand/polystorex-logo-light-bg.png"
+          alt="PolyStoreX"
+          width={928}
+          height={436}
+          className="h-12 w-auto"
+          priority
+        />
+        <p className="mt-2 text-xs font-medium text-slate-500">
+          6 Steps to Verification
+        </p>
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4" aria-label="Onboarding steps">
