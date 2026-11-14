@@ -1,5 +1,14 @@
+const resolvedAppName = (() => {
+  const raw = process.env.NEXT_PUBLIC_APP_NAME?.trim();
+  // Production Vercel still had a stale PetroTrade value; never ship that brand.
+  if (!raw || /petrotrade/i.test(raw)) {
+    return "PolyStoreX Customer Portal";
+  }
+  return raw;
+})();
+
 export const env = {
-  appName: process.env.NEXT_PUBLIC_APP_NAME ?? "PolyStoreX Customer Portal",
+  appName: resolvedAppName,
 
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001",
   appEnv: process.env.NEXT_PUBLIC_APP_ENV ?? "development",
