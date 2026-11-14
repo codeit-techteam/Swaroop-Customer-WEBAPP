@@ -145,7 +145,11 @@ export function MarketplaceOffersPage() {
         <MarketplaceEmptyState
           title="Unable to load offers"
           description={loadError}
-          action={<Button onClick={() => void fetchOffers()}>Retry</Button>}
+          action={
+            <Button onClick={() => void fetchOffers({ force: true })}>
+              Retry
+            </Button>
+          }
         />
       </PageContainer>
     );

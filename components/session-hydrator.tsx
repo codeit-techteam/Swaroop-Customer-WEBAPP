@@ -108,7 +108,8 @@ export function SessionHydrator() {
 
       if (isPublicBrowse) {
         void useAuthStore.getState().logout();
-        void useMarketplaceStore.getState().fetchCatalog();
+        // Catalogue was cleared above — force a guest reload.
+        void useMarketplaceStore.getState().fetchCatalog({ force: true });
         return;
       }
 

@@ -22,6 +22,7 @@ const PRIORITY_CODES = [
   "PVC",
   "ABS",
   "PA",
+  "NYLON",
   "MB",
   "ACE",
   "IPA",
@@ -31,6 +32,13 @@ const PRIORITY_CODES = [
   "CMP",
   "BO",
 ];
+
+/** Display labels for taxonomy codes (chips still filter by code). */
+const CHIP_LABELS: Record<string, string> = {
+  PA: "PA / Nylon",
+  NYLON: "Nylon",
+  PP: "PP",
+};
 
 export function MaterialChips({
   activeCode,
@@ -78,7 +86,7 @@ export function MaterialChips({
               : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50",
           )}
         >
-          {material.code}
+          {CHIP_LABELS[material.code] ?? material.code}
         </button>
       ))}
     </div>

@@ -24,8 +24,8 @@ const HEIGHT = {
 
 /**
  * Official PolyStoreX artwork.
- * `variant="light"` sits on dark surfaces (transparent lockup).
- * `variant="dark"` sits on light surfaces (black plate so the white wordmark remains visible).
+ * `variant="light"` sits on dark surfaces (white wordmark, transparent).
+ * `variant="dark"` sits on light surfaces (dark wordmark, transparent — no black plate).
  */
 export function Logo({
   variant = "light",
@@ -55,11 +55,11 @@ export function Logo({
           src={
             onDarkSurface
               ? "/brand/polystorex-logo-transparent.png"
-              : "/brand/polystorex-logo-light-bg.png"
+              : "/brand/polystorex-logo-on-light.png"
           }
           alt={APP_SHORT_NAME}
-          width={onDarkSurface ? 848 : 928}
-          height={onDarkSurface ? 372 : 436}
+          width={848}
+          height={372}
           priority
           className={cn("w-auto max-w-full self-start object-contain", height)}
         />

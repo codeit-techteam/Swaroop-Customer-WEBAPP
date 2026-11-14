@@ -11,7 +11,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test lib/marketplace-dedupe.test.ts",
+    "test": "tsx --test lib/marketplace-dedupe.test.ts lib/phase2-integrity.test.ts lib/phase3-catalog-loading.test.ts lib/phase4-seo.test.ts",
     "prepare": "husky"
   },
   "lint-staged": {

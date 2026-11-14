@@ -61,7 +61,9 @@ export function CustomerDashboard() {
           title="Unable to load dashboard catalog"
           description={catalogError}
           action={
-            <Button onClick={() => void fetchCatalog()}>Retry</Button>
+            <Button onClick={() => void fetchCatalog({ force: true })}>
+              Retry
+            </Button>
           }
         />
       </PageContainer>

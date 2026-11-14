@@ -10,6 +10,8 @@ const resolvedAppName = (() => {
 export const env = {
   appName: resolvedAppName,
 
+  // Production canonical: https://customer.polystorex.com (set on Vercel).
+  // Local default stays localhost; SEO helpers never emit localhost to sitemap.
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001",
   appEnv: process.env.NEXT_PUBLIC_APP_ENV ?? "development",
   // Interim production API (DigitalOcean). Override via env — do not point

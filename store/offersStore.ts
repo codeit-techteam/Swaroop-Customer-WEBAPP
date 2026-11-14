@@ -32,7 +32,7 @@ interface OffersStoreState {
   hasLoaded: boolean;
   loadError: string | null;
 
-  fetchOffers: () => Promise<void>;
+  fetchOffers: (opts?: { force?: boolean }) => Promise<void>;
   setSearch: (search: string) => void;
   setSortBy: (sortBy: OfferSortBy) => void;
   setCategoryChip: (chip: OfferCategoryChip) => void;
@@ -218,7 +218,17 @@ export const useOffersStore = create<OffersStoreState>()(
       myOfferRecords: [],
       priceBounds: OFFER_PRICE_BOUNDS,
 
-      fetchOffers: async () => {
+      fetchOffers: async (opts) => {
+        const current = get();
+        if (current.isLoading) return;
+        if (
+          !opts?.force &&
+          current.hasLoaded &&
+          current.offers.length > 0 &&
+          !current.loadError
+        ) {
+          return;
+        }
         set({ isLoading: true, loadError: null });
         try {
           const products = useMarketplaceStore.getState().products;
@@ -390,7 +400,7 @@ export const useOffersStore = create<OffersStoreState>()(
         }),
 
       refreshOffers: () => {
-        void get().fetchOffers();
+        void get().fetchOffers({ force: true });
       },
 
       getFilteredOffers: () => {

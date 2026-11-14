@@ -13,16 +13,27 @@ export function materialsFromCatalog(
   }
 
   return Array.from(buckets.entries()).map(([name, grades]) => {
-    const prices = grades.map((item) => item.price).filter((price) => price > 0);
+    const prices = grades
+      .map((item) => item.price)
+      .filter((price) => price > 0);
     const codes = grades.map((item) => item.grade).filter(Boolean);
     const shortest = [...codes].sort((a, b) => a.length - b.length)[0];
-    const code =
+    let code =
       shortest ??
-      (name.toUpperCase().replace(/[^A-Z0-9]+/g, " ").trim() || name);
+      (name
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, " ")
+        .trim() ||
+        name);
+    // Normalize common polymer labels so priority chips (PP / Nylon) resolve.
+    if (/^pp\b|polypropylene/i.test(name) || /^pp$/i.test(code)) code = "PP";
+    if (/nylon|pa\s*6|pa66|polyamide/i.test(name) || /^pa\b/i.test(code)) {
+      code = /nylon/i.test(name) ? "NYLON" : "PA";
+    }
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     return {
       id: `mat-${slug}`,
-      code: code.length > 16 ? grades[0]?.grade ?? code.slice(0, 16) : code,
+      code: code.length > 16 ? (grades[0]?.grade ?? code.slice(0, 16)) : code,
       name,
       categoryId: grades[0]?.categoryId ?? "polymers",
       parentGroup: grades[0]?.categoryId ?? "polymers",

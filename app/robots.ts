@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import {
   absoluteUrl,
   PUBLIC_SITEMAP_PATHS,
-  publicSiteOrigin,
+  publicSiteHost,
   robotsDisallowPaths,
 } from "@/lib/seo";
 
@@ -14,6 +14,6 @@ export default function robots(): MetadataRoute.Robots {
       disallow: robotsDisallowPaths(),
     },
     sitemap: absoluteUrl("/sitemap.xml"),
-    host: publicSiteOrigin(),
+    host: publicSiteHost(),
   };
 }

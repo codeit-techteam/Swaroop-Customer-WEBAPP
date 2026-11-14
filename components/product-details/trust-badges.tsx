@@ -3,17 +3,11 @@
 import { ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ASSURANCE_ITEMS = [
+const BASE_ASSURANCE_ITEMS = [
   {
     title: "Verified Supply Network",
     description: "Supplier verification follows platform onboarding checks.",
     status: "Applicable where supported",
-  },
-  {
-    title: "Quality Documentation",
-    description:
-      "COA and grade certificates are available when provided for the product.",
-    status: "Available when provided",
   },
   {
     title: "Secure Payment Protection",
@@ -34,12 +28,33 @@ const ASSURANCE_ITEMS = [
   },
 ] as const;
 
+const QUALITY_DOC_ITEM = {
+  title: "Quality Documentation",
+  description:
+    "COA and grade certificates are available when a verified document is on file.",
+  status: "On file",
+} as const;
+
 interface TrustBadgesProps {
   className?: string;
   compact?: boolean;
+  /** Only show Quality Documentation when a verified TDS/COA exists. */
+  hasQualityDocs?: boolean;
 }
 
-export function TrustBadges({ className, compact = false }: TrustBadgesProps) {
+export function TrustBadges({
+  className,
+  compact = false,
+  hasQualityDocs = false,
+}: TrustBadgesProps) {
+  const items = hasQualityDocs
+    ? [
+        BASE_ASSURANCE_ITEMS[0],
+        QUALITY_DOC_ITEM,
+        ...BASE_ASSURANCE_ITEMS.slice(1),
+      ]
+    : [...BASE_ASSURANCE_ITEMS];
+
   if (compact) {
     return (
       <div
@@ -55,7 +70,7 @@ export function TrustBadges({ className, compact = false }: TrustBadgesProps) {
           Built for trusted industrial procurement
         </p>
         <ul className="mt-2 space-y-1.5">
-          {ASSURANCE_ITEMS.slice(0, 3).map((item) => (
+          {items.slice(0, 3).map((item) => (
             <li
               key={item.title}
               className="flex items-start gap-2 text-[11px] text-slate-600"
@@ -90,7 +105,7 @@ export function TrustBadges({ className, compact = false }: TrustBadgesProps) {
         </div>
       </div>
       <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
-        {ASSURANCE_ITEMS.map((item) => (
+        {items.map((item) => (
           <div
             key={item.title}
             className="rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5"

@@ -371,7 +371,11 @@ export function StickyPurchasePanel({
               />
             ) : null}
 
-            <TrustBadges compact className="border-0 p-0 !shadow-none" />
+            <TrustBadges
+              compact
+              className="border-0 p-0 !shadow-none"
+              hasQualityDocs={false}
+            />
 
             <p className="text-[11px] leading-relaxed text-slate-400">
               Totals come from the latest PolyStoreX quote. Payment is collected

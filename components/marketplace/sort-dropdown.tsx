@@ -24,14 +24,21 @@ export function SortDropdown({
 }: SortDropdownProps) {
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <span className="hidden text-[11px] font-semibold uppercase tracking-wider text-slate-400 sm:inline">
+      <label
+        htmlFor="marketplace-sort"
+        className="hidden text-[11px] font-semibold uppercase tracking-wider text-slate-600 sm:inline"
+      >
         Sort By:
-      </span>
+      </label>
       <Select
         value={value}
         onValueChange={(next) => onChange(next as MarketplaceSortBy)}
       >
-        <SelectTrigger className="h-11 w-[180px] rounded-xl border-slate-200 bg-white text-sm font-medium shadow-sm">
+        <SelectTrigger
+          id="marketplace-sort"
+          aria-label="Sort marketplace products"
+          className="h-11 w-[180px] rounded-xl border-slate-200 bg-white text-sm font-medium shadow-sm"
+        >
           <SelectValue placeholder="Recommended" />
         </SelectTrigger>
         <SelectContent>

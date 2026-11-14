@@ -312,7 +312,7 @@ export function ProductDetailsPage({ productId }: ProductDetailsPageProps) {
             availabilityLabel={detail.availabilityLabel}
             destinationPincode={destinationPincode}
           />
-          <TrustBadges />
+          <TrustBadges hasQualityDocs={(detail.documents?.length ?? 0) > 0} />
           <ProductFeatures features={detail.features} />
           <ProductApplications
             applications={detail.applications}

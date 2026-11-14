@@ -2,11 +2,18 @@ import type { Metadata } from "next";
 import { APP_NAME, PROTECTED_ROUTE_PREFIXES, ROUTES } from "@/constants";
 import { env } from "@/lib/env";
 
-/** Production Customer Portal host — used when env still points at localhost. */
-export const PRODUCTION_APP_URL = "https://swaroop-customer-webapp.vercel.app";
+/**
+ * Canonical Customer Portal host.
+ * Prefer customer.polystorex.com (DNS + TLS verified 14 Nov 2026).
+ * Interim Vercel host remains a valid origin but must not win the canonical
+ * when the custom domain is available via env or as the production default.
+ */
+export const PRODUCTION_APP_URL = "https://customer.polystorex.com";
+/** Known interim host — accepted in CORS, never preferred for SEO canonicals. */
+export const INTERIM_APP_URL = "https://swaroop-customer-webapp.vercel.app";
 
 const DEFAULT_DESCRIPTION =
-  "PolyStoreX Customer Web Portal — desktop companion to the PolyStoreX Customer Mobile App.";
+  "PolyStoreX Customer Web Portal — browse grades, live offers and procure industrial materials.";
 const DEFAULT_OG_IMAGE = "/brand/polystorex-og.png";
 
 export const PUBLIC_SITEMAP_PATHS = [
@@ -23,7 +30,20 @@ export function publicSiteOrigin(): string {
   if (!raw || raw.includes("localhost") || raw.includes("127.0.0.1")) {
     return PRODUCTION_APP_URL;
   }
+  // Prefer the production custom domain over interim Vercel preview host.
+  if (raw.includes(".vercel.app")) {
+    return PRODUCTION_APP_URL;
+  }
   return raw;
+}
+
+/** Host header for robots.txt (hostname only, no scheme). */
+export function publicSiteHost(): string {
+  try {
+    return new URL(publicSiteOrigin()).host;
+  } catch {
+    return "customer.polystorex.com";
+  }
 }
 
 export function absoluteUrl(path = "/"): string {
@@ -48,6 +68,7 @@ export function pageMetadata({
 }: PageMetaOptions): Metadata {
   const pageTitle = title ? `${title} | ${APP_NAME}` : APP_NAME;
   const canonical = absoluteUrl(path);
+  const ogImage = image.startsWith("http") ? image : absoluteUrl(image);
 
   return {
     title,
@@ -62,7 +83,7 @@ export function pageMetadata({
       description,
       images: [
         {
-          url: image.startsWith("http") ? image : absoluteUrl(image),
+          url: ogImage,
           width: 1200,
           height: 630,
           alt: APP_NAME,
@@ -73,7 +94,7 @@ export function pageMetadata({
       card: "summary_large_image",
       title: pageTitle,
       description,
-      images: [image.startsWith("http") ? image : absoluteUrl(image)],
+      images: [ogImage],
     },
     robots: noIndex
       ? { index: false, follow: false }
@@ -82,7 +103,7 @@ export function pageMetadata({
 }
 
 export function rootMetadata(): Metadata {
-  const canonical = absoluteUrl("/login");
+  const canonical = absoluteUrl("/marketplace");
 
   return {
     title: {

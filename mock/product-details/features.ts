@@ -74,25 +74,14 @@ export function buildProductHighlights(
     : [...BASE_PRODUCT_HIGHLIGHTS];
 }
 
-/** Optional product downloads — only TDS and MSDS are supported on PDP. */
+/**
+ * Optional product downloads — only return documents that actually exist.
+ * Do not fabricate TDS/MSDS placeholders; Quality Documentation is gated
+ * elsewhere on verified on-file documents.
+ */
 export function buildProductDocuments(
-  productName: string,
+  _productName: string,
+  existing: ComplianceDocument[] = [],
 ): ComplianceDocument[] {
-  const safe = productName.replace(/\s+/g, "-").toLowerCase();
-  return [
-    {
-      id: "doc-tds",
-      type: "test_certificate",
-      title: "TDS",
-      description: "Technical data sheet",
-      fileName: `${safe}-tds.pdf`,
-    },
-    {
-      id: "doc-msds",
-      type: "msds",
-      title: "MSDS",
-      description: "Material safety data sheet",
-      fileName: `${safe}-msds.pdf`,
-    },
-  ];
+  return existing.filter((doc) => Boolean(doc.fileName?.trim()));
 }

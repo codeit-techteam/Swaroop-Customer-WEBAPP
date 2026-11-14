@@ -98,10 +98,15 @@ export function MarketplaceBrowse({
   );
 
   useEffect(() => {
+    let cancelled = false;
     void (async () => {
       await fetchCatalog();
+      if (cancelled) return;
       await fetchOffers();
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [fetchCatalog, fetchOffers]);
 
   useEffect(() => {
@@ -198,7 +203,11 @@ export function MarketplaceBrowse({
         <MarketplaceEmptyState
           title="Unable to load marketplace catalog"
           description={loadError}
-          action={<Button onClick={() => void fetchCatalog()}>Retry</Button>}
+          action={
+            <Button onClick={() => void fetchCatalog({ force: true })}>
+              Retry
+            </Button>
+          }
         />
       </PageContainer>
     );

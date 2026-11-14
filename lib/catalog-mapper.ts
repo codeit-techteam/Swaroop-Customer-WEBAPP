@@ -484,13 +484,34 @@ export function warehousesFromProducts(
     location: "All Regions",
   });
   for (const product of products) {
-    const id = product.warehouseId || "wh-all";
+    const label = (product.warehouseLabel || "").trim();
+    const origin = (product.origin || "").trim();
+    // Prefer real warehouse / hub labels from live listings; skip empty placeholders.
+    if (
+      !label ||
+      /^verified hub$/i.test(label) ||
+      /^all regions$/i.test(label)
+    ) {
+      if (!origin || /^(india|in|all)$/i.test(origin)) continue;
+      const originId = `origin-${origin.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+      if (seen.has(originId)) continue;
+      seen.set(originId, {
+        id: originId,
+        name: origin,
+        region: origin,
+        location: origin,
+      });
+      continue;
+    }
+    const id =
+      product.warehouseId && product.warehouseId !== "wh-all"
+        ? product.warehouseId
+        : `wh-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
     if (seen.has(id)) continue;
-    const label = product.warehouseLabel || "Verified Hub";
     seen.set(id, {
       id,
       name: label,
-      region: product.origin || "India",
+      region: origin || label,
       location: label,
     });
   }
@@ -643,17 +664,25 @@ export function toMarketplaceOffer(
     isLimitedTime: Boolean(offer.validUntil),
     isTrending: num(product?.popularityScore, 0) >= 70,
     isMostRequested: false,
-    bulkTiers: (offer.priceTiers ?? []).map((tier, index) => ({
-      id: `${offer.id}-tier-${index}`,
-      minMt: num(tier.minQty),
-      label:
-        tier.maxQty != null
-          ? `${num(tier.minQty)}–${num(tier.maxQty)} MT`
-          : `${num(tier.minQty)}+ MT`,
-      currentPrice: priceBefore,
-      discountPrice: num(tier.price, offerPrice),
-      savings: Math.max(0, priceBefore - num(tier.price, offerPrice)),
-    })),
+    bulkTiers: (offer.priceTiers ?? [])
+      .filter((tier) => {
+        const moqFloor = num(offer.moq ?? product?.moq);
+        const minMt = num(tier.minQty);
+        // Drop tiers below applicable MOQ (frontend mirror of backend rule).
+        if (moqFloor > 0 && minMt < moqFloor) return false;
+        return minMt > 0;
+      })
+      .map((tier, index) => ({
+        id: `${offer.id}-tier-${index}`,
+        minMt: num(tier.minQty),
+        label:
+          tier.maxQty != null
+            ? `${num(tier.minQty)}–${num(tier.maxQty)} MT`
+            : `${num(tier.minQty)}+ MT`,
+        currentPrice: priceBefore,
+        discountPrice: num(tier.price, offerPrice),
+        savings: Math.max(0, priceBefore - num(tier.price, offerPrice)),
+      })),
     views: 0,
     requestCount: 0,
     createdAt: new Date().toISOString(),

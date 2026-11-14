@@ -44,6 +44,16 @@
   body {
     @apply bg-background font-sans text-foreground antialiased;
   }
+
+  /* WCAG 2.2 AA — visible keyboard focus across interactive controls */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Prefer AA-friendly muted text over very light slate on white */
+  .text-muted-aa {
+    @apply text-slate-600;
+  }
 }
 
 @layer utilities {

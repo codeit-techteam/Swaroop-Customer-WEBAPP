@@ -18,7 +18,7 @@ export function CreditToggle({ checked, onChange }: CreditToggleProps) {
         >
           Credit Eligible
         </Label>
-        <p className="text-xs text-slate-500">30-90 Day Terms</p>
+        <p className="text-xs text-slate-500">15 / 30 Day Platform Credit</p>
       </div>
       <Switch
         id="credit-eligible-toggle"

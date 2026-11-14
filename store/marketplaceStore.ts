@@ -45,7 +45,7 @@ export interface MarketplaceStoreState {
   catalogTotal: number;
   priceBounds: typeof PRICE_RANGE_BOUNDS;
 
-  fetchCatalog: () => Promise<void>;
+  fetchCatalog: (opts?: { force?: boolean }) => Promise<void>;
 
   setSearch: (search: string) => void;
   setOriginFilter: (origin: GradeOriginFilter) => void;
@@ -256,7 +256,18 @@ export const useMarketplaceStore = create<MarketplaceStoreState>(
     catalogTotal: 0,
     priceBounds: PRICE_RANGE_BOUNDS,
 
-    fetchCatalog: async () => {
+    fetchCatalog: async (opts) => {
+      const current = get();
+      // Prevent duplicate mounts / Strict Mode from stacking catalogue storms.
+      if (current.isLoading) return;
+      if (
+        !opts?.force &&
+        current.hasLoaded &&
+        current.products.length > 0 &&
+        !current.loadError
+      ) {
+        return;
+      }
       set({ isLoading: true, loadError: null });
       try {
         const catalog = await fetchMarketplaceCatalog();

@@ -233,6 +233,10 @@ axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
     const original = error.config as AuthRequestConfig | undefined;
+    // Never auto-retry 429 — that creates storm loops against the rate limiter.
+    if (error.response?.status === 429) {
+      return Promise.reject(error);
+    }
     if (!original || !shouldAttemptRefresh(error, original)) {
       return Promise.reject(error);
     }
