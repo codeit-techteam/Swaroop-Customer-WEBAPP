@@ -109,12 +109,16 @@ export function FeaturedOffer({ offer, className }: FeaturedOfferProps) {
             />
             <PriceBlock
               label="Offer Valid Until"
-              value={formatDateDdMmYyyy(offer.expiresAt)}
+              value={
+                offer.expiresAt
+                  ? formatDateDdMmYyyy(offer.expiresAt)
+                  : "Open availability"
+              }
               className="col-span-2"
             />
           </div>
 
-          {status === "ending_soon" ? (
+          {status === "ending_soon" && offer.expiresAt ? (
             <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-2.5">
               <OfferCountdown expiresAt={offer.expiresAt} />
             </div>

@@ -1,7 +1,6 @@
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppProviders } from "@/providers/app-providers";
-import { env } from "@/lib/env";
+import { rootMetadata } from "@/lib/seo";
 import "@/styles/globals.css";
 
 const geistSans = Geist({
@@ -14,20 +13,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: env.appName,
-    template: `%s | ${env.appName}`,
-  },
-  description:
-    "PolyStoreX Customer Web Portal — desktop companion to the PolyStoreX Customer Mobile App.",
-  applicationName: env.appName,
-  metadataBase: new URL(env.appUrl),
-  icons: {
-    icon: "/favicon.png",
-    apple: "/apple-touch-icon.png",
-  },
-};
+export const metadata = rootMetadata();
 
 export default function RootLayout({
   children,

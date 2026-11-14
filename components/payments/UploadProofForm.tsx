@@ -112,10 +112,17 @@ function FileDropZone({
             size="icon"
             variant="ghost"
             onClick={() => inputRef.current?.click()}
+            aria-label="Replace uploaded file"
           >
             <Replace className="h-4 w-4" />
           </Button>
-          <Button type="button" size="icon" variant="ghost" onClick={onClear}>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            onClick={onClear}
+            aria-label="Remove uploaded file"
+          >
             <Trash2 className="h-4 w-4 text-red-500" />
           </Button>
         </div>

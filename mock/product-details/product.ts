@@ -76,6 +76,10 @@ export function buildProductDetail(
     product.stock,
     product.stockStatus,
   );
+  const onFileDocuments = (product.documents ?? []).filter(
+    (doc) => doc.available !== false && Boolean(doc.fileName?.trim()),
+  );
+  const hasQualityDocs = onFileDocuments.length > 0;
 
   const techSpecs = product.technicalSpecs
     ? Object.entries(product.technicalSpecs)
@@ -118,11 +122,15 @@ export function buildProductDetail(
         : product.materialType
           ? [product.materialType]
           : [],
-    features:
-      product.features && product.features.length > 0
-        ? product.features
-        : getFeaturesForMaterial(product.materialType),
-    highlights: buildProductHighlights(product.creditEligible),
+    features: (product.features && product.features.length > 0
+      ? product.features
+      : getFeaturesForMaterial(product.materialType)
+    ).filter(
+      (feature) =>
+        hasQualityDocs ||
+        !feature.toLowerCase().includes("quality documentation"),
+    ),
+    highlights: buildProductHighlights(product.creditEligible, hasQualityDocs),
     industry: "Petrochemicals & Packaging",
     packaging: product.packaging?.trim() || "25 KG Bags",
     origin: product.origin,
@@ -142,8 +150,8 @@ export function buildProductDetail(
     gallery: buildGalleryFromProduct(product.image, product.name),
     specs: techSpecs,
     documents:
-      product.documents && product.documents.length > 0
-        ? product.documents.map((doc) => ({
+      onFileDocuments.length > 0
+        ? onFileDocuments.map((doc) => ({
             id: doc.id,
             type: mapDocType(doc.type),
             title: doc.title,
@@ -155,10 +163,7 @@ export function buildProductDetail(
           }))
         : [],
     quality: (() => {
-      const hasDocs = Boolean(
-        product.documents && product.documents.length > 0,
-      );
-      if (!hasDocs) {
+      if (!hasQualityDocs) {
         return {
           title: "Quality documentation",
           subtitle: "Technical Data Sheet not available yet for this grade.",

@@ -77,7 +77,8 @@ export interface MarketplaceOffer {
   moq: number;
   availableQuantity: number;
   remainingStock: number;
-  expiresAt: string;
+  /** ISO timestamp, or null when the offer has no expiry (do not fabricate). */
+  expiresAt: string | null;
   validFrom?: string;
   offerType: OfferType;
   badge: string;
@@ -102,7 +103,7 @@ export interface OfferHeroBanner {
   title: string;
   description: string;
   discountBadge: string;
-  expiresAt: string;
+  expiresAt: string | null;
   backgroundImage: string;
   ctaPrimary: string;
   ctaSecondary: string;

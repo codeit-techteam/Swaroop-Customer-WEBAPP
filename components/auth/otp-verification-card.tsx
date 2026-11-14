@@ -202,15 +202,15 @@ export function OtpVerificationCard() {
       <div className="mt-auto flex flex-wrap items-center justify-center gap-x-5 gap-y-2 pt-12 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80 sm:justify-between">
         <span className="inline-flex items-center gap-1.5">
           <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
-          ISO 27001 Certified
+          Mobile OTP Sign-In
         </span>
         <span className="inline-flex items-center gap-1.5">
           <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
-          SOC2 Compliant
+          Encrypted Session
         </span>
         <span className="inline-flex items-center gap-1.5">
           <Shield className="h-3.5 w-3.5" aria-hidden />
-          EU GDPR Ready
+          KYC-Backed Access
         </span>
       </div>
     </div>

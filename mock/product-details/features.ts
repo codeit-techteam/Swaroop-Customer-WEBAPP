@@ -53,18 +53,25 @@ const DEFAULT_FEATURES = [
   "PolyStoreX Verified",
 ];
 
-export const DEFAULT_PRODUCT_HIGHLIGHTS = [
+const BASE_PRODUCT_HIGHLIGHTS = [
   "Blind Marketplace",
   "Tax Invoice Available",
-  "Quality Documentation",
-];
+] as const;
+
+/** @deprecated Prefer `buildProductHighlights()` so quality docs are gated correctly. */
+export const DEFAULT_PRODUCT_HIGHLIGHTS = [...BASE_PRODUCT_HIGHLIGHTS];
 
 export function getFeaturesForMaterial(materialType: string): string[] {
   return FEATURES_BY_MATERIAL[materialType] ?? DEFAULT_FEATURES;
 }
 
-export function buildProductHighlights(_creditEligible: boolean): string[] {
-  return DEFAULT_PRODUCT_HIGHLIGHTS;
+export function buildProductHighlights(
+  _creditEligible: boolean,
+  hasQualityDocs = false,
+): string[] {
+  return hasQualityDocs
+    ? [...BASE_PRODUCT_HIGHLIGHTS, "Quality Documentation"]
+    : [...BASE_PRODUCT_HIGHLIGHTS];
 }
 
 /** Optional product downloads — only TDS and MSDS are supported on PDP. */

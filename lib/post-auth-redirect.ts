@@ -26,7 +26,16 @@ export function getPostAuthDestination(nextPath?: string | null): string {
   return ROUTES.dashboard;
 }
 
-export function getOnboardingResumePath(): string {
+/**
+ * Resume path inside the onboarding wizard.
+ * @param options.trustCompletedFlag When false (KYC incomplete SoT), never
+ *   bounce to Dashboard even if a stale localStorage flag says completed.
+ */
+export function getOnboardingResumePath(
+  options: { trustCompletedFlag?: boolean } = {},
+): string {
+  const trustCompletedFlag = options.trustCompletedFlag !== false;
+
   if (typeof window === "undefined") {
     return ONBOARDING_ROUTES.companyInformation;
   }
@@ -41,7 +50,9 @@ export function getOnboardingResumePath(): string {
         completedSteps?: OnboardingStepId[];
       };
     };
-    if (parsed?.state?.isCompleted) return ROUTES.dashboard;
+    if (trustCompletedFlag && parsed?.state?.isCompleted) {
+      return ROUTES.dashboard;
+    }
 
     const step = parsed?.state?.currentStep ?? "company-information";
     return getStepById(step).href;

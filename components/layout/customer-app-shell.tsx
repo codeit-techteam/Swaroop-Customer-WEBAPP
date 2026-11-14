@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AppShell } from "@/components/layout/app-shell";
 import {
@@ -11,6 +11,7 @@ import { CustomerFooter } from "@/components/layout/customer-footer";
 import { CustomerSidebar } from "@/components/navigation/customer-sidebar";
 import { CustomerTopNav } from "@/components/navigation/customer-top-nav";
 import { KycAttentionBanner } from "@/components/kyc/KycAttentionBanner";
+import { KycFeatureGate } from "@/components/kyc/KycFeatureGate";
 import { OnboardingGate } from "@/components/onboarding/OnboardingGate";
 import { useKycIdentitySync } from "@/hooks/use-kyc-identity-sync";
 import { useUiStore } from "@/store/uiStore";
@@ -48,7 +49,9 @@ export function CustomerAppShell({
         <div className="flex min-h-[calc(100dvh-4rem)] min-w-0 flex-1 flex-col">
           <div className="min-w-0 flex-1 px-4 py-5 md:px-6 md:py-6">
             <KycAttentionBanner />
-            {children}
+            <Suspense fallback={children}>
+              <KycFeatureGate>{children}</KycFeatureGate>
+            </Suspense>
           </div>
           <CustomerFooter />
         </div>

@@ -111,13 +111,22 @@ export function MarketplaceBrowse({
   useEffect(() => {
     const q = searchParams.get("search");
     const origin = searchParams.get("origin");
+    const category = searchParams.get("category");
     if (q) setSearch(q);
+    if (
+      category === "polymers" ||
+      category === "chemicals" ||
+      category === "additives" ||
+      category === "base-oils"
+    ) {
+      applyCategoryFilter(category);
+    }
     if (origin === "domestic" || origin === "imported") {
       setOriginFilter(origin);
     } else if (origin === "all") {
       setOriginFilter("all");
     }
-  }, [searchParams, setSearch, setOriginFilter]);
+  }, [searchParams, setSearch, setOriginFilter, applyCategoryFilter]);
 
   const pagination = getPaginatedProducts();
   const trimmedSearch = search.trim();
@@ -252,6 +261,7 @@ export function MarketplaceBrowse({
                 onSelect={(code) => {
                   setActiveMaterial(code);
                   setSearch(code ?? "");
+                  applyCategoryFilter(code ? "polymers" : null);
                 }}
               />
             </div>

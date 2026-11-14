@@ -140,7 +140,7 @@ export function CatalogOrderDetailPage({
                     Fulfillment progress
                   </p>
                   <p className="mt-0.5 text-sm text-slate-600">
-                    PetroTrade-managed corridor · seller identity protected
+                    PolyStoreX-managed corridor · seller identity protected
                   </p>
                 </div>
                 <OrderStatusChip status={order.displayStatus} />

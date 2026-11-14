@@ -171,6 +171,7 @@ export function SupportLiveChatPage() {
                   variant="ghost"
                   className="shrink-0 text-slate-500"
                   onClick={() => fileRef.current?.click()}
+                  aria-label="Attach file"
                 >
                   <Paperclip className="h-4 w-4" />
                 </Button>
@@ -180,6 +181,7 @@ export function SupportLiveChatPage() {
                     size="icon"
                     variant="ghost"
                     className="shrink-0 text-slate-500"
+                    aria-label="Insert emoji"
                   >
                     <Smile className="h-4 w-4" />
                   </Button>

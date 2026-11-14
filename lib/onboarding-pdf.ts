@@ -144,5 +144,5 @@ export function generateOnboardingPdf(state: OnboardingState): void {
     y,
   );
 
-  doc.save("PetroTrade_Onboarding_Submission.pdf");
+  doc.save("PolyStoreX_Onboarding_Submission.pdf");
 }

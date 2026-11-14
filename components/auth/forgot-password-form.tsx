@@ -79,7 +79,7 @@ export function ForgotPasswordForm() {
         <form onSubmit={onSubmit} className="space-y-5" noValidate>
           <AuthInput
             label="Email Address"
-            placeholder="name@petrotrade.com"
+            placeholder="name@yourcompany.com"
             type="email"
             autoComplete="email"
             leftIcon={AtSign}

@@ -11,7 +11,8 @@ import { cn } from "@/lib/utils";
 
 const MAX_TODAYS_OFFERS = 4;
 
-function getEndsInLabel(expiresAt: string): string {
+function getEndsInLabel(expiresAt: string | null): string {
+  if (!expiresAt) return "Open availability";
   const ms = new Date(expiresAt).getTime() - Date.now();
   if (ms <= 0) return "Expired";
   const days = Math.ceil(ms / (1000 * 60 * 60 * 24));
@@ -40,7 +41,9 @@ export function getTodaysOffers(
     if (a.isLimitedTime !== b.isLimitedTime) {
       return a.isLimitedTime ? -1 : 1;
     }
-    return new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime();
+    const aEnd = a.expiresAt ? new Date(a.expiresAt).getTime() : Infinity;
+    const bEnd = b.expiresAt ? new Date(b.expiresAt).getTime() : Infinity;
+    return aEnd - bEnd;
   });
   return prioritized.slice(0, limit);
 }
@@ -87,12 +90,16 @@ export function MarketplaceOfferCard({
         {getOfferHighlight(offer)}
       </p>
 
-      <div className="mt-3 flex items-center justify-between gap-2 text-xs text-slate-400">
-        <span className="font-medium text-amber-700">
-          {getEndsInLabel(offer.expiresAt)}
-        </span>
-        <span>Until {formatDateDdMmYyyy(offer.expiresAt)}</span>
-      </div>
+      {offer.expiresAt ? (
+        <div className="mt-3 flex items-center justify-between gap-2 text-xs text-slate-400">
+          <span className="font-medium text-amber-700">
+            {getEndsInLabel(offer.expiresAt)}
+          </span>
+          <span>Until {formatDateDdMmYyyy(offer.expiresAt)}</span>
+        </div>
+      ) : (
+        <p className="mt-3 text-xs text-slate-400">Open availability</p>
+      )}
 
       <Button
         type="button"

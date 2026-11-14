@@ -18,7 +18,7 @@ export function MaterialTile({
   className,
   onSelect,
 }: MaterialTileProps) {
-  const href = `${ROUTES.marketplace}?search=${encodeURIComponent(material.code)}`;
+  const href = `${ROUTES.marketplace}?category=polymers&search=${encodeURIComponent(material.code)}`;
 
   const content = (
     <div

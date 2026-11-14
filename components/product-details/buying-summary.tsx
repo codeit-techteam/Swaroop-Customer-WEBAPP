@@ -83,7 +83,7 @@ export function BuyingSummary({
     );
   }
 
-  if (loading && !quote) {
+  if ((loading || estimateLoading) && !quote && !estimate) {
     return (
       <div
         className={cn(
@@ -107,7 +107,9 @@ export function BuyingSummary({
     );
   }
 
-  if (!quote) {
+  // Guests use the public estimate; authenticated buyers prefer the checkout quote.
+  // Never show a hard failure when a public estimate is available or still loading.
+  if (!quote && !estimate) {
     return (
       <div
         className={cn(
@@ -119,42 +121,67 @@ export function BuyingSummary({
           Price Breakdown
         </p>
         <p className="mt-2 text-xs text-slate-500">
-          Unable to load latest pricing
+          {estimateError
+            ? "Listing price is shown on the product card. Sign in for a binding checkout quote."
+            : "Sign in for a binding checkout quote with freight and tax."}
         </p>
       </div>
     );
   }
 
-  const discount = Number(quote.discountAmount);
-  const rows = [
-    {
-      label: "Material subtotal",
-      value: formatInr(Number(quote.baseAmount), { compact: true }),
-    },
-    ...(discount > 0
+  const discount = quote ? Number(quote.discountAmount) : 0;
+  const rows = quote
+    ? [
+        {
+          label: "Material subtotal",
+          value: formatInr(Number(quote.baseAmount), { compact: true }),
+        },
+        ...(discount > 0
+          ? [
+              {
+                label: "Advance discount",
+                value: `−${formatInr(discount, { compact: true })}`,
+                accent: true as const,
+              },
+            ]
+          : []),
+        {
+          label: "Delivery charges",
+          value: formatInr(Number(quote.freightAmount), { compact: true }),
+        },
+        {
+          label: `Estimated GST (${quote.taxRate}%)`,
+          value: formatInr(Number(quote.taxAmount), { compact: true }),
+        },
+      ]
+    : estimate?.pricing
       ? [
           {
-            label: "Advance discount",
-            value: `−${formatInr(discount, { compact: true })}`,
-            accent: true as const,
+            label: "Material subtotal",
+            value: formatInr(Number(estimate.pricing.materialSubtotal), {
+              compact: true,
+            }),
+          },
+          {
+            label: "Delivery charges",
+            value: formatInr(Number(estimate.pricing.freightTotal), {
+              compact: true,
+            }),
+          },
+          {
+            label: `Estimated GST (${estimate.pricing.gstPercent}%)`,
+            value: formatInr(Number(estimate.pricing.gstAmount), {
+              compact: true,
+            }),
           },
         ]
-      : []),
-    {
-      label: "Delivery charges",
-      value: formatInr(Number(quote.freightAmount), { compact: true }),
-    },
-    {
-      label: `Estimated GST (${quote.taxRate}%)`,
-      value: formatInr(Number(quote.taxAmount), { compact: true }),
-    },
-  ];
+      : [];
 
-  const unitMt = estimate?.unitPricePerMt ?? quote.unitPrice;
+  const unitMt = estimate?.unitPricePerMt ?? quote?.unitPrice;
   const unitKg = estimate?.unitPricePerKg;
   const currency = (
     estimate?.currency ??
-    quote.currency ??
+    quote?.currency ??
     "INR"
   ).toUpperCase();
   const isInr = currency === "INR";
@@ -264,7 +291,15 @@ export function BuyingSummary({
               Estimated total
             </dt>
             <dd className="text-sm font-bold tabular-nums text-brand">
-              {formatInr(Number(quote.totalAmount), { compact: true })}
+              {formatInr(
+                Number(
+                  quote?.totalAmount ??
+                    estimate?.pricing?.finalAmount ??
+                    estimate?.inclusiveTotal ??
+                    0,
+                ),
+                { compact: true },
+              )}
             </dd>
           </div>
         ) : null}

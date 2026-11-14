@@ -2,6 +2,7 @@ import { AUTH_STORAGE_KEY } from "@/lib/auth-session";
 
 const USER_DATA_PREFIXES = [
   "petrotrade.",
+  "polystorex.",
   "pt-customer-",
   "swaroop-marketplace-",
 ];

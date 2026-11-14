@@ -262,6 +262,7 @@ export function CartPage() {
                         onClick={() =>
                           void setQuantity(item.id, item.quantityMt - 1)
                         }
+                        aria-label={`Decrease quantity for ${item.productName}`}
                       >
                         <Minus className="h-3.5 w-3.5" />
                       </Button>
@@ -277,6 +278,7 @@ export function CartPage() {
                         onClick={() =>
                           void setQuantity(item.id, item.quantityMt + 1)
                         }
+                        aria-label={`Increase quantity for ${item.productName}`}
                       >
                         <Plus className="h-3.5 w-3.5" />
                       </Button>

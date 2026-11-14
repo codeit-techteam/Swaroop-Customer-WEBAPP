@@ -102,5 +102,5 @@ export function generateMarketReportPdf({
   );
   doc.text(disclaimer, 20, y);
 
-  doc.save("PetroTrade_Market_Report.pdf");
+  doc.save("PolyStoreX_Market_Report.pdf");
 }

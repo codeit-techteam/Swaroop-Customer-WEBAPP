@@ -94,7 +94,9 @@ export function MyOffersPage() {
                   </TableHeader>
                   <TableBody>
                     {records.map((record) => {
-                      const offer = useOffersStore.getState().getOffer(record.offerId);
+                      const offer = useOffersStore
+                        .getState()
+                        .getOffer(record.offerId);
                       if (!offer) return null;
                       const liveStatus = getOfferStatus(offer);
                       return (
@@ -123,7 +125,9 @@ export function MyOffersPage() {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-sm text-slate-600">
-                            {formatDateDdMmYyyy(offer.expiresAt)}
+                            {offer.expiresAt
+                              ? formatDateDdMmYyyy(offer.expiresAt)
+                              : "Open"}
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">

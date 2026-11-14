@@ -19,15 +19,13 @@ export function OtpHero() {
 
       <div className="flex gap-6 border-t border-white/15 pt-6">
         <div className="flex-1 space-y-1">
-          <p className="text-sm font-semibold">Industrial Reliability</p>
-          <p className="text-xs text-white/60">
-            ISO 27001 Certified Environment
-          </p>
+          <p className="text-sm font-semibold">Account Protection</p>
+          <p className="text-xs text-white/60">Mobile OTP verification</p>
         </div>
         <div className="w-px bg-white/20" aria-hidden />
         <div className="flex-1 space-y-1">
-          <p className="text-sm font-semibold">Enterprise Security</p>
-          <p className="text-xs text-white/60">End-to-End Encryption</p>
+          <p className="text-sm font-semibold">Business Access</p>
+          <p className="text-xs text-white/60">KYC-backed procurement</p>
         </div>
       </div>
     </div>

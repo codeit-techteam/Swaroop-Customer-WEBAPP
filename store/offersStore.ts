@@ -2,10 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import {
-  DEFAULT_OFFER_FILTERS,
-  OFFER_PRICE_BOUNDS,
-} from "@/mock/offers";
+import { DEFAULT_OFFER_FILTERS, OFFER_PRICE_BOUNDS } from "@/mock/offers";
 import { getOfferStatus, getOfferSummaryStats } from "@/lib/offer-utils";
 import { fetchMarketplaceOffers } from "@/services/catalog";
 import { useMarketplaceStore } from "@/store/marketplaceStore";
@@ -125,10 +122,11 @@ function sortOffers(offers: MarketplaceOffer[], sortBy: OfferSortBy) {
     case "savings_desc":
       return sorted.sort((a, b) => b.savings - a.savings);
     case "ending_soon":
-      return sorted.sort(
-        (a, b) =>
-          new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime(),
-      );
+      return sorted.sort((a, b) => {
+        const aEnd = a.expiresAt ? new Date(a.expiresAt).getTime() : Infinity;
+        const bEnd = b.expiresAt ? new Date(b.expiresAt).getTime() : Infinity;
+        return aEnd - bEnd;
+      });
     case "newest":
       return sorted.sort(
         (a, b) =>

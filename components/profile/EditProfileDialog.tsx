@@ -56,7 +56,7 @@ export function EditProfileDialog({
     setForm({
       fullName: user?.name ?? "",
       phone: user?.phone ?? company.phone,
-      designation: user?.designation ?? user?.role ?? "Procurement Manager",
+      designation: user?.designation ?? user?.role ?? "",
       companyName: company.legalName || user?.companyName || "",
       email: user?.email ?? company.email,
       avatarUrl: user?.avatarUrl ?? null,
@@ -96,8 +96,8 @@ export function EditProfileDialog({
     updateUser({
       name: fullName,
       phone: form.phone.trim(),
-      designation: form.designation.trim() || "Procurement Manager",
-      role: form.designation.trim() || "Procurement Manager",
+      designation: form.designation.trim(),
+      role: form.designation.trim() || user?.role || "BUYER",
       avatarUrl: form.avatarUrl,
     });
 

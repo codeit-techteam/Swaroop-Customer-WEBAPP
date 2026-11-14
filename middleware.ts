@@ -82,7 +82,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Incomplete onboarding cannot access protected app modules
+  // Incomplete KYC/onboarding: allow the page through so the client can show
+  // "Complete your KYC to access this feature" with a working Complete KYC CTA.
+  // Marketplace browse and KYC itself stay reachable. Do not silent-redirect
+  // to Dashboard/onboarding (that hid the reason from buyers).
   if (
     isAuthenticated &&
     onboardingIncomplete &&
@@ -90,7 +93,9 @@ export function middleware(request: NextRequest) {
     !isOnboardingRoute(pathname) &&
     !isKycRoute(pathname)
   ) {
-    return NextResponse.redirect(new URL(ROUTES.onboarding, request.url));
+    const response = NextResponse.next();
+    response.headers.set("x-polystorex-kyc-required", "1");
+    return response;
   }
 
   // Completed users should not stay in the onboarding wizard

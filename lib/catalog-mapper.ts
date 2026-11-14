@@ -565,9 +565,10 @@ export function toMarketplaceOffer(
       : 0;
   const stock = num(offer.quantityAvailable ?? product?.stock);
   const categoryId = product?.categoryId ?? "polymers";
+  // Never fabricate a 365-day countdown when the offer has no validUntil.
   const expiresAt = offer.validUntil
     ? new Date(offer.validUntil).toISOString()
-    : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+    : null;
   const paymentTypes = [
     ...new Set(
       [

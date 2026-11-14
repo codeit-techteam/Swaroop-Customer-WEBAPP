@@ -88,6 +88,7 @@ export function CustomerSidebar({
   const setSidebarMobileOpen = useUiStore((s) => s.setSidebarMobileOpen);
   const syncSidebarToPath = useUiStore((s) => s.syncSidebarToPath);
   const logout = useAuthStore((s) => s.logout);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
   const company = useProfileStore((s) => s.company);
   const isCompleted = useOnboardingStore((s) => s.isCompleted);
@@ -322,46 +323,64 @@ export function CustomerSidebar({
           </Link>
         ) : null}
 
-        <Link
-          href={ROUTES.profile}
-          onClick={handleNavigate}
-          className={cn(
-            "flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.06] p-2 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue",
-            collapsed && "justify-center border-0 bg-transparent p-1.5",
-          )}
-          title={collapsed ? profile.fullName : undefined}
-        >
-          <Avatar className="h-8 w-8 border border-white/15">
-            {profile.avatarUrl ? (
-              <AvatarImage src={profile.avatarUrl} alt={profile.fullName} />
+        {isAuthenticated ? (
+          <Link
+            href={ROUTES.profile}
+            onClick={handleNavigate}
+            className={cn(
+              "flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.06] p-2 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue",
+              collapsed && "justify-center border-0 bg-transparent p-1.5",
+            )}
+            title={collapsed ? profile.fullName || "Account" : undefined}
+          >
+            <Avatar className="h-8 w-8 border border-white/15">
+              {profile.avatarUrl ? (
+                <AvatarImage
+                  src={profile.avatarUrl}
+                  alt={profile.fullName || "Account"}
+                />
+              ) : null}
+              <AvatarFallback className="bg-accent-blue text-[10px] font-semibold text-white">
+                {initials || "PX"}
+              </AvatarFallback>
+            </Avatar>
+            {!collapsed ? (
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[13px] font-semibold text-white">
+                  {profile.fullName || user?.phone || "Account"}
+                </span>
+                <span className="block truncate text-[11px] text-white/45">
+                  {profile.designation || profile.companyName || "Buyer"}
+                </span>
+              </span>
             ) : null}
-            <AvatarFallback className="bg-accent-blue text-[10px] font-semibold text-white">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          {!collapsed ? (
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[13px] font-semibold text-white">
-                {profile.fullName}
-              </span>
-              <span className="block truncate text-[11px] text-white/45">
-                {profile.designation}
-              </span>
-            </span>
-          ) : null}
-        </Link>
+          </Link>
+        ) : (
+          <Link
+            href={ROUTES.login}
+            onClick={handleNavigate}
+            className={cn(
+              "flex items-center justify-center rounded-xl border border-white/15 bg-white/10 px-3 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-white/15",
+              collapsed && "px-2",
+            )}
+          >
+            {collapsed ? "In" : "Sign in"}
+          </Link>
+        )}
 
-        <nav aria-label="Account" className="space-y-0.5">
-          {footerNav.map((item) => (
-            <SidebarItem
-              key={item.id}
-              item={stripChildren(item)}
-              collapsed={collapsed}
-              onNavigate={handleNavigate}
-              onAction={handleAction}
-            />
-          ))}
-        </nav>
+        {isAuthenticated ? (
+          <nav aria-label="Account" className="space-y-0.5">
+            {footerNav.map((item) => (
+              <SidebarItem
+                key={item.id}
+                item={stripChildren(item)}
+                collapsed={collapsed}
+                onNavigate={handleNavigate}
+                onAction={handleAction}
+              />
+            ))}
+          </nav>
+        ) : null}
       </div>
 
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>

@@ -135,7 +135,7 @@ export const PLATFORM_COMPANY = {
   pincode: "400051",
   contactPerson: "Accounts Desk",
   phone: "+91 22 6987 4500",
-  email: "invoices@petrotrade.in",
+  email: "invoices@polystorex.com",
 } as const;
 
 export function documentsPoPath(id: string) {

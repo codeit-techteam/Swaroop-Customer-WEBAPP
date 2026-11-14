@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bell, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,12 +13,14 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ROUTES } from "@/constants";
 import {
   fetchBackendCustomerNotifications,
   mapBackendNotificationToApp,
 } from "@/lib/backend-notifications";
 import { getNotificationHref } from "@/lib/notification-actions";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/authStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import {
   getMvpFeedNotifications,
@@ -39,16 +42,21 @@ export function NotificationDrawer({
   onOpenChange,
 }: NotificationDrawerProps) {
   const router = useRouter();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const notifications = useNotificationsCatalogStore((s) => s.notifications);
   const markRead = useNotificationsCatalogStore((s) => s.markRead);
   const markAllRead = useNotificationStore((s) => s.markAllRead);
   const setHydrated = useNotificationsCatalogStore((s) => s.setHydrated);
-  const upsertBackendNotifications = useNotificationsCatalogStore(
-    (s) => s.upsertBackendNotifications,
+  const replaceBackendNotifications = useNotificationsCatalogStore(
+    (s) => s.replaceBackendNotifications,
+  );
+  const clearNotifications = useNotificationsCatalogStore(
+    (s) => s.clearNotifications,
   );
   const isHydrated = useNotificationsCatalogStore((s) => s.isHydrated);
 
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     const finish = () => setHydrated(true);
@@ -62,23 +70,28 @@ export function NotificationDrawer({
     if (open) setVisibleCount(PAGE_SIZE);
   }, [open]);
 
-  // Production sync: pull live backend notifications (grade requests, orders, …).
+  // Production sync: only for authenticated users; never seed mock rows.
   useEffect(() => {
     if (!open) return;
+    if (!isAuthenticated) {
+      clearNotifications();
+      return;
+    }
     let cancelled = false;
+    setLoadError(false);
     void (async () => {
       try {
         const rows = await fetchBackendCustomerNotifications();
         if (cancelled) return;
-        upsertBackendNotifications(rows.map(mapBackendNotificationToApp));
+        replaceBackendNotifications(rows.map(mapBackendNotificationToApp));
       } catch {
-        // Keep the local catalogue if the API is unreachable.
+        if (!cancelled) setLoadError(true);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [open, upsertBackendNotifications]);
+  }, [open, isAuthenticated, replaceBackendNotifications, clearNotifications]);
 
   const feed = getMvpFeedNotifications(notifications);
   const unreadCount = getUnreadCount(notifications);
@@ -107,12 +120,16 @@ export function NotificationDrawer({
                 Notifications
               </SheetTitle>
               <SheetDescription className="mt-0.5 text-sm text-slate-500">
-                {unreadCount > 0
-                  ? `${unreadCount} Unread`
-                  : "You're all caught up"}
+                {!isAuthenticated
+                  ? "Sign in to see your notifications"
+                  : loadError
+                    ? "Unable to refresh notifications"
+                    : unreadCount > 0
+                      ? `${unreadCount} Unread`
+                      : "You're all caught up"}
               </SheetDescription>
             </div>
-            {unreadCount > 0 ? (
+            {isAuthenticated && unreadCount > 0 ? (
               <Button
                 type="button"
                 variant="ghost"
@@ -138,6 +155,8 @@ export function NotificationDrawer({
                   />
                 ))}
               </div>
+            ) : !isAuthenticated ? (
+              <GuestFeed onClose={() => onOpenChange(false)} />
             ) : visible.length === 0 ? (
               <EmptyFeed />
             ) : (
@@ -186,6 +205,27 @@ function EmptyFeed() {
         You&apos;re all caught up
       </h3>
       <p className="mt-1 text-sm text-slate-500">No new notifications.</p>
+    </div>
+  );
+}
+
+function GuestFeed({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+        <Bell className="h-6 w-6 text-slate-400" strokeWidth={1.5} />
+      </div>
+      <h3 className="text-base font-semibold text-slate-900">
+        Sign in required
+      </h3>
+      <p className="mt-1 text-sm text-slate-500">
+        Notifications are only available for your PolyStoreX account.
+      </p>
+      <Button asChild className="mt-5 rounded-xl bg-brand hover:bg-brand-700">
+        <Link href={ROUTES.login} onClick={onClose}>
+          Sign in
+        </Link>
+      </Button>
     </div>
   );
 }

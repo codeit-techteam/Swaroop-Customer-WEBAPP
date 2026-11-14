@@ -94,7 +94,7 @@ function CreditEligibilityForm() {
           <InfoCard
             variant="security"
             icon={Shield}
-            title="ISO 27001 Certified Data Security"
+            title="Encrypted data handling for KYC documents"
           >
             All documents are encrypted end-to-end and accessible only to
             authorized underwriting partners.

@@ -9,6 +9,7 @@ import { NotificationDrawer } from "@/components/notifications/NotificationDrawe
 import { ProfileAvatarButton } from "@/components/profile/ProfileAvatarButton";
 import { GlobalGradeSearch } from "@/components/search/global-grade-search";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 import { useUiStore } from "@/store/uiStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -20,6 +21,7 @@ interface CustomerTopNavProps {
 
 export function CustomerTopNav({ className }: CustomerTopNavProps) {
   const toggleSidebarMobile = useUiStore((s) => s.toggleSidebarMobile);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const isPanelOpen = useNotificationStore((s) => s.isPanelOpen);
   const setPanelOpen = useNotificationStore((s) => s.setPanelOpen);
@@ -58,35 +60,43 @@ export function CustomerTopNav({ className }: CustomerTopNavProps) {
             </Button>
 
             <Link
-              href={ROUTES.cart}
+              href={isAuthenticated ? ROUTES.cart : ROUTES.login}
               className="relative rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-              aria-label={cartCount > 0 ? `Cart, ${cartCount} items` : "Cart"}
+              aria-label={
+                !isAuthenticated
+                  ? "Sign in to view cart"
+                  : cartCount > 0
+                    ? `Cart, ${cartCount} items`
+                    : "Cart"
+              }
             >
               <ShoppingCart className="h-5 w-5" />
-              {cartCount > 0 ? (
+              {isAuthenticated && cartCount > 0 ? (
                 <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-white">
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               ) : null}
             </Link>
 
-            <button
-              type="button"
-              onClick={() => setPanelOpen(true)}
-              className="relative rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-              aria-label={
-                unreadCount > 0
-                  ? `Notifications, ${unreadCount} unread`
-                  : "Notifications"
-              }
-            >
-              <Bell className="h-5 w-5" />
-              {unreadCount > 0 ? (
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-blue px-1 text-[10px] font-semibold text-white">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              ) : null}
-            </button>
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={() => setPanelOpen(true)}
+                className="relative rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                aria-label={
+                  unreadCount > 0
+                    ? `Notifications, ${unreadCount} unread`
+                    : "Notifications"
+                }
+              >
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 ? (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-blue px-1 text-[10px] font-semibold text-white">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                ) : null}
+              </button>
+            ) : null}
 
             <ProfileAvatarButton />
           </div>

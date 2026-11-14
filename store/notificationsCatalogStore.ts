@@ -5,7 +5,6 @@ import { persist } from "zustand/middleware";
 import {
   DEFAULT_NOTIFICATION_FILTERS,
   DEFAULT_NOTIFICATION_PREFERENCES,
-  notificationsCatalogMock,
 } from "@/mock/notifications-catalog";
 import { VIEW_FILTER_TO_CATEGORY } from "@/constants/notifications";
 import { isMvpNotification } from "@/lib/notification-actions";
@@ -25,7 +24,18 @@ import type {
   NotificationsFiltersState,
 } from "@/types/notifications";
 
-const STORAGE_KEY = "petrotrade.notifications-mvp.v1";
+/** Bumped to v2 so browsers drop the old seeded mock catalogue (PT-ORD-88xxx). */
+const STORAGE_KEY = "polystorex.notifications.v2";
+const LEGACY_NOTIFICATION_KEYS = [
+  "petrotrade.notifications-mvp.v1",
+  "petrotrade.notifications-mvp.v2",
+] as const;
+
+if (typeof window !== "undefined") {
+  for (const key of LEGACY_NOTIFICATION_KEYS) {
+    window.localStorage.removeItem(key);
+  }
+}
 
 export interface NotificationsCatalogStoreState {
   notifications: AppNotification[];
@@ -52,8 +62,11 @@ export interface NotificationsCatalogStoreState {
   deleteSelected: () => void;
   archiveNotification: (id: string) => void;
   ingestAdminPushes: (items: AppNotification[]) => number;
-  /** Merge live backend notifications (keeps mock history, refreshes backend rows by id). */
+  /** Replace local feed with live backend notifications for the signed-in user. */
+  replaceBackendNotifications: (items: AppNotification[]) => number;
+  /** @deprecated Prefer replaceBackendNotifications — kept for admin push merge. */
   upsertBackendNotifications: (items: AppNotification[]) => number;
+  clearNotifications: () => void;
   setPreferences: (patch: Partial<NotificationPreferences>) => void;
   resetPreferences: () => void;
 }
@@ -223,7 +236,7 @@ export const useNotificationsCatalogStore =
   create<NotificationsCatalogStoreState>()(
     persist(
       (set, get) => ({
-        notifications: notificationsCatalogMock,
+        notifications: [],
         filters: { ...DEFAULT_NOTIFICATION_FILTERS },
         selectedIds: [],
         detailId: null,
@@ -360,6 +373,15 @@ export const useNotificationsCatalogStore =
           return incoming.length;
         },
 
+        replaceBackendNotifications: (items) => {
+          set({
+            notifications: items,
+            selectedIds: [],
+            detailId: null,
+          });
+          return items.length;
+        },
+
         upsertBackendNotifications: (items) => {
           if (!items.length) return 0;
           const byId = new Map(items.map((n) => [n.id, n]));
@@ -372,6 +394,9 @@ export const useNotificationsCatalogStore =
           return items.length;
         },
 
+        clearNotifications: () =>
+          set({ notifications: [], selectedIds: [], detailId: null }),
+
         setPreferences: (patch) =>
           set((s) => ({ preferences: { ...s.preferences, ...patch } })),
 
@@ -381,7 +406,7 @@ export const useNotificationsCatalogStore =
       {
         name: STORAGE_KEY,
         partialize: (s) => ({
-          notifications: s.notifications,
+          // Preferences only — never persist notification bodies (avoids stale mocks).
           preferences: s.preferences,
         }),
         onRehydrateStorage: () => (state) => {

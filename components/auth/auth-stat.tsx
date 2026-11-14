@@ -14,7 +14,7 @@ export function AuthStat({ value, label, className }: AuthStatProps) {
       <span className="text-2xl font-bold tracking-tight text-white xl:text-3xl">
         {value}
       </span>
-      <span className="text-xs font-medium text-white/70 xl:text-sm">
+      <span className="text-xs font-medium text-white/80 xl:text-sm">
         {label}
       </span>
     </div>

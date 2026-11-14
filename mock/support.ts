@@ -16,7 +16,7 @@ export const ACCOUNT_MANAGER: AccountManager = {
   designation: "Senior Account Manager",
   department: "Enterprise Customer Success",
   phone: "+91 9876543210",
-  email: "sanya@petrotrade.com",
+  email: "sanya@polystorex.com",
   availability: "Mon–Fri · 9:30 AM – 6:30 PM IST",
   online: true,
   photoInitials: "SG",
@@ -49,7 +49,7 @@ export const MOCK_SUPPORT_TICKETS: SupportTicket[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     assignedTo: "Priya Nair",
-    assignedEmail: "priya.nair@petrotrade.com",
+    assignedEmail: "priya.nair@polystorex.com",
     relatedOrderId: "ORD-88390",
     attachments: [],
     timeline: [
@@ -86,7 +86,7 @@ export const MOCK_SUPPORT_TICKETS: SupportTicket[] = [
     createdAt: "2026-08-02T09:20:00.000Z",
     updatedAt: "2026-08-03T14:10:00.000Z",
     assignedTo: "Rahul Mehta",
-    assignedEmail: "rahul.mehta@petrotrade.com",
+    assignedEmail: "rahul.mehta@polystorex.com",
     relatedOrderId: "ORD-88421",
     attachments: [],
     timeline: [
@@ -180,7 +180,7 @@ export const MOCK_SUPPORT_TICKETS: SupportTicket[] = [
     createdAt: "2026-07-20T08:00:00.000Z",
     updatedAt: "2026-07-22T12:40:00.000Z",
     assignedTo: "Ankit Shah",
-    assignedEmail: "ankit.shah@petrotrade.com",
+    assignedEmail: "ankit.shah@polystorex.com",
     relatedOrderId: "ORD-88102",
     attachments: [],
     timeline: [
@@ -312,7 +312,7 @@ export const MOCK_SUPPORT_DOCS: SupportDoc[] = [
     description:
       "E-invoicing, IRN handling, HSN mapping, and credit/debit notes for polymer trades.",
     category: "Tax & Compliance",
-    fileName: "petrotrade-gst-guide.pdf",
+    fileName: "polystorex-gst-guide.pdf",
     pages: 18,
     updatedAt: "2026-06-12",
     content: `POLYSTOREX ENTERPRISE — GST GUIDE
@@ -331,7 +331,7 @@ export const MOCK_SUPPORT_DOCS: SupportDoc[] = [
    - Raised for quality claims or rate differences after delivery.
    - Must reference original IRN within the same financial year.
 
-Contact sanya@petrotrade.com for tax desk escalations.`,
+Contact sanya@polystorex.com for tax desk escalations.`,
   },
   {
     id: "doc-purchase",

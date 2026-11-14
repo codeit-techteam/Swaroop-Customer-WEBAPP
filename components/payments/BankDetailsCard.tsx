@@ -84,7 +84,7 @@ export function BankDetailsCard({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "petrotrade-payment-details.txt";
+    a.download = "polystorex-payment-details.txt";
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Payment details downloaded");

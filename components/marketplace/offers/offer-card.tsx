@@ -65,7 +65,7 @@ export function OfferCard({ offer, index = 0, className }: OfferCardProps) {
           <OfferBadge offer={offer} variant="discount" />
           <OfferBadge offer={offer} variant="type" />
         </div>
-        {status === "ending_soon" ? (
+        {status === "ending_soon" && offer.expiresAt ? (
           <div className="absolute bottom-3 left-3">
             <OfferCountdown expiresAt={offer.expiresAt} compact />
           </div>
@@ -164,9 +164,13 @@ export function OfferCard({ offer, index = 0, className }: OfferCardProps) {
           <PaymentTypeBadges types={offer.paymentTypes} />
         </div>
 
-        <p className="text-xs text-slate-400">
-          Valid until {formatDateDdMmYyyy(offer.expiresAt)}
-        </p>
+        {offer.expiresAt ? (
+          <p className="text-xs text-slate-400">
+            Valid until {formatDateDdMmYyyy(offer.expiresAt)}
+          </p>
+        ) : (
+          <p className="text-xs text-slate-400">Open availability</p>
+        )}
 
         <div className="mt-auto grid grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-2 pt-1">
           <Button

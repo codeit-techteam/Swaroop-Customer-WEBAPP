@@ -16,7 +16,7 @@ export interface MvpProfileView {
 
 export function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "PT";
+  if (parts.length === 0) return "PX";
   if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
   return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
 }
@@ -34,11 +34,11 @@ export function resolveMvpProfile(
   user: AuthUser | null,
   company: CompanyProfile,
 ): MvpProfileView {
-  const fullName = user?.name?.trim() || "Swaroop";
+  // Never invent a signed-in identity for guests or incomplete sessions.
+  const fullName = user?.name?.trim() || "";
   const companyName =
     company.legalName || company.tradeName || user?.companyName?.trim() || "";
-  const designation =
-    user?.designation?.trim() || user?.role?.trim() || "Procurement Manager";
+  const designation = user?.designation?.trim() || user?.role?.trim() || "";
 
   return {
     fullName,
@@ -49,7 +49,7 @@ export function resolveMvpProfile(
     gstVerified: company.gstVerified,
     memberSince: company.customerSince,
     avatarUrl: user?.avatarUrl ?? null,
-    companyInitials: company.logoInitials || getInitials(companyName),
-    userInitials: getInitials(fullName),
+    companyInitials: company.logoInitials || getInitials(companyName || "PX"),
+    userInitials: getInitials(fullName || companyName || "PX"),
   };
 }

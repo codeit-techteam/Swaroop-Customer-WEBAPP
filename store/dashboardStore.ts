@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { dashboardMock } from "@/mock/dashboard";
 import { toDashboardCredit, fetchCustomerCreditLimit } from "@/services/credit";
 import { fetchCustomerPurchaseRequests } from "@/services/purchase-requests";
+import { dedupeProductsByGrade } from "@/lib/marketplace-dedupe";
 import { useMarketplaceStore } from "@/store/marketplaceStore";
 import type {
   ActivityItem,
@@ -63,7 +64,10 @@ export const useDashboardStore = create<DashboardStoreState>((set) => ({
   setLoading: (loading) => set({ isLoading: loading }),
   hydrateFromCatalog: () => {
     const products = useMarketplaceStore.getState().products;
-    const recommendedProducts: RecommendedProduct[] = products.slice(0, 6).map((product) => ({
+    const recommendedProducts: RecommendedProduct[] = dedupeProductsByGrade(
+      products,
+      6,
+    ).map((product) => ({
       id: product.id,
       name: product.name,
       grade: product.grade,
@@ -97,7 +101,9 @@ export const useDashboardStore = create<DashboardStoreState>((set) => ({
       }
       if (byGrade.size >= 6) break;
     }
-    const cheapest = [...products].filter((item) => item.price > 0).sort((a, b) => a.price - b.price)[0];
+    const cheapest = [...products]
+      .filter((item) => item.price > 0)
+      .sort((a, b) => a.price - b.price)[0];
     set({
       recommendedProducts,
       marketPrices: [...byGrade.values()],
@@ -122,23 +128,25 @@ export const useDashboardStore = create<DashboardStoreState>((set) => ({
         fetchCustomerPurchaseRequests(),
       ]);
       const mapped = toDashboardCredit(limit);
-      const purchaseRequests: PurchaseRequestSummary[] = requests.slice(0, 8).map((item) => ({
-        id: item.id,
-        displayId: item.displayId,
-        material: item.productName,
-        materialDetail: item.grade,
-        quantityMt: item.quantityMt,
-        status:
-          item.status === "approved"
-            ? "approved"
-            : item.status === "cancelled"
-              ? "cancelled"
-              : item.status === "expired"
+      const purchaseRequests: PurchaseRequestSummary[] = requests
+        .slice(0, 8)
+        .map((item) => ({
+          id: item.id,
+          displayId: item.displayId,
+          material: item.productName,
+          materialDetail: item.grade,
+          quantityMt: item.quantityMt,
+          status:
+            item.status === "approved"
+              ? "approved"
+              : item.status === "cancelled"
                 ? "cancelled"
-                : "pending_seller_approval",
-        orderId: item.orderId,
-        createdAt: item.createdAt,
-      }));
+                : item.status === "expired"
+                  ? "cancelled"
+                  : "pending_seller_approval",
+          orderId: item.orderId,
+          createdAt: item.createdAt,
+        }));
       set({
         ...mapped,
         purchaseRequests,

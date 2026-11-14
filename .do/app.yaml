@@ -17,7 +17,7 @@ services:
         value: https://swaroop-backend-xzwkz.ondigitalocean.app/api/v1
         scope: RUN_AND_BUILD_TIME
       - key: NEXT_PUBLIC_APP_NAME
-        value: PetroTrade Customer Portal
+        value: PolyStoreX Customer Portal
         scope: RUN_AND_BUILD_TIME
       - key: NEXT_PUBLIC_APP_ENV
         value: production

@@ -109,7 +109,7 @@ export function ProcurementTable({ rows, className }: ProcurementTableProps) {
         <SectionTitle
           title="Active Purchase Requests"
           actionLabel="View All"
-          actionHref={ROUTES.orders}
+          actionHref={ROUTES.purchaseRequests}
         />
       </CardHeader>
       <CardContent className="px-0 pb-2 sm:px-2">

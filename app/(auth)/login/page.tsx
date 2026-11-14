@@ -1,13 +1,15 @@
-import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AuthLayout, LoginForm } from "@/components/auth";
 import { LoginHero } from "@/components/auth/login-hero";
+import { pageMetadata } from "@/lib/seo";
+import { ROUTES } from "@/constants";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Login",
   description:
     "Sign in to PolyStoreX Customer Portal with mobile number OTP verification",
-};
+  path: ROUTES.login,
+});
 
 export default function LoginPage() {
   return (

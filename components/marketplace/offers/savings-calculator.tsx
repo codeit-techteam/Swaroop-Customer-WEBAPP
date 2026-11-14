@@ -56,6 +56,7 @@ export function SavingsCalculator({
             className="h-10 w-10 rounded-xl"
             onClick={decrement}
             disabled={quantityMt <= min}
+            aria-label="Decrease quantity"
           >
             <Minus className="h-4 w-4" />
           </Button>
@@ -69,6 +70,7 @@ export function SavingsCalculator({
             className="h-10 w-10 rounded-xl"
             onClick={increment}
             disabled={quantityMt >= max}
+            aria-label="Increase quantity"
           >
             <Plus className="h-4 w-4" />
           </Button>

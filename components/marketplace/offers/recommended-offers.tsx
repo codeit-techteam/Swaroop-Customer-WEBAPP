@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
+import { dedupeOffersByGrade } from "@/lib/marketplace-dedupe";
 import { useOffersStore } from "@/store/offersStore";
 import { OfferCard } from "./offer-card";
 import { cn } from "@/lib/utils";
@@ -12,18 +13,19 @@ interface RecommendedOffersProps {
 
 export function RecommendedOffers({ className }: RecommendedOffersProps) {
   const offers = useOffersStore((state) => state.offers);
+  const byGrade = dedupeOffersByGrade(offers);
   const groups = [
     {
       id: "available",
       title: "Available now",
       subtitle: "Live marketplace offers from PostgreSQL",
-      items: offers.slice(0, 4),
+      items: byGrade.slice(0, 4),
     },
     {
       id: "more",
       title: "More grades",
       subtitle: "Additional customer-visible listings",
-      items: offers.slice(4, 8),
+      items: byGrade.slice(4, 8),
     },
   ].filter((group) => group.items.length > 0);
 

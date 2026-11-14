@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface OfferCountdownProps {
-  expiresAt: string;
+  expiresAt: string | null | undefined;
   className?: string;
   compact?: boolean;
 }
@@ -15,18 +15,36 @@ interface TimeLeft {
   minutes: number;
   seconds: number;
   expired: boolean;
+  missing: boolean;
 }
 
-function calcTimeLeft(expiresAt: string): TimeLeft {
+function calcTimeLeft(expiresAt: string | null | undefined): TimeLeft {
+  if (!expiresAt) {
+    return {
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      expired: false,
+      missing: true,
+    };
+  }
   const diff = new Date(expiresAt).getTime() - Date.now();
-  if (diff <= 0) {
-    return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
+  if (Number.isNaN(diff) || diff <= 0) {
+    return {
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      expired: true,
+      missing: false,
+    };
   }
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
   const minutes = Math.floor((diff / (1000 * 60)) % 60);
   const seconds = Math.floor((diff / 1000) % 60);
-  return { days, hours, minutes, seconds, expired: false };
+  return { days, hours, minutes, seconds, expired: false, missing: false };
 }
 
 export function OfferCountdown({
@@ -38,11 +56,20 @@ export function OfferCountdown({
 
   useEffect(() => {
     setTime(calcTimeLeft(expiresAt));
+    if (!expiresAt) return;
     const id = window.setInterval(() => {
       setTime(calcTimeLeft(expiresAt));
     }, 1000);
     return () => window.clearInterval(id);
   }, [expiresAt]);
+
+  if (time.missing) {
+    return (
+      <span className={cn("text-sm font-medium text-slate-500", className)}>
+        Open availability
+      </span>
+    );
+  }
 
   if (time.expired) {
     return (
@@ -97,15 +124,25 @@ export function OfferCountdownBlocks({
   expiresAt,
   className,
 }: {
-  expiresAt: string;
+  expiresAt: string | null | undefined;
   className?: string;
 }) {
   const [time, setTime] = useState<TimeLeft>(() => calcTimeLeft(expiresAt));
 
   useEffect(() => {
+    setTime(calcTimeLeft(expiresAt));
+    if (!expiresAt) return;
     const id = window.setInterval(() => setTime(calcTimeLeft(expiresAt)), 1000);
     return () => window.clearInterval(id);
   }, [expiresAt]);
+
+  if (time.missing) {
+    return (
+      <p className={cn("text-sm font-medium text-slate-500", className)}>
+        No fixed end date
+      </p>
+    );
+  }
 
   const units = [
     { label: "Days", value: time.days },

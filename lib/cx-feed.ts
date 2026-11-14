@@ -6,6 +6,7 @@ import type {
   MarketplaceProduct,
   MaterialGradeCategory,
 } from "@/types/marketplace";
+import { dedupeProductsByGrade } from "@/lib/marketplace-dedupe";
 import type {
   BulkPricingTier,
   ComplianceDocument,
@@ -316,8 +317,15 @@ export function publishedProductToDetail(
         ? product.features
         : getFeaturesForMaterial(materialType),
     highlights: product.highlights?.length
-      ? product.highlights
-      : buildProductHighlights(creditEligible),
+      ? product.highlights.filter(
+          (item) =>
+            mapDocuments(product)?.length ||
+            !item.toLowerCase().includes("quality documentation"),
+        )
+      : buildProductHighlights(
+          creditEligible,
+          Boolean(mapDocuments(product)?.length),
+        ),
     industry: product.industry ?? "Petrochemicals & Packaging",
     packaging: product.packaging,
     origin: product.origin || product.location,
@@ -342,13 +350,23 @@ export function publishedProductToDetail(
             alt: `${product.name} image ${index + 1}`,
           }))
         : buildGalleryFromProduct(galleryImages[0] ?? "", product.name),
-    quality: {
-      ...DEFAULT_QUALITY_ASSURANCE,
-      badges: product.qualityBadges?.length ? product.qualityBadges : [],
-      subtitle: product.qualityBadges?.length
-        ? "Verified quality documents are available for download below."
-        : "Technical Data Sheet not available yet for this grade.",
-    },
+    quality: (() => {
+      const docs = mapDocuments(product);
+      const hasDocs = Boolean(docs?.length || product.qualityBadges?.length);
+      if (!hasDocs) {
+        return {
+          title: "Quality documentation",
+          subtitle: "Technical Data Sheet not available yet for this grade.",
+          badges: [] as string[],
+        };
+      }
+      return {
+        ...DEFAULT_QUALITY_ASSURANCE,
+        badges: product.qualityBadges?.length ? product.qualityBadges : [],
+        subtitle:
+          "Verified quality documents are available for download below.",
+      };
+    })(),
     specs:
       specs.length > 0
         ? specs
@@ -416,7 +434,7 @@ export async function hydrateCustomerExperienceFeed() {
             },
           }
         : {}),
-      recommendedProducts: mapped.slice(0, 4).map((product) => ({
+      recommendedProducts: dedupeProductsByGrade(mapped, 4).map((product) => ({
         id: product.id,
         name: product.name,
         grade: product.grade,

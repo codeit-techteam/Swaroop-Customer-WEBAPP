@@ -594,7 +594,7 @@ export const useDocumentsStore = create<DocumentsStoreState>()(
             pincode: "400051",
             contactPerson: "Accounts Desk",
             phone: "+91 22 6987 4500",
-            email: "invoices@petrotrade.in",
+            email: "invoices@polystorex.com",
           },
           buyer: proforma.buyer,
           sellerInfo: proforma.sellerInfo,

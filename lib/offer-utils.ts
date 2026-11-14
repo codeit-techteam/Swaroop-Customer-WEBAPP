@@ -10,13 +10,16 @@ const ENDING_SOON_MS = 24 * 60 * 60 * 1000;
 
 export function getOfferStatus(offer: MarketplaceOffer): OfferStatus {
   const now = Date.now();
-  const expires = new Date(offer.expiresAt).getTime();
 
   if (offer.validFrom && new Date(offer.validFrom).getTime() > now) {
     return "upcoming";
   }
-  if (expires <= now) return "expired";
   if (offer.remainingStock <= 0) return "sold_out";
+
+  if (!offer.expiresAt) return "active";
+
+  const expires = new Date(offer.expiresAt).getTime();
+  if (Number.isNaN(expires) || expires <= now) return "expired";
   if (expires - now <= ENDING_SOON_MS) return "ending_soon";
   return "active";
 }
@@ -107,8 +110,9 @@ export function getOfferSummaryStats(
   return {
     activeOffers: offers.length,
     limitedTimeDeals: offers.filter((offer) => offer.isLimitedTime).length,
-    bulkDiscountCampaigns: offers.filter((offer) => offer.offerType === "bulk_discount")
-      .length,
+    bulkDiscountCampaigns: offers.filter(
+      (offer) => offer.offerType === "bulk_discount",
+    ).length,
     creditEligibleOffers: offers.filter((offer) => offer.creditEligible).length,
   };
 }

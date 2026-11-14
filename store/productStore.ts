@@ -8,6 +8,7 @@ import type {
   ProductDetailRecord,
   RelatedProductCard,
 } from "@/types/product-details";
+import { dedupeProductsByGrade } from "@/lib/marketplace-dedupe";
 import { ROUTES } from "@/constants";
 
 export interface ProductStoreState {
@@ -22,21 +23,22 @@ export interface ProductStoreState {
 }
 
 function relatedCards(excludeId: string): RelatedProductCard[] {
-  return useMarketplaceStore
-    .getState()
-    .products.filter((item) => item.id !== excludeId)
-    .slice(0, 8)
-    .map((product) => ({
-      id: product.id,
-      name: product.name,
-      brandName: product.brandName,
-      categoryLabel: product.materialType.toUpperCase(),
-      pricePerMt: product.price,
-      warehouseLabel: product.warehouseLabel,
-      stockLabel: `${product.stock.toLocaleString("en-IN")} MT`,
-      imageUrl: "",
-      href: `${ROUTES.marketplaceProduct}/${product.id}`,
-    }));
+  return dedupeProductsByGrade(
+    useMarketplaceStore
+      .getState()
+      .products.filter((item) => item.id !== excludeId),
+    8,
+  ).map((product) => ({
+    id: product.id,
+    name: product.name,
+    brandName: product.brandName,
+    categoryLabel: product.materialType.toUpperCase(),
+    pricePerMt: product.price,
+    warehouseLabel: product.warehouseLabel,
+    stockLabel: `${product.stock.toLocaleString("en-IN")} MT`,
+    imageUrl: "",
+    href: `${ROUTES.marketplaceProduct}/${product.id}`,
+  }));
 }
 
 export const useProductStore = create<ProductStoreState>((set) => ({

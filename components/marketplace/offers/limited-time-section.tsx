@@ -20,7 +20,9 @@ export function LimitedTimeOffers({
   offers,
   className,
 }: LimitedTimeOffersProps) {
-  const limited = offers.filter((o) => o.isLimitedTime).slice(0, 6);
+  const limited = offers
+    .filter((o) => o.isLimitedTime && o.expiresAt)
+    .slice(0, 6);
   if (!limited.length) return null;
 
   const lead = limited[0];
