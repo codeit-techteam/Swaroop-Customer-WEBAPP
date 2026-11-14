@@ -12,9 +12,12 @@ export const env = {
 
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001",
   appEnv: process.env.NEXT_PUBLIC_APP_ENV ?? "development",
+  // Interim production API (DigitalOcean). Override via env — do not point
+  // production builds at localhost or unconfigured custom domains.
   apiBaseUrl:
     process.env.NEXT_PUBLIC_API_BASE_URL ??
     "https://swaroop-backend-xzwkz.ondigitalocean.app/api/v1",
+  // Legacy key names kept for session continuity; branding is PolyStoreX in UI.
   refreshTokenStorageKey:
     process.env.NEXT_PUBLIC_REFRESH_TOKEN_KEY ?? "pt_customer_refresh",
   apiTimeout: Number(process.env.NEXT_PUBLIC_API_TIMEOUT ?? 30000),
@@ -27,7 +30,9 @@ export const env = {
   cxApiUrl:
     process.env.NEXT_PUBLIC_CX_API_URL ??
     "https://swaroop-backend-xzwkz.ondigitalocean.app",
-  adminApiUrl: process.env.NEXT_PUBLIC_ADMIN_API_URL ?? "http://localhost:3002",
+  adminApiUrl:
+    process.env.NEXT_PUBLIC_ADMIN_API_URL ??
+    "https://swaroop-admin-pi.vercel.app",
   /** Optional — improves reverse geocode; OSM fallback is used when empty. */
   googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "",
   isDevelopment: process.env.NODE_ENV === "development",

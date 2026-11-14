@@ -140,9 +140,17 @@ export function toBackendPaymentOption(id: PaymentMethodId): string {
 export function checkoutErrorCode(error: unknown): string | null {
   if (isNetworkError(error)) return "NETWORK_ERROR";
   if (isAxiosError<CheckoutErrorBody>(error)) {
-    const code = error.response?.data?.code;
-    if (typeof code === "string" && code) return code;
+    const payload = error.response?.data as
+      { code?: string; error?: string; message?: string } | undefined;
+    const code = payload?.code ?? payload?.error;
+    if (typeof code === "string" && code) return code.toUpperCase();
     if (error.response?.status === 401) return "UNAUTHORIZED";
+    if (
+      error.response?.status === 403 &&
+      /kyc/i.test(String(payload?.message ?? payload?.error ?? ""))
+    ) {
+      return "KYC_NOT_APPROVED";
+    }
     if (!error.response) return "NETWORK_ERROR";
   }
   return null;

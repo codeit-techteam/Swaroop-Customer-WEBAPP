@@ -37,7 +37,14 @@ export function dedupeOffersByGrade(
   const seen = new Set<string>();
   const out: MarketplaceOffer[] = [];
   for (const offer of offers) {
-    const key = (offer.grade || offer.productId || offer.id)
+    // Prefer stable gradeId so Recommended Grades are unique by grade, not name.
+    const key = (
+      offer.gradeId?.trim() ||
+      offer.gradeCode?.trim() ||
+      offer.grade?.trim() ||
+      offer.productId ||
+      offer.id
+    )
       .trim()
       .toLowerCase();
     if (seen.has(key)) continue;

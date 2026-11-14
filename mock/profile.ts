@@ -417,4 +417,6 @@ export const customerProfileMock: CustomerProfileState = {
   lastLogin: "2026-08-04T11:42:00.000Z",
   verificationStatus: "verified",
   creditStatus: "active",
+  kycVerified: false,
+  kycStatus: "NOT_SUBMITTED",
 };

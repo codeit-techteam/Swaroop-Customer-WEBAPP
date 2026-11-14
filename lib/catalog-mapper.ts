@@ -606,6 +606,9 @@ export function toMarketplaceOffer(
     productId: product?.id ?? offer.product?.id ?? "",
     productName: title,
     grade: product?.grade ?? offer.grade?.code ?? offer.grade?.name ?? "",
+    gradeId: product?.gradeId ?? offer.grade?.id ?? undefined,
+    gradeCode:
+      product?.gradeCode ?? offer.grade?.code ?? offer.grade?.name ?? undefined,
     categoryId,
     categoryLabel: CATEGORY_LABEL[categoryId],
     brandId: product?.brandId ?? "private",

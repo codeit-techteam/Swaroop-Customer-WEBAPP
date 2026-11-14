@@ -60,6 +60,9 @@ export interface MarketplaceOffer {
   productId: string;
   productName: string;
   grade: string;
+  /** Stable grade master id when known — preferred for recommendation dedupe. */
+  gradeId?: string;
+  gradeCode?: string;
   categoryId: MarketplaceParentCategoryId;
   categoryLabel: string;
   brandId: string;

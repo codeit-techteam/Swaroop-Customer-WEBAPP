@@ -93,8 +93,14 @@ const COPY: Record<string, Omit<CommerceErrorCopy, "code">> = {
     message: "Add a product from the marketplace to continue.",
   },
   UNAUTHORIZED: {
-    title: "Session expired",
-    message: "Please sign in again to continue checkout.",
+    title: "Sign in required",
+    message:
+      "Sign in to continue. Prices for browsing stay visible; checkout needs an account.",
+  },
+  KYC_NOT_APPROVED: {
+    title: "Complete KYC first",
+    message:
+      "Verified business KYC is required before cart, Buy Now, or purchase requests.",
   },
   NO_MATCHING_SELLER: {
     title: "Unable to fulfil",

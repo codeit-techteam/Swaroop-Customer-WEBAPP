@@ -1274,53 +1274,67 @@ function buildFromSeed(seed: Seed, index: number): AppNotification {
   };
 }
 
-export const notificationsCatalogMock: AppNotification[] = SEEDS.map(
-  (seed, i) => buildFromSeed(seed, i),
-);
-
-/** Ensure ≥80 notifications — pad with varied lifecycle events if needed */
-while (notificationsCatalogMock.length < 82) {
-  const i = notificationsCatalogMock.length;
-  const extraTypes: NotificationType[] = [
-    "purchase_request_submitted",
-    "seller_approved_request",
-    "purchase_order_generated",
-    "advance_payment_required",
-    "payment_approved",
-    "shipment_created",
-    "vehicle_dispatched",
-    "shipment_delivered",
-    "invoice_generated",
-    "gst_invoice_ready",
-    "offer_available",
-    "system_maintenance",
-  ];
-  const cats: NotificationCategory[] = [
-    "purchase_requests",
-    "seller_approval",
-    "orders",
-    "payments",
-    "payments",
-    "shipment",
-    "shipment",
-    "shipment",
-    "documents",
-    "documents",
-    "promotions",
-    "system",
-  ];
-  const idx = i % extraTypes.length;
-  notificationsCatalogMock.push(
-    buildFromSeed(
-      {
-        type: extraTypes[idx],
-        category: cats[idx],
-        priority: (["high", "medium", "low", "completed"] as const)[i % 4],
-        status: i % 3 === 0 ? "unread" : "read",
-        hoursAgo: 48 + i * 6,
-        orderN: 300 + i,
-      },
-      i,
-    ),
+/**
+ * Demo fixture only. Production notification UI uses the authenticated backend
+ * feed (`notificationsCatalogStore` starts empty). Never hydrate this into the
+ * live store. Historical PT-ORD references in seeds are preserved for demos only.
+ */
+const buildNotificationsCatalogMock = (): AppNotification[] => {
+  if (process.env.NODE_ENV === "production") {
+    return [];
+  }
+  const rows: AppNotification[] = SEEDS.map((seed, i) =>
+    buildFromSeed(seed, i),
   );
-}
+
+  // Ensure ≥80 notifications — pad with varied lifecycle events if needed
+  while (rows.length < 82) {
+    const i = rows.length;
+    const extraTypes: NotificationType[] = [
+      "purchase_request_submitted",
+      "seller_approved_request",
+      "purchase_order_generated",
+      "advance_payment_required",
+      "payment_approved",
+      "shipment_created",
+      "vehicle_dispatched",
+      "shipment_delivered",
+      "invoice_generated",
+      "gst_invoice_ready",
+      "offer_available",
+      "system_maintenance",
+    ];
+    const cats: NotificationCategory[] = [
+      "purchase_requests",
+      "seller_approval",
+      "orders",
+      "payments",
+      "payments",
+      "shipment",
+      "shipment",
+      "shipment",
+      "documents",
+      "documents",
+      "promotions",
+      "system",
+    ];
+    const idx = i % extraTypes.length;
+    rows.push(
+      buildFromSeed(
+        {
+          type: extraTypes[idx],
+          category: cats[idx],
+          priority: (["high", "medium", "low", "completed"] as const)[i % 4],
+          status: i % 3 === 0 ? "unread" : "read",
+          hoursAgo: 48 + i * 6,
+          orderN: 300 + i,
+        },
+        i,
+      ),
+    );
+  }
+  return rows;
+};
+
+export const notificationsCatalogMock: AppNotification[] =
+  buildNotificationsCatalogMock();

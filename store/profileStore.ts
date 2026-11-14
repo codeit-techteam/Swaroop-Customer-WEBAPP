@@ -97,6 +97,10 @@ const EMPTY_PROFILE: CustomerProfileState = {
   documents: [],
   lastLogin: "",
   verificationStatus: "not_started",
+  creditStatus: "not_eligible",
+  /** Backend overview.kycVerified — trading gate source of truth. */
+  kycVerified: false,
+  kycStatus: "NOT_SUBMITTED" as CustomerKycOverview["status"],
 };
 
 const toVerificationStatus = (
@@ -262,7 +266,12 @@ export const useProfileStore = create<ProfileStoreState>()(
       setHydrated: (v) => set({ isHydrated: v }),
       setSyncStatus: (syncStatus) => set({ syncStatus }),
       applyKycOverview: (overview) =>
-        set({ ...profileFromKycOverview(overview), syncStatus: "ready" }),
+        set({
+          ...profileFromKycOverview(overview),
+          kycVerified: overview.kycVerified,
+          kycStatus: overview.status,
+          syncStatus: "ready",
+        }),
       setActiveTab: (tab) => set({ activeTab: tab }),
       setContactSearch: (q) => set({ contactSearch: q }),
       setAddressSearch: (q) => set({ addressSearch: q }),

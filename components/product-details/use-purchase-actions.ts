@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ROUTES } from "@/constants";
 import { getAccessToken } from "@/lib/auth-session";
 import { useCartStore } from "@/store/cartStore";
+import { useProfileStore } from "@/store/profileStore";
 import type { CheckoutQuote } from "@/services/checkout";
 import { checkoutHref, toBackendPaymentOption } from "@/services/checkout";
 import type { PaymentMethodId } from "@/types/product-details";
@@ -28,6 +29,7 @@ export interface PurchaseActions {
   outOfStock: boolean;
   canAddToCart: boolean;
   canBuy: boolean;
+  kycRequired: boolean;
   addToCart: () => Promise<void>;
   buyNow: () => void;
 }
@@ -42,6 +44,15 @@ function looksUnauthenticated(message: string): boolean {
     m.includes("log in") ||
     m.includes("login required") ||
     m.includes("401")
+  );
+}
+
+function looksKycBlocked(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes("kyc") ||
+    m.includes("kyc_not_approved") ||
+    m.includes("complete your kyc")
   );
 }
 
@@ -89,21 +100,34 @@ export function usePurchaseActions({
 }: UsePurchaseActionsOptions): PurchaseActions {
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
+  const kycVerified = useProfileStore((s) => s.kycVerified);
+  const syncStatus = useProfileStore((s) => s.syncStatus);
   const [adding, setAdding] = useState(false);
   const [cartError, setCartError] = useState<string | null>(null);
 
+  const hasToken = Boolean(getAccessToken());
+  const kycRequired = hasToken && syncStatus === "ready" && !kycVerified;
   const outOfStock = maxStock <= 0;
-  const canAddToCart = !adding && !outOfStock && quantity > 0;
+  const canAddToCart = !adding && !outOfStock && quantity > 0 && !kycRequired;
   const canBuy =
     Boolean(quote) &&
     !quoteLoading &&
     !quoteError &&
     !outOfStock &&
-    quantity > 0;
+    quantity > 0 &&
+    !kycRequired;
 
   useEffect(() => {
     setCartError(null);
   }, [quantity, paymentId]);
+
+  function redirectToKyc(nextPath: string) {
+    toast.message("Complete KYC first", {
+      description:
+        "Verified business KYC is required before cart, Buy Now, or purchase requests.",
+    });
+    router.push(`${ROUTES.kyc}?next=${encodeURIComponent(nextPath)}`);
+  }
 
   async function addToCart() {
     if (outOfStock || quantity <= 0) {
@@ -126,6 +150,10 @@ export function usePurchaseActions({
       redirectToLogin(router, nextPath);
       return;
     }
+    if (kycRequired) {
+      redirectToKyc(nextPath);
+      return;
+    }
 
     setAdding(true);
     const result = await addItem(
@@ -139,6 +167,10 @@ export function usePurchaseActions({
     if (!result.ok) {
       if (looksUnauthenticated(result.message) || !getAccessToken()) {
         redirectToLogin(router, nextPath);
+        return;
+      }
+      if (looksKycBlocked(result.message)) {
+        redirectToKyc(nextPath);
         return;
       }
       setCartError(result.message);
@@ -155,17 +187,35 @@ export function usePurchaseActions({
   }
 
   function buyNow() {
-    if (!quote) {
-      toast.error(quoteError ?? "Unable to load latest pricing");
-      return;
-    }
     const nextPath = purchaseReturnPath(
       productId,
       quantity,
-      quote.offerId ?? offerId,
+      quote?.offerId ?? offerId,
     );
     if (!getAccessToken()) {
       redirectToLogin(router, nextPath);
+      return;
+    }
+    if (kycRequired) {
+      redirectToKyc(nextPath);
+      return;
+    }
+    if (!quote) {
+      const err = quoteError ?? "";
+      if (looksKycBlocked(err)) {
+        redirectToKyc(nextPath);
+        return;
+      }
+      // Guests / quote failures: never surface raw 401 text.
+      if (looksUnauthenticated(err)) {
+        redirectToLogin(router, nextPath);
+        return;
+      }
+      toast.error(
+        err && !/401|unauthorized/i.test(err)
+          ? err
+          : "Unable to load latest pricing. Sign in and complete KYC to continue.",
+      );
       return;
     }
     router.push(checkoutHref([quote.quoteId]));
@@ -177,6 +227,7 @@ export function usePurchaseActions({
     outOfStock,
     canAddToCart,
     canBuy,
+    kycRequired,
     addToCart,
     buyNow,
   };

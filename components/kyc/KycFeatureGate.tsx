@@ -6,7 +6,6 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { ShieldAlert } from "lucide-react";
 import { ROUTES } from "@/constants";
 import { useAuthStore } from "@/store/authStore";
-import { useOnboardingStore } from "@/store/onboardingStore";
 import { useProfileStore } from "@/store/profileStore";
 
 /** Routes that require completed KYC for transactional / account actions. */
@@ -55,9 +54,10 @@ export function KycFeatureGate({ children }: KycFeatureGateProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const onboardingCompleted = useOnboardingStore((s) => s.isCompleted);
   const syncStatus = useProfileStore((s) => s.syncStatus);
   const company = useProfileStore((s) => s.company);
+  const kycVerified = useProfileStore((s) => s.kycVerified);
+  const kycStatus = useProfileStore((s) => s.kycStatus);
 
   if (!isAuthenticated || !isKycGatedPath(pathname)) {
     return <>{children}</>;
@@ -76,7 +76,8 @@ export function KycFeatureGate({ children }: KycFeatureGateProps) {
     );
   }
 
-  if (onboardingCompleted || company.gstVerified) {
+  // Align with backend isCustomerKycVerified / overview.kycVerified — not GST alone.
+  if (kycVerified) {
     return <>{children}</>;
   }
 
@@ -93,7 +94,9 @@ export function KycFeatureGate({ children }: KycFeatureGateProps) {
   if (!company.gstVerified && !company.gstNumber)
     missing.push("GSTIN verification");
   else if (!company.gstVerified) missing.push("GSTIN verification");
-  if (missing.length === 0) {
+  if (kycStatus === "SUBMITTED") {
+    missing.push("Admin approval of submitted Business KYC");
+  } else if (missing.length === 0) {
     missing.push("Business KYC submission and admin verification");
   }
 
@@ -104,11 +107,13 @@ export function KycFeatureGate({ children }: KycFeatureGateProps) {
     >
       <div className="flex items-center gap-2 text-base font-semibold">
         <ShieldAlert className="h-5 w-5 shrink-0 text-amber-700" />
-        Complete your KYC to access this feature.
+        Complete KYC first
       </div>
       <p className="text-sm text-amber-900/90">
         PolyStoreX requires verified business KYC before cart, orders, payments,
-        support tickets, and profile actions. Missing steps:
+        support tickets, purchase requests, and profile actions. This protects
+        trading on behalf of Veylron Polychem Private Limited marketplace
+        counterparties. Missing steps:
       </p>
       <ul className="list-disc space-y-1 pl-5 text-sm text-amber-900/90">
         {missing.map((step) => (

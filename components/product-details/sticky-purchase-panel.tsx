@@ -450,6 +450,11 @@ export function StickyPurchasePanel({
             </p>
           ) : null}
 
+          {actions.kycRequired ? (
+            <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+              Complete KYC first to enable Buy Now and Add to Cart.
+            </p>
+          ) : null}
           {outOfStock ? (
             <Button
               type="button"
@@ -489,8 +494,8 @@ export function StickyPurchasePanel({
                     aria-hidden="true"
                   />
                 ) : null}
-                Buy Now
-                {!quoteLoading ? (
+                {actions.kycRequired ? "Complete KYC" : "Buy Now"}
+                {!quoteLoading && !actions.kycRequired ? (
                   <ArrowRight
                     className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
                     aria-hidden="true"

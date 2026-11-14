@@ -222,4 +222,12 @@ export interface CustomerProfileState {
   lastLogin: string;
   verificationStatus: VerificationStatus;
   creditStatus: CreditStatus;
+  /** Mirrors backend CustomerKycOverview.kycVerified for trading gates. */
+  kycVerified: boolean;
+  kycStatus:
+    | "NOT_SUBMITTED"
+    | "SUBMITTED"
+    | "CHANGES_REQUESTED"
+    | "APPROVED"
+    | "REJECTED";
 }
