@@ -11,7 +11,7 @@ import {
 
 /**
  * Contact details come from the backend legal-links API, with approved
- * PolyStoreX fallbacks (it@polystorex.com / +91 99626 20101).
+ * PolyStoreX fallbacks (it@polystorex.com / +91 82484 00787).
  */
 export function ContactInfoCard() {
   const [links, setLinks] = useState<LegalLinks | null>(null);
