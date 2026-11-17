@@ -1,11 +1,13 @@
-import type { Metadata } from "next";
 import { AuthLayout, RegisterForm } from "@/components/auth";
 import { RegisterHero } from "@/components/auth/register-hero";
+import { ROUTES } from "@/constants";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Register",
   description: "Create your PolyStoreX corporate account",
-};
+  path: ROUTES.register,
+});
 
 export default function RegisterPage() {
   return (

@@ -1,6 +1,6 @@
 # PolyStoreX Customer Web Application
 
-Enterprise B2B customer web portal (desktop companion to the PolyStoreX Customer Mobile App).
+Enterprise B2B customer portal for PolyStoreX. Buyers browse the catalogue, place orders, and manage their account. It is the desktop companion to the PolyStoreX customer mobile app.
 
 ## Stack
 
@@ -11,30 +11,44 @@ Enterprise B2B customer web portal (desktop companion to the PolyStoreX Customer
 
 ## Getting started
 
+Requires Node.js 20 or newer.
+
 ```bash
 npm install
-cp .env.example .env.local
+cp .env.example .env
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3001](http://localhost:3001).
+
+Fill secrets in `.env` after copying the template. `.env` is gitignored. The only env file that belongs in git is `.env.example`, and that file must contain placeholders only.
+
+For local API calls, uncomment `API_PROXY_TARGET` in `.env` and set `NEXT_PUBLIC_API_BASE_URL=/api/v1`. The deployed API rejects browser CORS from localhost; the Next.js rewrite proxies those calls.
+
+## Secrets
+
+| Where                                           | What goes there                                                       |
+| ----------------------------------------------- | --------------------------------------------------------------------- |
+| `.env`                                          | Local secrets and machine-specific values. Never commit.              |
+| `.env.local`, `.env.production`, `.env.*.local` | Optional local overrides. Never commit.                               |
+| `.env.example`                                  | Names and safe public defaults only. No keys, tokens, or passwords.   |
+| Vercel / DigitalOcean                           | Production and preview values. Set them in the host dashboard or CLI. |
+
+`NEXT_PUBLIC_*` variables are compiled into the browser bundle. Do not put server credentials, private API keys, or database passwords behind that prefix. The Maps value, when set, must be a browser key restricted by HTTP referrer to the Maps JavaScript API. Leave `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` empty to hide the map. Leave `NEXT_PUBLIC_DEMO_OTP` false outside local development.
+
+Production builds read env from the host at build time. Changing a `NEXT_PUBLIC_*` value requires a new deploy.
 
 ## Scripts
 
-| Command                | Description                          |
-| ---------------------- | ------------------------------------ |
-| `npm run dev`          | Start development server (Turbopack) |
-| `npm run build`        | Production build                     |
-| `npm start`            | Start production server              |
-| `npm run lint`         | ESLint                               |
-| `npm run lint:fix`     | ESLint with autofix                  |
-| `npm run format`       | Prettier write                       |
-| `npm run format:check` | Prettier check                       |
-| `npm run typecheck`    | TypeScript (`tsc --noEmit`)          |
+| Command             | Description                     |
+| ------------------- | ------------------------------- |
+| `npm run dev`       | Development server on port 3001 |
+| `npm run build`     | Production build                |
+| `npm start`         | Production server               |
+| `npm run lint`      | ESLint                          |
+| `npm run typecheck` | TypeScript (`tsc --noEmit`)     |
+| `npm test`          | Node test runner                |
 
-## Architecture notes
+## Production
 
-- Frontend foundation only — mock data, local state, no live APIs
-- Route groups prepared for all customer modules
-- Axios + TanStack Query + Zustand wired and backend-ready
-- Auth middleware placeholder (disabled via `NEXT_PUBLIC_ENABLE_AUTH_GUARD`)
+The current public deploy is Vercel (`https://swaroop-customer-webapp.vercel.app`). The API is the DigitalOcean backend (`https://swaroop-backend-xzwkz.ondigitalocean.app`). A container build is also available via the Dockerfile for App Platform. Set production env vars on the host. Do not copy `.env` into the image or the repository.

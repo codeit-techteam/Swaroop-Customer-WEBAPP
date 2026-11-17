@@ -32,18 +32,20 @@ export function resolveMarketplaceBadge(
   return "Best Value";
 }
 
-/** Buyer-facing manufacturer — never expose raw supplier identities. */
+/**
+ * Catalogue manufacturer for buyers.
+ * PRIVATE is the old placeholder and is not a manufacturer.
+ * Seller identity is not passed into this helper.
+ */
 export function resolveBlindManufacturer(
   ...candidates: Array<string | null | undefined>
 ): string {
   for (const candidate of candidates) {
     const value = candidate?.trim();
-    if (!value) continue;
-    if (value.toUpperCase() === BLIND_MANUFACTURER) return BLIND_MANUFACTURER;
-    // Non-PRIVATE strings from nested grade payloads are treated as internal.
-    return BLIND_MANUFACTURER;
+    if (!value || value.toUpperCase() === BLIND_MANUFACTURER) continue;
+    return value;
   }
-  return BLIND_MANUFACTURER;
+  return "";
 }
 
 export type BlindListingPricingPreview = {

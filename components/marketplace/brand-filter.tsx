@@ -23,13 +23,12 @@ export function BrandFilter({ brands, selected, onToggle }: BrandFilterProps) {
   return (
     <fieldset className="space-y-3">
       <legend className="text-sm font-semibold text-slate-900">
-        Supplier identity
+        Manufacturer
       </legend>
       {onlyBlind ? (
         <p className="text-xs leading-relaxed text-slate-500">
-          Blind marketplace policy: manufacturer / brand identity is shown as{" "}
-          <span className="font-semibold text-slate-700">PRIVATE</span> on all
-          customer listings. Use material or warehouse filters instead.
+          Catalogue manufacturer names appear here when the grade master has
+          one. Seller identity stays hidden.
         </p>
       ) : null}
       <div className="space-y-2.5">
@@ -42,7 +41,7 @@ export function BrandFilter({ brands, selected, onToggle }: BrandFilterProps) {
                 id={inputId}
                 checked={checked}
                 onCheckedChange={() => onToggle(brand.id)}
-                disabled={onlyBlind}
+                disabled={false}
               />
               <Label
                 htmlFor={inputId}

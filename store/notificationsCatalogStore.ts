@@ -8,6 +8,7 @@ import {
 } from "@/mock/notifications-catalog";
 import { VIEW_FILTER_TO_CATEGORY } from "@/constants/notifications";
 import { isMvpNotification } from "@/lib/notification-actions";
+import { isSampleAdminPush } from "@/lib/sample-admin-pushes";
 import {
   DATE_GROUP_LABELS,
   getDateGroupKey,
@@ -62,6 +63,7 @@ export interface NotificationsCatalogStoreState {
   deleteSelected: () => void;
   archiveNotification: (id: string) => void;
   ingestAdminPushes: (items: AppNotification[]) => number;
+  dropSampleAdminPushes: () => void;
   /** Replace local feed with live backend notifications for the signed-in user. */
   replaceBackendNotifications: (items: AppNotification[]) => number;
   /** @deprecated Prefer replaceBackendNotifications — kept for admin push merge. */
@@ -363,23 +365,35 @@ export const useNotificationsCatalogStore =
             ),
           })),
 
-        ingestAdminPushes: (items) => {
-          const existing = new Set(get().notifications.map((n) => n.id));
-          const incoming = items.filter((item) => !existing.has(item.id));
-          if (incoming.length === 0) return 0;
+        dropSampleAdminPushes: () =>
           set((s) => ({
-            notifications: [...incoming, ...s.notifications],
-          }));
+            notifications: s.notifications.filter((n) => !isSampleAdminPush(n)),
+          })),
+
+        ingestAdminPushes: (items) => {
+          const kept = get().notifications.filter((n) => !isSampleAdminPush(n));
+          const existing = new Set(kept.map((n) => n.id));
+          const incoming = items.filter(
+            (item) => !existing.has(item.id) && !isSampleAdminPush(item),
+          );
+          if (incoming.length === 0) {
+            if (kept.length !== get().notifications.length) {
+              set({ notifications: kept });
+            }
+            return 0;
+          }
+          set({ notifications: [...incoming, ...kept] });
           return incoming.length;
         },
 
         replaceBackendNotifications: (items) => {
+          const next = items.filter((item) => !isSampleAdminPush(item));
           set({
-            notifications: items,
+            notifications: next,
             selectedIds: [],
             detailId: null,
           });
-          return items.length;
+          return next.length;
         },
 
         upsertBackendNotifications: (items) => {

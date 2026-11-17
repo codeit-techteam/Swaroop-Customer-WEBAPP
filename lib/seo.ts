@@ -103,8 +103,6 @@ export function pageMetadata({
 }
 
 export function rootMetadata(): Metadata {
-  const canonical = absoluteUrl("/marketplace");
-
   return {
     title: {
       default: env.appName,
@@ -113,12 +111,11 @@ export function rootMetadata(): Metadata {
     description: DEFAULT_DESCRIPTION,
     applicationName: env.appName,
     metadataBase: new URL(publicSiteOrigin()),
-    alternates: { canonical },
     openGraph: {
       type: "website",
       siteName: env.appName,
       locale: "en_IN",
-      url: canonical,
+      url: publicSiteOrigin(),
       title: env.appName,
       description: DEFAULT_DESCRIPTION,
       images: [

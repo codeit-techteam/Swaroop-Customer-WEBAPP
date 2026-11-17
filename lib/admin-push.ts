@@ -1,4 +1,5 @@
 import { env } from "@/lib/env";
+import { isSampleAdminPush } from "@/lib/sample-admin-pushes";
 import { useNotificationsCatalogStore } from "@/store/notificationsCatalogStore";
 import type {
   AppNotification,
@@ -80,7 +81,10 @@ export async function fetchAdminCustomerPushes(): Promise<AdminPushPayload[]> {
 
 export async function hydrateAdminPushInbox() {
   try {
-    const items = await fetchAdminCustomerPushes();
+    const items = (await fetchAdminCustomerPushes()).filter(
+      (item) => !isSampleAdminPush(item),
+    );
+    useNotificationsCatalogStore.getState().dropSampleAdminPushes();
     if (items.length === 0) return 0;
     const mapped = items.map(adminPushToCustomerNotification);
     return useNotificationsCatalogStore.getState().ingestAdminPushes(mapped);
