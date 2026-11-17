@@ -33,8 +33,7 @@ export const env = {
     process.env.NEXT_PUBLIC_CX_API_URL ??
     "https://swaroop-backend-xzwkz.ondigitalocean.app",
   adminApiUrl:
-    process.env.NEXT_PUBLIC_ADMIN_API_URL ??
-    "https://swaroop-admin-pi.vercel.app",
+    process.env.NEXT_PUBLIC_ADMIN_API_URL ?? "https://admin.polystorex.com",
   /** Optional — improves reverse geocode; OSM fallback is used when empty. */
   googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "",
   isDevelopment: process.env.NODE_ENV === "development",
